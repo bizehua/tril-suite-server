@@ -35,7 +35,7 @@ git push -u origin main
 3. 配置（基本都已自动填好，核对即可）：
    - **Runtime**：`Node`
    - **Build Command**：**留空**（不需要构建）
-   - **Start Command**：`node server.mjs`
+   - **Start Command**：`node --experimental-sqlite server.mjs`（⚠️ 必须带 `--experimental-sqlite`，否则 node:sqlite 无法加载会启动失败）
    - **Instance Type**：`Free`（免费）
 4. 点 **Create Web Service**。
 5. 等 1–2 分钟，状态变绿后，点生成的 `https://xxxx.onrender.com` 即可访问。
