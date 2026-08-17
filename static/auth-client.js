@@ -25,9 +25,9 @@
     if(el('trilAuthCSS')) return;
     var css = document.createElement('style'); css.id='trilAuthCSS';
     css.textContent = `
-    #trilTopbar{position:fixed;top:0;left:0;right:0;z-index:99990;display:flex;gap:8px;align-items:center;justify-content:flex-end;
-      padding:6px 12px;background:rgba(15,23,42,.82);backdrop-filter:blur(6px);color:#e8edf7;font:13px system-ui,sans-serif;}
-    #trilTopbar .u{margin-right:auto;opacity:.9}
+    #trilTopbar{display:flex;gap:8px;align-items:center;margin-left:auto}
+    #trilTopbar.floating{position:fixed;top:0;left:0;right:0;z-index:99990;background:rgba(15,23,42,.82);backdrop-filter:blur(6px);color:#e8edf7;font:13px system-ui,sans-serif;padding:6px 12px;justify-content:flex-end}
+    #trilTopbar .u{margin-right:auto;opacity:.9;color:#e8edf7}
     #trilTopbar button{font:13px system-ui;padding:5px 12px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}
     #trilTopbar button.ghost{background:rgba(255,255,255,.12)}
     .tril-modal{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(10,15,28,.7)}
@@ -61,7 +61,7 @@
     .tril-toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99999;background:#11192c;color:#e8edf7;
       padding:10px 16px;border-radius:10px;border:1px solid #2c3756;font:13px system-ui;opacity:0;transition:.25s;pointer-events:none}
     .tril-toast.show{opacity:1}
-    @media (prefers-color-scheme:dark){#trilTopbar{background:rgba(15,23,42,.9)}}
+    @media (prefers-color-scheme:dark){#trilTopbar.floating{background:rgba(15,23,42,.9)}}
     `;
     document.head.appendChild(css);
   }
@@ -201,7 +201,12 @@
 
   // ---------- 顶栏 ----------
   function renderTopbar(){
-    var bar=el('trilTopbar'); if(!bar){ bar=h('div',{id:'trilTopbar'}); document.body.appendChild(bar); }
+    var bar=el('trilTopbar');
+    if(!bar){
+      bar=h('div',{id:'trilTopbar'});
+      var hdr=document.querySelector('header');
+      if(hdr){ hdr.appendChild(bar); } else { bar.classList.add('floating'); document.body.appendChild(bar); }
+    }
     if(state.online && state.token){
       bar.innerHTML='<span class="u">👤 '+esc(state.user)+'（'+(state.role==='admin'?'管理员':'普通')+'）</span>'+
         (state.role==='admin'?'<button class="ghost" onclick="TrilAuth.toggleAdmin(true)">📊 记录</button><button class="ghost" onclick="TrilAuth.toggleModules(true)">🧩 模块</button>':'')+
@@ -253,8 +258,9 @@
       (function(){
         var b=h('button',{id:'trilBack',onclick:function(){ if(state._nav&&state._nav.length){ var f=state._nav.pop(); try{f();}catch(e){} } else if(history.length>1){ history.back(); } }});
         b.textContent='← 返回';
-        b.style.cssText='position:fixed;right:10px;top:46px;z-index:99992;padding:6px 12px;border:none;border-radius:18px;background:rgba(37,99,235,.9);color:#fff;font:13px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)';
-        document.body.appendChild(b);
+        var hdr2=document.querySelector('header');
+        if(hdr2){ b.style.cssText='margin-left:8px;padding:6px 12px;border:none;border-radius:8px;background:rgba(255,255,255,.12);color:#e8edf7;font:13px system-ui;cursor:pointer'; hdr2.appendChild(b); }
+        else { b.style.cssText='position:fixed;right:10px;top:46px;z-index:99992;padding:6px 12px;border:none;border-radius:18px;background:rgba(37,99,235,.9);color:#fff;font:13px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)'; document.body.appendChild(b); }
       })();
       state._nav=[]; window.TrilAuth.pushNav=function(fn){ state._nav.push(fn); };
 
