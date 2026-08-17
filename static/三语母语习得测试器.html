@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四语母语习得 · 测试器</title>
+<style>
+:root{
+  --bg:#0e1320; --bg2:#151c2e; --panel:#1a2238; --panel2:#212c47;
+  --line:#2c3756; --txt:#e8edf7; --muted:#93a0bd; --accent:#5b8cff;
+  --en:#5b8cff; --bm:#ffb454; --zh:#4fd1a5; --th:#c792ea; --danger:#ff6b6b; --ok:#4fd1a5;
+  --glow:0 0 0 2px rgba(91,140,255,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(160deg,var(--bg),var(--bg2));color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:rgba(20,28,46,.7);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);flex:0 0 auto}
+header h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.3px}
+header .sub{font-size:12px;color:var(--muted)}
+header .spacer{flex:1}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:9px;padding:8px 13px;font-size:13px;
+  background:var(--panel2);color:var(--txt);transition:.15s;border:1px solid var(--line)}
+button:hover{background:#2b3a5e}
+button.primary{background:linear-gradient(90deg,var(--en),#7aa2ff);border:none;font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.iconbtn{padding:7px 10px}
+
+.layout{flex:1;display:flex;min-height:0}
+nav{flex:0 0 250px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:10px}
+.navstage{margin-bottom:6px}
+.navstage>h3{font-size:13px;margin:8px 6px 4px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px}
+.navstage .cnt{font-size:11px;color:var(--muted);font-weight:400}
+.navfile{display:block;width:100%;text-align:left;margin:2px 0;padding:7px 10px;font-size:13px;
+  background:transparent;border:1px solid transparent;border-radius:8px;color:var(--txt)}
+.navfile:hover{background:var(--panel2)}
+.navfile.active{background:var(--panel2);border-color:var(--accent)}
+.navfile .fc{float:right;color:var(--muted);font-size:11px}
+.navfile .rt{float:right;color:var(--zh);font-size:10px;margin-right:6px}
+.navstage.collapsed .navfile{display:none}
+
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+.unitlist{flex:1;overflow-y:auto;padding:18px}
+.breadcrumb{font-size:13px;color:var(--muted);margin-bottom:12px}
+.breadcrumb b{color:var(--txt)}
+.unitgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ucard{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;cursor:pointer;
+  transition:.15s;position:relative;overflow:hidden}
+.ucard:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.ucard .ut{font-size:14px;font-weight:600;line-height:1.4}
+.ucard .umeta{font-size:11px;color:var(--muted);margin-top:6px}
+.ucard .badge{position:absolute;top:10px;right:10px;font-size:10px;padding:2px 7px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+.ucard.done .badge{background:rgba(79,209,165,.18);color:var(--zh)}
+.ucard .mini{height:4px;background:var(--panel2);border-radius:99px;margin-top:10px;overflow:hidden}
+.ucard .mini>i{display:block;height:100%;background:var(--zh)}
+
+/* 测试答题区 */
+.quiz{flex:1;display:flex;flex-direction:column;min-height:0}
+.quizbar{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px;
+  background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.quizbar .lt{font-size:15px;font-weight:700}
+.quizbar .back{margin-right:4px}
+.qprog{font-size:12px;color:var(--muted)}
+.qbar{flex:1;height:7px;background:var(--panel2);border-radius:99px;overflow:hidden;min-width:120px}
+.qbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--en),var(--bm),var(--zh),var(--th));transition:width .25s}
+.qwrap{flex:1;overflow-y:auto;padding:22px 18px;display:flex;flex-direction:column;align-items:center}
+.qcard{width:100%;max-width:680px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px}
+.qhead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.qtag{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+.qtag.en{color:var(--en);box-shadow:inset 0 0 0 1px var(--en)}
+.qtag.bm{color:var(--bm);box-shadow:inset 0 0 0 1px var(--bm)}
+.qtag.zh{color:var(--zh);box-shadow:inset 0 0 0 1px var(--zh)}
+.qtag.th{color:var(--th);box-shadow:inset 0 0 0 1px var(--th)}
+.qprompt{font-size:30px;font-weight:800;text-align:center;margin:18px 0;line-height:1.3}
+.qprompt.l-en{color:var(--en)} .qprompt.l-bm{color:var(--bm)} .qprompt.l-zh{color:var(--zh)} .qprompt.l-th{color:var(--th)}
+.qaudio{display:flex;justify-content:center;gap:10px;margin:8px 0 4px}
+.qlisten-hint{text-align:center;color:var(--muted);font-size:13px;margin-bottom:10px}
+.opts{display:flex;flex-direction:column;gap:11px;width:100%;max-width:560px;margin:0 auto}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;padding:14px 16px;font-size:16px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px;color:var(--txt);transition:.12s}
+.opt:hover:not(:disabled){border-color:var(--accent);background:#27345a}
+.opt .num{width:26px;height:26px;flex:0 0 26px;border-radius:7px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+.opt.correct{background:rgba(79,209,165,.18);border-color:var(--ok);color:#bff3df}
+.opt.wrong{background:rgba(255,107,107,.16);border-color:var(--danger);color:#ffc9c9}
+.opt:disabled{cursor:default}
+.feedback{width:100%;max-width:560px;margin:16px auto 0;padding:14px 16px;border-radius:12px;
+  background:var(--panel2);border:1px solid var(--line);font-size:14px;line-height:1.7;display:none}
+.feedback.show{display:block}
+.feedback .row{margin:3px 0}
+.feedback .en{color:#cfe0ff}.feedback .bm{color:#ffe2bb}.feedback .zh{color:#bff3df}.feedback .th{color:#e9d4ff}
+.feedback .rk{color:var(--muted);font-size:12px}
+.qnext{margin-top:16px;display:flex;justify-content:center;gap:10px}
+
+/* 开始面板 */
+.startpanel{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+.startpanel h2{margin:0 0 6px;font-size:17px}
+.startpanel .desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px}
+.field{margin-bottom:16px}
+.field .lab{font-size:12px;color:var(--muted);margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 13px;font-size:13px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);cursor:pointer}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+/* 成绩面板 */
+.result{flex:1;display:flex;align-items:center;justify-content:center}
+.rcard{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px;text-align:center}
+.rcard .score{font-size:54px;font-weight:900;margin:6px 0}
+.rcard .score small{font-size:20px;color:var(--muted)}
+.rcard .msg{font-size:15px;margin:10px 0 20px}
+.rcard .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50}
+.overlay.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:380px;max-width:92vw}
+.modal h2{margin:0 0 14px;font-size:16px}
+.field select,.field input[type=range]{width:100%}
+.field select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px}
+.note{font-size:11px;color:var(--muted);line-height:1.6;margin-top:8px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);
+  border:1px solid var(--accent);padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:60}
+.toast.show{opacity:1}
+.ipa{font-size:12px;color:var(--muted);font-family:"Courier New",monospace;margin-left:5px}
+.pron{font-size:12px;color:#caa46a;margin-left:5px}
+.w{cursor:pointer;border-bottom:1px dotted var(--muted);transition:.12s;border-radius:3px;padding:0 2px}
+.w:hover{color:#fff;border-bottom-color:#fff;background:rgba(91,140,255,.20)}
+.w.en{color:#cfe0ff}.w.bm{color:#ffe2bb}.w.zh{color:#bff3df}.w.th{color:#e9d4ff}
+.feedback .row{margin:6px 0;font-size:15px}
+.feedback .hint{font-size:12px;color:var(--muted);margin-top:8px}
+.review{margin-top:18px;text-align:left}
+.rvhead{cursor:pointer;color:var(--accent);font-size:13px;padding:10px 0;border-top:1px solid var(--line);user-select:none}
+.rvhead:hover{text-decoration:underline}
+.rvlist{max-height:360px;overflow:auto;padding-top:6px}
+.rvitem{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.75}
+.rvitem .rva{margin-top:4px;color:var(--muted)}
+.rvitem .ok{color:var(--ok);font-weight:600}.rvitem .bad{color:var(--danger);font-weight:600}
+@media(max-width:820px){nav{flex-basis:160px}.unitgrid{grid-template-columns:1fr}.qprompt{font-size:24px}}
+/* ===== 可折叠面板：左侧目录 / 例句区域 / 顶部栏 ===== */
+header{transition:max-height .3s ease,padding .3s ease,opacity .25s ease,border-width .3s ease;max-height:160px;overflow:hidden}
+body.hide-topbar header{max-height:0;padding-top:0;padding-bottom:0;opacity:0;border-bottom-width:0;pointer-events:none}
+nav{transition:width .3s ease,flex-basis .3s ease,opacity .25s ease,padding .3s ease;overflow-x:hidden}
+body.hide-sidebar nav{width:0;flex-basis:0;min-width:0;padding-left:0;padding-right:0;opacity:0;border-right-width:0;pointer-events:none}
+body.hide-examples .example-block{display:none}
+#layoutDock{position:fixed;right:12px;bottom:14px;z-index:45;display:flex;gap:6px;background:rgba(26,34,56,.88);
+  backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 6px 22px rgba(0,0,0,.4)}
+#layoutDock button{font-size:12px;padding:7px 10px;border-radius:9px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+#layoutDock button.on{background:linear-gradient(90deg,var(--en),#7aa2ff);border-color:transparent;color:#fff}
+.laybtn{font-size:12px;padding:7px 10px}
+.laybtn.on{background:linear-gradient(90deg,var(--en),#7aa2ff);border-color:transparent;color:#fff}
+@media(max-width:820px){#layoutDock{right:8px;bottom:10px;padding:5px}#layoutDock button{padding:6px 8px;font-size:11px}}
+</style>
+<meta name="theme-color" content="#f97316">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="四语自测">
+<link rel="manifest" href="./tester.webmanifest">
+<link rel="apple-touch-icon" href="./icon-tester.png">
+<link rel="icon" type="image/png" href="./favicon-tester.png">
+</head>
+<body>
+<header>
+  <h1>📝 四语母语习得 · 测试器</h1>
+  <span class="sub">英语 · 马来语 · 中文 · 泰语 ｜ 单元小测 · 选择题为主</span>
+  <span class="spacer"></span>
+  <span class="progwrap">已测 <span id="progTxt">0/0</span></span>
+  <button class="laybtn iconbtn" data-layout="sidebar" title="显示 / 隐藏 左侧目录栏">☰ 目录</button>
+  <button class="laybtn iconbtn" data-layout="examples" title="显示 / 隐藏 例句区域">💬 例句</button>
+  <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶部栏">▭ 顶栏</button>
+  <button class="iconbtn" id="settingsBtn" title="设置与语音">⚙ 设置</button>
+</header>
+<div id="layoutDock">
+  <button data-layout="sidebar" title="目录栏">☰ 目录</button>
+  <button data-layout="examples" title="例句区域">💬 例句</button>
+  <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>
+</div>
+
+<div class="layout">
+  <nav id="nav"></nav>
+  <main id="main">
+    <div class="unitlist" id="unitlist">
+      <div class="empty">← 从左侧选择学段 / 单元开始自测</div>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>⚙ 语音与播放设置</h2>
+    <div class="field"><label>英语语音 (EN)</label><select id="voiceEn"></select></div>
+    <div class="field"><label>马来语语音 (BM)</label><select id="voiceBm"></select>
+      <div class="note" id="bmNote"></div></div>
+    <div class="field"><label>中文语音 (ZH)</label><select id="voiceZh"></select></div>
+    <div class="field"><label>泰语语音 (TH)</label><select id="voiceTh"></select>
+      <button class="mini" id="testTh" type="button">🔊 试听泰语</button>
+      <div class="note" id="thNote"></div></div>
+    <div class="field"><label>语速：<span id="rateTxt">1.0</span>x</label>
+      <input type="range" id="rate" min="0.5" max="1.6" step="0.1" value="1"></div>
+    <div class="note">
+      操作：选择题作答后即时判分并展示四语对照；听力题点击 🔊 播放后选择。<br>
+      若点击「播放」听不到声音，请用 <b>Safari</b> 或 <b>Chrome</b> 浏览器打开本文件（双击即可）。
+    </div>
+    <div style="text-align:right;margin-top:10px"><button class="primary" id="closeSettings">完成</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+</script>
+<script src="三语母语习得测试器.data.js"></script>
+<div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
+<script>const DATA = window.__TESTER_DATA__;
+const LS_KEY = "tril_quiz_progress_v1";
+const LS_SET = "tril_quiz_settings_v1";
+
+/* 单元扁平化 + 归一化三语三元组 */
+let flat = [];
+DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
+  flat.push({stage:st.name,file:f.name,si,fi,ui,title:u.title,type:u.type||"table",
+    langs:u.langs||["en","zh","bm"],entries:u.entries||[]});
+})));
+const uid = u => u.si+"_"+u.fi+"_"+u.ui;
+
+/* ===== 收藏（来自学习器标记）与错题本（本测试器记录） ===== */
+const LS_MARK = "tril_marks_v1";
+const LS_WRONG = "tril_wrongbook_v1";
+function loadJSON(k){ try{ return JSON.parse(localStorage.getItem(k)||"{}")||{}; }catch(e){ return {}; } }
+let marks = loadJSON(LS_MARK);       /* {key: 归一化词条} */
+let wrongbook = loadJSON(LS_WRONG);  /* {key: {...词条, wrong, streak}} */
+function saveMarks(){ try{ localStorage.setItem(LS_MARK, JSON.stringify(marks)); }catch(e){} }
+function saveWrongbook(){ try{ localStorage.setItem(LS_WRONG, JSON.stringify(wrongbook)); }catch(e){} }
+function mkKey(en,bm,zh,th){ return (en||"")+"|"+(bm||"")+"|"+(zh||"")+"|"+(th||""); }
+function keyOfTriple(t){ return mkKey(t.en,t.bm,t.zh,t.th); }
+function normalizeTriple(t){ return {en:t.en||"",bm:t.bm||"",zh:t.zh||"",th:t.th||"",en_ipa:t.en_ipa||"",bm_ipa:t.bm_ipa||"",bm_pron:t.bm_pron||"",zh_pinyin:t.zh_pinyin||"",th_pron:t.th_pron||"",level:t.level||"",example:t.example||{}}; }
+
+/* 全局四语值池（用于抽取干扰项） */
+const POOL = {en:new Set(), bm:new Set(), zh:new Set(), th:new Set()};
+flat.forEach(u=>u.entries.forEach(e=>{
+  const t=makeTriple(u,e);
+  if(t.en) POOL.en.add(t.en); if(t.bm) POOL.bm.add(t.bm); if(t.zh) POOL.zh.add(t.zh); if(t.th) POOL.th.add(t.th);
+}));
+function makeTriple(u,e){
+  if(u.type==="root"){
+    const L=u.langs||["en","zh","bm","th"]; const t={en:"",bm:"",zh:"",th:"",en_ipa:"",bm_ipa:"",bm_pron:"",zh_pinyin:"",th_pron:""};
+    for(let p=0;p<4;p++){ const lang=L[p]; if(e.head&&e.head[p]) t[lang]=e.head[p]; }
+    if(e.ipa) t.en_ipa=e.ipa;
+    if(e.pinyin) t.zh_pinyin=e.pinyin;
+    if(e.bm_pron) t.bm_pron=e.bm_pron;
+    if(e.bm_ipa) t.bm_ipa=e.bm_ipa;
+    if(e.th_pron) t.th_pron=e.th_pron;
+    return t;
+  }
+  return {en:e.en||"", bm:e.bm||"", zh:e.zh||"", th:e.th||"",
+          en_ipa:e.en_ipa||"", bm_ipa:e.bm_ipa||"", bm_pron:e.bm_pron||"", zh_pinyin:e.zh_pinyin||"", th_pron:e.th_pron||"",
+          level:e.level||"", example:e.example||{}};
+}
+function phonOf(t,lang){
+  if(lang==="en") return t.en_ipa||"";
+  if(lang==="bm") return t.bm_pron||"";
+  if(lang==="zh") return t.zh_pinyin||"";
+  if(lang==="th") return t.th_pron||"";
+  return "";
+}
+function wordSpan(text,lang,ipa){
+  const cls = lang==="en"?"en":lang==="bm"?"bm":lang==="zh"?"zh":"th";
+  let h='<span class="w '+cls+'" data-lang="'+lang+'" data-text="'+escapeHtml(text||"")+'">'+escapeHtml(text||"—")+'</span>';
+  if(ipa) h+=' <span class="ipa">'+escapeHtml(ipa)+(lang==="en"?"":"")+'</span>';
+  return h;
+}
+function wordRow(label,text,lang,ipa){
+  return '<span class="rk">'+label+'：</span>'+wordSpan(text,lang,ipa);
+}
+function bmSpan(t){
+  return wordSpan(t.bm,"bm",t.bm_ipa||"")+(t.bm_pron?' <span class="pron">'+escapeHtml(t.bm_pron)+'</span>':'');
+}
+function bmRow(label,t){
+  return '<span class="rk">'+label+'：</span>'+bmSpan(t);
+}
+function exLine(label,text,lang){
+  if(!text) return "";
+  return '<div class="row">'+wordRow(label, text, lang, "")+'</div>';
+}
+
+let progress = {};
+try{ progress = JSON.parse(localStorage.getItem(LS_KEY)||"{}"); }catch(e){ progress={}; }
+function saveProgress(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(progress)); }catch(e){} }
+function isDone(u){ return !!(progress[uid(u)] && progress[uid(u)].done); }
+function setResult(u,score,total){
+  const prev = progress[uid(u)]||{best:0};
+  progress[uid(u)] = {done:(score===total), best:Math.max(prev.best||0,score), last:score+"/"+total};
+  saveProgress(); refreshProgress();
+}
+
+let settings = {en:"",bm:"",zh:"",th:"",rate:1};
+try{ Object.assign(settings, JSON.parse(localStorage.getItem(LS_SET)||"{}")); }catch(e){}
+function saveSettings(){ try{ localStorage.setItem(LS_SET, JSON.stringify(settings)); }catch(e){} }
+
+let voices = [];
+function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; fillVoiceSelects(); }
+if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function fillVoiceSelects(){
+  const mk=(sel,langPrefix,cur)=>{
+    sel.innerHTML="";
+    const opts = voices.filter(v=>v.lang && v.lang.toLowerCase().startsWith(langPrefix));
+    const all = document.createElement("option"); all.value=""; all.textContent="（自动/默认）"; sel.appendChild(all);
+    opts.forEach(v=>{ const o=document.createElement("option"); o.value=v.name; o.textContent=v.name+" ["+v.lang+"]"; sel.appendChild(o); });
+    sel.value = cur || (opts[0]?opts[0].name:"");
+  };
+  mk(document.getElementById("voiceEn"),"en",settings.en);
+  mk(document.getElementById("voiceBm"),"ms",settings.bm);
+  mk(document.getElementById("voiceZh"),"zh",settings.zh);
+  mk(document.getElementById("voiceTh"),"th",settings.th);
+  const bmNote=document.getElementById("bmNote");
+  const hasBm = voices.some(v=>v.lang && v.lang.toLowerCase().startsWith("ms"));
+  bmNote.textContent = hasBm ? "✓ 已检测到马来语嗓音" : "⚠ 本设备未安装马来语(ms-MY)嗓音，将回退默认嗓音。";
+  const thNote=document.getElementById("thNote");
+  const hasTh = voices.some(v=>v.lang && v.lang.toLowerCase().startsWith("th"));
+  if(hasTh){ thNote.className="note ok"; thNote.textContent="✓ 已检测到泰语(th-TH)嗓音，可直接朗读。"; }
+  else {
+    thNote.className="note warn";
+    thNote.innerHTML="⚠ <b>本设备未安装泰语语音包</b>，点击泰文/朗读将静音。开启方法：<br>"+
+      "· Windows：设置→语音→添加“泰语”语言并下载语音包<br>"+
+      "· macOS：系统设置→辅助功能→朗读内容→系统嗓音→管理嗓音→搜“Thai”下载<br>"+
+      "· 安卓/iOS：安装“Google 文字转语音引擎”并在其设置里下载泰语语音包<br>"+
+      "装好后重开本文件即可听到泰语朗读。";
+  }
+}
+function pickVoice(lang){
+  const sel = lang==="en"?settings.en : lang==="bm"?settings.bm : lang==="zh"?settings.zh : settings.th;
+  if(sel){ const v=voices.find(x=>x.name===sel); if(v) return v; }
+  const pref = lang==="bm"?"ms":lang==="th"?"th":lang;
+  const v = voices.find(x=>x.lang && v.lang.toLowerCase().startsWith(pref));
+  return v || null;
+}
+function speak(text,lang,onend){
+  if(!text){ if(onend) onend(); return; }
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang = lang==="en"?"en-US":lang==="bm"?"ms-MY":lang==="zh"?"zh-CN":"th-TH";
+  const sel = lang==="en"?settings.en : lang==="bm"?settings.bm : lang==="zh"?settings.zh : settings.th;
+  if(sel){ const v=voices.find(x=>x.name===sel); if(v) u.voice=v; }
+  u.rate=settings.rate||1; u.volume=1;
+  u.onend=()=>{ if(onend) onend(); }; u.onerror=()=>{ if(onend) onend(); };
+  try{ speechSynthesis.resume(); }catch(e){}
+  speechSynthesis.speak(u);
+}
+function testVoice(){
+  if(!window.speechSynthesis){ toast("当前环境没有 Web Speech API，请用 Safari/Chrome 打开"); return; }
+  speechSynthesis.cancel(); speechSynthesis.resume();
+  const u=new SpeechSynthesisUtterance("Hello, 你好, Selamat pagi, สวัสดี. 这是语音测试。");
+  u.lang="zh-CN"; u.rate=1;
+  let started=false; const t=setTimeout(()=>{ if(!started) toast("⚠ 语音引擎无响应，请改用 Safari/Chrome 打开本文件"); },1200);
+  u.onstart=()=>{ started=true; clearTimeout(t); toast("🔊 正在发声——若仍听不到请检查系统音量"); };
+  u.onend=()=>{ started=true; clearTimeout(t); };
+  u.onerror=()=>{ started=true; clearTimeout(t); toast("❌ 语音合成出错，请改用 Safari/Chrome"); };
+  speechSynthesis.speak(u);
+}
+document.getElementById("testTh").onclick=()=>{
+  if(!window.speechSynthesis){ toast("当前环境无 Web Speech API，请用 Safari/Chrome 打开"); return; }
+  speechSynthesis.cancel(); speechSynthesis.resume();
+  const u=new SpeechSynthesisUtterance("สวัสดี สบายดีไหม วันนี้อากาศดี");
+  u.lang="th-TH"; const v=pickVoice("th"); if(v) u.voice=v; u.rate=1;
+  u.onerror=()=>toast("❌ 泰语合成失败：本设备可能未安装泰语语音包，请见设置里的开启指引");
+  speechSynthesis.speak(u);
+};
+if(!window.speechSynthesis){ /* 不强制提示，交给测试按钮 */ }
+
+const nav=document.getElementById("nav");
+function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function renderNav(){
+  nav.innerHTML="";
+  /* 我的练习：收藏（来自学习器）+ 错题本 */
+  (function(){
+    const sp=document.createElement("div"); sp.className="navstage";
+    const h=document.createElement("h3"); h.innerHTML="★ 我的练习"; h.style.cursor="default"; sp.appendChild(h);
+    const mk=(id,label,onClick)=>{ const b=document.createElement("button"); b.className="navfile"; b.id=id;
+      b.innerHTML=escapeHtml(label)+'<span class="fc">'+(id==="navMarks"?Object.keys(marks).length:Object.keys(wrongbook).length)+'</span>'; b.onclick=onClick; return b; };
+    sp.appendChild(mk("navMarks","⭐ 我的收藏", ()=>openMarksHome()));
+    sp.appendChild(mk("navWrong","📕 错题本", ()=>openWrongHome()));
+    nav.appendChild(sp);
+  })();
+  DATA.stages.forEach(st=>{
+    const sc=document.createElement("div"); sc.className="navstage";
+    const total=st.files.reduce((a,f)=>a+f.units.length,0);
+    const h=document.createElement("h3");
+    h.innerHTML="▾ "+st.name+' <span class="cnt">('+total+'单元)</span>';
+    h.onclick=()=>{ const col=sc.classList.toggle("collapsed"); h.firstChild.textContent = col?"▸ ":"▾ "; };
+    sc.appendChild(h);
+    st.files.forEach((f,fi)=>{
+      const b=document.createElement("button"); b.className="navfile";
+      const fc=f.units.length;
+      const isRoot = f.units.length>0 && f.units[0].type==="root";
+      b.innerHTML=escapeHtml(f.name)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+fc+'</span>';
+      b.dataset.si=DATA.stages.indexOf(st); b.dataset.fi=fi;
+      b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
+      sc.appendChild(b);
+    });
+    nav.appendChild(sc);
+  });
+}
+
+let curSi=-1,curFi=-1;
+function getUnitlist(){ return document.getElementById("unitlist"); }
+function openFile(si,fi){
+  curSi=si;curFi=fi;
+  document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
+  const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"]');
+  if(nb) nb.classList.add("active");
+  const st=DATA.stages[si], f=st.files[fi];
+  let inner='<div class="breadcrumb"><b>'+st.name+'</b> &nbsp;/&nbsp; '+f.name+' &nbsp;·&nbsp; 共 '+f.units.length+' 个测试单元</div>';
+  inner+='<div class="unitgrid">';
+  f.units.forEach((u,ui)=>{
+    const uu={si,fi,ui}; const d=isDone(uu); const r=(progress[uid(uu)]||{});
+    const isRoot = u.type==="root";
+    const cnt = (u.entries?u.entries.length:0)+(isRoot?" 派生词":" 条");
+    const best = r.best!=null ? (' ⟂ 最佳 '+r.best) : '';
+    inner+='<div class="ucard'+(d?" done":"")+'" data-ui="'+ui+'">'+
+      '<span class="badge">'+(d?"✓ 满分":"未测")+'</span>'+
+      '<div class="ut">'+(isRoot?"🌱 ":"")+escapeHtml(u.title)+'</div>'+
+      '<div class="umeta">'+cnt+best+'</div>'+
+      '<div class="mini"><i style="width:'+(d?100:0)+'%"></i></div></div>';
+  });
+  inner+='</div>';
+  main.innerHTML='<div class="unitlist" id="unitlist">'+inner+'</div>';
+  const ul=getUnitlist();
+  ul.querySelectorAll(".ucard").forEach(c=>{ c.onclick=()=>openStart(si,fi,+c.dataset.ui); });
+}
+
+let cur=null;
+const main=document.getElementById("main");
+
+/* 点击任意 .w 单词/短语即朗读，无需按钮（事件委托，动态内容同样生效） */
+main.addEventListener("click", function(e){
+  let el = e.target;
+  while(el && el!==main){ if(el.classList && el.classList.contains("w") && el.dataset && el.dataset.text){ speak(el.dataset.text, el.dataset.lang); return; } el = el.parentNode; }
+});
+
+/* ===== 开始面板 ===== */
+const DIRS=[
+  {p:"en",a:"zh",label:"英文 → 中文"},
+  {p:"en",a:"bm",label:"英文 → 马来文"},
+  {p:"zh",a:"en",label:"中文 → 英文"},
+  {p:"bm",a:"en",label:"马来文 → 英文"},
+  {p:"en",a:"th",label:"英文 → 泰文"},
+  {p:"th",a:"en",label:"泰文 → 英文"},
+  {p:"zh",a:"th",label:"中文 → 泰文"},
+  {p:"bm",a:"th",label:"马来文 → 泰文"},
+];
+const DIRLABEL={en:"EN 英文",bm:"BM 马来文",zh:"ZH 中文",th:"TH 泰文"};
+function openStart(si,fi,ui){
+  const _u=flat.find(x=>x.si===si&&x.fi===fi&&x.ui===ui);
+  if(!_u){ toast("找不到该单元"); return; }
+  showStart(_u);
+}
+function goBack(){
+  if(cur && cur.home==="marks") openMarksHome();
+  else if(cur && cur.home==="wrong") openWrongHome();
+  else openFile(cur.si,cur.fi);
+}
+function makePracticeUnit(entries,title,home){
+  return {stage:"我的练习",file:title,si:-1,fi:-1,ui:0,title:title,type:"table",langs:["en","zh","bm"],entries:entries,home:home};
+}
+function showStart(u){
+  cur=u;
+  state.mode="mix"; state.count=10; state.level="";
+  const isRoot = u.type==="root";
+  const hasLevel = (u.entries||[]).some(e=>e.level);
+  const levelField = hasLevel
+    ? '<div class="field"><div class="lab">难度分级（按等级筛选单词）</div><div class="chips" id="levelChips">'+
+        '<span class="chip active" data-level="">全部</span>'+
+        '<span class="chip" data-level="1">①基础</span>'+
+        '<span class="chip" data-level="2">②进阶</span>'+
+        '<span class="chip" data-level="3">③专业</span>'+
+      '</div></div>'
+    : '';
+  main.innerHTML='<div class="quiz"><div class="quizbar">'+
+    '<button class="back" id="backBtn">← 返回</button>'+
+    '<span class="lt">'+escapeHtml(u.stage)+' · '+escapeHtml(u.file)+' · '+escapeHtml(u.title)+'</span>'+
+    '</div><div class="qwrap"><div class="startpanel">'+
+    '<h2>'+escapeHtml(u.title)+'</h2>'+
+    '<div class="desc">本单元共 '+ (u.entries?u.entries.length:0) +' 个'+(isRoot?"派生词":"词条")+'。选择题型与题量后开始自测。每题 4 选 1，作答后即时判分并展示四语（英·马·中·泰）对照。</div>'+
+    '<div class="field"><div class="lab">题型</div><div class="chips" id="modeChips">'+
+      '<span class="chip active" data-mode="mix">综合随机</span>'+
+      '<span class="chip" data-mode="en_zh">英文→中文</span>'+
+      '<span class="chip" data-mode="en_bm">英文→马来文</span>'+
+      '<span class="chip" data-mode="zh_en">中文→英文</span>'+
+      '<span class="chip" data-mode="en_th">英文→泰文</span>'+
+      '<span class="chip" data-mode="th_en">泰文→英文</span>'+
+      '<span class="chip" data-mode="listen">听力辨义</span>'+
+    '</div></div>'+
+    '<div class="field"><div class="lab">题量</div><div class="chips" id="countChips">'+
+      '<span class="chip" data-count="5">5 题</span>'+
+      '<span class="chip active" data-count="10">10 题</span>'+
+      '<span class="chip" data-count="15">15 题</span>'+
+      '<span class="chip" data-count="0">全部</span>'+
+    '</div></div>'+
+    levelField+
+    '<div style="display:flex;gap:10px;margin-top:6px"><button class="primary" id="startBtn" style="flex:1;padding:12px">▶ 开始测试</button>'+
+    '<button id="listenTestBtn">🔈 测试语音</button></div>'+
+    '</div></div></div>';
+  document.getElementById("backBtn").onclick=goBack;
+  document.getElementById("listenTestBtn").onclick=testVoice;
+  document.querySelectorAll("#modeChips .chip").forEach(c=>c.onclick=()=>{
+    document.querySelectorAll("#modeChips .chip").forEach(x=>x.classList.remove("active"));
+    c.classList.add("active"); state.mode=c.dataset.mode;
+  });
+  document.querySelectorAll("#countChips .chip").forEach(c=>c.onclick=()=>{
+    document.querySelectorAll("#countChips .chip").forEach(x=>x.classList.remove("active"));
+    c.classList.add("active"); state.count=+c.dataset.count;
+  });
+  document.querySelectorAll("#levelChips .chip").forEach(c=>c.onclick=()=>{
+    document.querySelectorAll("#levelChips .chip").forEach(x=>x.classList.remove("active"));
+    c.classList.add("active"); state.level=c.dataset.level;
+  });
+  document.getElementById("startBtn").onclick=()=>startQuiz();
+}
+
+/* ===== 我的收藏 / 错题本 主页 ===== */
+function updatePracticeBadges(){
+  const m=document.getElementById("navMarks"); if(m){ const fc=m.querySelector(".fc"); if(fc) fc.textContent=Object.keys(marks).length; }
+  const w=document.getElementById("navWrong"); if(w){ const fc=w.querySelector(".fc"); if(fc) fc.textContent=Object.keys(wrongbook).length; }
+}
+function openMarksHome(){
+  cur=null;
+  const entries=Object.keys(marks).map(k=>marks[k]);
+  const n=entries.length;
+  main.innerHTML='<div class="quiz"><div class="quizbar"><span class="lt">⭐ 我的收藏</span></div>'+
+    '<div class="qwrap"><div class="startpanel">'+
+    '<h2>⭐ 我的收藏</h2>'+
+    '<div class="desc">你在学习器中点击词条前的 ☆ 标记的词汇，会自动汇总到这里，用于强化自测。共 '+n+' 个。</div>'+
+    (n? '<div style="display:flex;gap:10px;margin-top:6px"><button class="primary" id="startMarks" style="flex:1;padding:12px">▶ 开始练习（'+n+' 词）</button>'+
+         '<button id="clearMarks">🗑 清空收藏</button></div>'
+       : '<div class="desc" style="margin-top:14px">暂无收藏。请回到学习器，点击任意词条前的 ☆ 即可收藏。</div>')+
+    '</div></div></div>';
+  if(n){
+    document.getElementById("startMarks").onclick=()=>{ showStart(makePracticeUnit(entries,"我的收藏","marks")); };
+    document.getElementById("clearMarks").onclick=()=>{ marks={}; saveMarks(); updatePracticeBadges(); openMarksHome(); toast("已清空收藏"); };
+  }
+}
+function openWrongHome(){
+  cur=null;
+  const keys=Object.keys(wrongbook); const n=keys.length;
+  let list='';
+  if(n){
+    list='<div class="review" style="margin-top:8px"><div class="rvlist" style="max-height:300px">';
+    keys.forEach(k=>{ const e=wrongbook[k]; const st=e.streak||0; const wr=e.wrong||0;
+      list+='<div class="rvitem">'+wordSpan(e.en||"—","en","")+' / '+wordSpan(e.zh||"—","zh","")+
+        ' ｜ 错'+wr+' 次 · 连对 '+st+'/10</div>'; });
+    list+='</div></div>';
+  }
+  main.innerHTML='<div class="quiz"><div class="quizbar"><span class="lt">📕 错题本</span></div>'+
+    '<div class="qwrap"><div class="startpanel">'+
+    '<h2>📕 错题本</h2>'+
+    '<div class="desc">你答错的词汇会自动收录到此。每答对 1 次「连对 +1」，连续答对 10 次后自动移出错题本。当前共 '+n+' 个。</div>'+
+    (n? '<div style="display:flex;gap:10px;margin-top:6px"><button class="primary" id="startWrong" style="flex:1;padding:12px">▶ 开始练习（'+n+' 词）</button>'+
+         '<button id="clearWrong">🗑 清空错题本</button></div>'+list
+       : '<div class="desc" style="margin-top:14px">错题本为空，继续刷题来积累吧！</div>')+
+    '</div></div></div>';
+  if(n){
+    const entries=keys.map(k=>wrongbook[k]);
+    document.getElementById("startWrong").onclick=()=>{ showStart(makePracticeUnit(entries,"错题本","wrong")); };
+    document.getElementById("clearWrong").onclick=()=>{ wrongbook={}; saveWrongbook(); updatePracticeBadges(); openWrongHome(); toast("已清空错题本"); };
+  }
+}
+
+/* ===== 生成题目 ===== */
+const state={mode:"mix",count:10,level:"",questions:[],qIndex:0,score:0,answered:false};
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function buildQuestions(){
+  const u=cur;
+  const triples=(u.entries||[]).map(e=>makeTriple(u,e)).filter(t=>t.en||t.bm||t.zh);
+  let cand=[];
+  triples.forEach(t=>{
+    if(state.level && String(t.level)!==String(state.level)) return; /* 按难度等级筛选 */
+    if(state.mode==="en_zh"&&t.en&&t.zh) cand.push({p:"en",a:"zh",t});
+    else if(state.mode==="en_bm"&&t.en&&t.bm) cand.push({p:"en",a:"bm",t});
+    else if(state.mode==="zh_en"&&t.zh&&t.en) cand.push({p:"zh",a:"en",t});
+    else if(state.mode==="en_th"&&t.en&&t.th) cand.push({p:"en",a:"th",t});
+    else if(state.mode==="th_en"&&t.th&&t.en) cand.push({p:"th",a:"en",t});
+    else if(state.mode==="listen"&&t.en&&t.zh) cand.push({p:"en",a:"zh",t,listen:true});
+    else if(state.mode==="mix"){
+      const opts=[];
+      if(t.en&&t.zh) opts.push({p:"en",a:"zh"});
+      if(t.en&&t.bm) opts.push({p:"en",a:"bm"});
+      if(t.zh&&t.en) opts.push({p:"zh",a:"en"});
+      if(t.bm&&t.en) opts.push({p:"bm",a:"en"});
+      if(t.en&&t.th) opts.push({p:"en",a:"th"});
+      if(t.th&&t.en) opts.push({p:"th",a:"en"});
+      if(t.zh&&t.th) opts.push({p:"zh",a:"th"});
+      if(t.bm&&t.th) opts.push({p:"bm",a:"th"});
+      if(opts.length) cand.push(Object.assign({t}, opts[Math.floor(Math.random()*opts.length)]));
+    }
+  });
+  cand=shuffle(cand);
+  const want = state.count>0 ? state.count : cand.length;
+  cand=cand.slice(0, want);
+  return cand.map(c=>{
+    const correct=c.t[c.a];
+    const pool=Array.from(POOL[c.a]).filter(v=>v && v!==correct);
+    const distract=shuffle(pool).slice(0,3);
+    const opts=shuffle([correct].concat(distract));
+    return {promptLang:c.p, answerLang:c.a, prompt:c.t[c.p], answer:correct, options:opts, listen:!!c.listen, triple:c.t};
+  });
+}
+function startQuiz(){
+  state.questions=buildQuestions();
+  state.qIndex=0; state.score=0;
+  if(!state.questions.length){ toast("本单元暂无可生成题目（缺少对应语言字段）"); openFile(cur.si,cur.fi); return; }
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=state.questions[state.qIndex];
+  state.answered=false;
+  const total=state.questions.length;
+  const dirTxt = q.listen ? "🔊 听力辨义" : (DIRLABEL[q.promptLang]+" → "+DIRLABEL[q.answerLang]);
+  let promptHtml;
+  if(q.listen){
+    promptHtml='<div class="qlisten-hint">点击播放，听后选择正确含义</div>'+
+      '<div class="qprompt l-'+q.promptLang+'">🔊 ?</div>'+
+      '<div class="qaudio"><button class="primary" id="playQ">🔊 播放单词</button>'+
+      '<button id="replayQ">↻ 重听</button></div>';
+  } else {
+    promptHtml='<div class="qprompt l-'+q.promptLang+'"><span class="w '+(q.promptLang==="en"?"en":q.promptLang==="bm"?"bm":q.promptLang==="zh"?"zh":"th")+'" data-lang="'+q.promptLang+'" data-text="'+escapeHtml(q.prompt)+'">'+escapeHtml(q.prompt)+'</span></div>';
+  }
+  let optsHtml='<div class="opts" id="opts">';
+  q.options.forEach((o,i)=>{
+    optsHtml+='<button class="opt" data-o="'+i+'" data-val="'+escapeHtml(o)+'">'+
+      '<span class="num">'+(i+1)+'</span><span class="w" data-lang="'+q.answerLang+'" data-text="'+escapeHtml(o)+'">'+escapeHtml(o)+'</span></button>';
+  });
+  optsHtml+='</div>';
+  main.innerHTML='<div class="quiz"><div class="quizbar">'+
+    '<button class="back" id="backBtn">← 退出</button>'+
+    '<span class="lt">'+escapeHtml(cur.stage)+' · '+escapeHtml(cur.title)+'</span>'+
+    '<span class="spacer" style="flex:1"></span>'+
+    '<span class="qprog">第 '+(state.qIndex+1)+' / '+total+' 题 ｜ 得分 '+state.score+'</span>'+
+    '<span class="qbar"><i style="width:'+Math.round(state.qIndex/total*100)+'%"></i></span>'+
+    '</div><div class="qwrap">'+
+    '<div class="qcard"><div class="qhead"><span class="qtag '+q.promptLang+'">'+dirTxt+'</span></div>'+promptHtml+optsHtml+
+    '<div class="feedback" id="feedback"></div>'+
+    '<div class="qnext" id="qnext"></div>'+
+    '</div></div></div>';
+  document.getElementById("backBtn").onclick=()=>openFile(cur.si,cur.fi);
+  if(q.listen){ document.getElementById("playQ").onclick=()=>speak(q.prompt,q.promptLang); document.getElementById("replayQ").onclick=()=>speak(q.prompt,q.promptLang); speak(q.prompt,q.promptLang); }
+  document.querySelectorAll("#opts .opt").forEach(b=>{ b.onclick=()=>answer(b); });
+}
+function answer(btn){
+  if(state.answered) return;
+  state.answered=true;
+  const q=state.questions[state.qIndex];
+  const chosen=btn.dataset.val;
+  const correct = chosen===q.answer;
+  q.userAnswer = chosen;
+  document.querySelectorAll("#opts .opt").forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.val===q.answer) b.classList.add("correct");
+    else if(b===btn) b.classList.add("wrong");
+  });
+  const fb=document.getElementById("feedback");
+  fb.classList.add("show");
+  if(correct) state.score++;
+  const t=q.triple;
+  /* 错题本：答错收录；答对则该词连对+1，满 10 自动移除 */
+  const wk=keyOfTriple(t);
+  if(correct){
+    if(wrongbook[wk]){
+      wrongbook[wk].streak=(wrongbook[wk].streak||0)+1;
+      if(wrongbook[wk].streak>=10){ delete wrongbook[wk]; toast("🎉 已连续答对 10 次，移出错题本！"); }
+      else { wrongbook[wk].example=t.example||wrongbook[wk].example; }
+      saveWrongbook(); updatePracticeBadges();
+    }
+  } else {
+    if(!wrongbook[wk]){ wrongbook[wk]=normalizeTriple(t); wrongbook[wk].wrong=1; wrongbook[wk].streak=0; }
+    else { wrongbook[wk].wrong=(wrongbook[wk].wrong||0)+1; wrongbook[wk].streak=0; }
+    saveWrongbook(); updatePracticeBadges();
+  }
+  const exHtml = (t.example && (t.example.en||t.example.bm||t.example.zh||t.example.th))
+    ? '<div class="example-block"><div class="row" style="margin-top:8px;border-top:1px dashed var(--line);padding-top:8px"><span class="rk">📖 例句（点击可朗读）：</span></div>'+
+      exLine("EN", t.example.en, "en")+exLine("BM", t.example.bm, "bm")+exLine("ZH", t.example.zh, "zh")+exLine("TH", t.example.th, "th")+
+      '</div>'
+    : '';
+  fb.innerHTML=(correct?'✅ <b style="color:var(--ok)">回答正确！</b>':'❌ <b style="color:var(--danger)">正确答案：'+escapeHtml(q.answer)+'</b>')+
+    '<div class="row">'+wordRow("EN 英文", t.en, "en", phonOf(t,"en"))+'</div>'+
+    '<div class="row">'+bmRow("BM 马来文", t)+'</div>'+
+    '<div class="row">'+wordRow("ZH 中文", t.zh, "zh", phonOf(t,"zh"))+'</div>'+
+    '<div class="row">'+wordRow("TH 泰文", t.th, "th", phonOf(t,"th"))+'</div>'+
+    exHtml+
+    '<div class="hint">🖱 点击上方任意单词 / 短语 / 例句即可自动朗读发音（无需按钮）</div>';
+  const total=state.questions.length;
+  const next=document.getElementById("qnext");
+  if(state.qIndex+1<total){
+    next.innerHTML='<button class="primary" id="nextBtn">下一道 →</button>';
+    document.getElementById("nextBtn").onclick=()=>{ state.qIndex++; renderQuestion(); };
+  } else {
+    next.innerHTML='<button class="primary" id="finishBtn">查看成绩</button>';
+    document.getElementById("finishBtn").onclick=showResult;
+  }
+}
+function showResult(){
+  const total=state.questions.length;
+  const pct=Math.round(state.score/total*100);
+  let msg,emoji;
+  if(pct===100){ emoji="🏆"; msg="满分！本单元已牢牢掌握。"; setResult(cur,state.score,total); }
+  else if(pct>=80){ emoji="🌟"; msg="很棒，再复习几遍就能满分。"; setResult(cur,state.score,total); }
+  else if(pct>=60){ emoji="💪"; msg="不错，建议重做巩固易错项。"; setResult(cur,state.score,total); }
+  else { emoji="📚"; msg="还需多练，回到学习器巩固后再来。"; setResult(cur,state.score,total); }
+  let reviewHtml='<div class="review"><div class="rvhead" id="rvhead">📖 查看全部 '+total+' 题答案解析（含音标 · 点击单词可朗读）</div><div class="rvlist" id="rvlist" style="display:none">';
+  state.questions.forEach((q,i)=>{
+    const t=q.triple;
+    const correct = q.userAnswer===q.answer;
+    reviewHtml+='<div class="rvitem">'+
+      '<div><b>第 '+(i+1)+' 题</b> · '+(q.listen?'🔊 听力辨义':(DIRLABEL[q.promptLang]+' → '+DIRLABEL[q.answerLang]))+
+        ' · '+wordSpan(q.prompt,q.promptLang,phonOf(t,q.promptLang))+'</div>'+
+      '<div class="rva">你的答案：<span class="'+(correct?'ok':'bad')+'">'+escapeHtml(q.userAnswer||"—")+'</span> ｜ 正确答案：'+wordSpan(q.answer,q.answerLang,phonOf(t,q.answerLang))+'</div>'+
+      '<div class="rva">'+wordRow("EN",t.en,"en",phonOf(t,"en"))+' ｜ '+bmRow("",t)+' ｜ '+wordRow("ZH",t.zh,"zh",phonOf(t,"zh"))+' ｜ '+wordRow("TH",t.th,"th",phonOf(t,"th"))+'</div>'+
+    '</div>';
+  });
+  reviewHtml+='</div></div>';
+  main.innerHTML='<div class="result"><div class="rcard">'+
+    '<div style="font-size:34px">'+emoji+'</div>'+
+    '<div class="score">'+state.score+'<small> / '+total+'</small></div>'+
+    '<div class="qprog">正确率 '+pct+'%</div>'+
+    '<div class="msg">'+msg+'</div>'+
+    reviewHtml+
+    '<div class="btns">'+
+      '<button class="primary" id="retryBtn">↻ 再来一次</button>'+
+      '<button id="backBtn">← 返回单元列表</button>'+
+    '</div></div></div>';
+  document.getElementById("rvhead").onclick=()=>{ const l=document.getElementById("rvlist"); l.style.display = l.style.display==="none"?"block":"none"; };
+  document.getElementById("retryBtn").onclick=()=>startQuiz();
+  document.getElementById("backBtn").onclick=()=>{ if(cur && cur.si>=0) openFile(cur.si,cur.fi); else goBack(); };
+}
+
+function refreshProgress(){
+  const total=flat.length;
+  const done=Object.keys(progress).filter(k=>progress[k]&&progress[k].done).length;
+  document.getElementById("progTxt").textContent=done+"/"+total;
+  if(curSi>=0&&curFi>=0){
+    const ul=getUnitlist(); if(!ul) return;
+    ul.querySelectorAll(".ucard").forEach(c=>{
+      const ui=+c.dataset.ui; const r=progress[uid({si:curSi,fi:curFi,ui})]||{};
+      const d=!!r.done;
+      c.classList.toggle("done",d);
+      const badge=c.querySelector(".badge"); if(badge) badge.textContent=d?"✓ 满分":(r.best!=null?"已测":"未测");
+      const mini=c.querySelector(".mini>i"); if(mini) mini.style.width=d?100:0;
+    });
+  }
+}
+
+const overlay=document.getElementById("overlay");
+document.getElementById("settingsBtn").onclick=()=>{
+  try{ if(!voices.length) loadVoices(); fillVoiceSelects(); }catch(e){}
+  overlay.classList.add("show");
+};
+document.getElementById("closeSettings").onclick=()=>overlay.classList.remove("show");
+overlay.onclick=(e)=>{ if(e.target===overlay) overlay.classList.remove("show"); };
+document.getElementById("voiceEn").onchange=e=>{settings.en=e.target.value;saveSettings();};
+document.getElementById("voiceBm").onchange=e=>{settings.bm=e.target.value;saveSettings();};
+document.getElementById("voiceZh").onchange=e=>{settings.zh=e.target.value;saveSettings();};
+document.getElementById("rate").oninput=e=>{settings.rate=+e.target.value;document.getElementById("rateTxt").textContent=(+e.target.value).toFixed(1);saveSettings();};
+document.getElementById("rate").value=settings.rate; document.getElementById("rateTxt").textContent=(settings.rate||1).toFixed(1);
+
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+renderNav();
+refreshProgress();
+if(flat.length){ openFile(0,0); }
+
+/* ===== 可折叠面板控制（目录 / 例句 / 顶栏），状态持久化 ===== */
+function toggleLayout(kind){
+  const cls={sidebar:'hide-sidebar',examples:'hide-examples',topbar:'hide-topbar'}[kind];
+  if(!cls) return;
+  document.body.classList.toggle(cls);
+  const on=!document.body.classList.contains(cls);
+  document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on',on));
+  try{ localStorage.setItem('layout_'+kind, on?'1':'0'); }catch(e){}
+}
+function applyLayout(){
+  ['sidebar','examples','topbar'].forEach(kind=>{
+    let v='1'; try{ v=localStorage.getItem('layout_'+kind)||'1'; }catch(e){}
+    const on = v!=='0';
+    const cls={sidebar:'hide-sidebar',examples:'hide-examples',topbar:'hide-topbar'}[kind];
+    document.body.classList.toggle(cls, !on);
+    document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on', on));
+  });
+}
+document.querySelectorAll('[data-layout]').forEach(b=>{ b.onclick=()=>toggleLayout(b.dataset.layout); });
+applyLayout();
+</script>
+<div id="authOverlay" class="auth-ov">
+  <div class="auth-card">
+    <div class="auth-logo">四语母语自测</div>
+    <div class="auth-sub">请登录后使用（线上账号）</div>
+    <div class="auth-row"><label>账号</label><input id="authUser" type="text" readonly value="bi6099445"></div>
+    <div class="auth-row"><label>密码</label><input id="authPass" type="password" placeholder="请输入6位密码" maxlength="6"></div>
+    <div id="authErr" class="auth-err"></div>
+    <button id="authLogin" class="auth-btn">登录</button>
+    <div class="auth-links"><a id="authForgot">忘记密码？</a><a id="authOpenSet">修改密码/提醒</a></div>
+  </div>
+</div>
+<button id="authGear" class="auth-gear" title="账号设置">⚙ 设置</button>
+<div id="authSettings" class="auth-modal">
+  <div class="auth-card">
+    <div class="auth-logo">账号设置</div>
+    <div class="auth-row"><label>当前密码</label><input id="setOld" type="password" maxlength="6" placeholder="原密码"></div>
+    <div class="auth-row"><label>新密码</label><input id="setNew" type="password" maxlength="6" placeholder="6位数字"></div>
+    <div class="auth-row"><label>确认新密码</label><input id="setNew2" type="password" maxlength="6" placeholder="再次输入"></div>
+    <div class="auth-row"><label>密码提醒</label><input id="setRem" maxlength="2" placeholder="2位提醒 如12"></div>
+    <div id="setErr" class="auth-err"></div>
+    <div class="auth-btns"><button id="setSave" class="auth-btn">保存</button><button id="setCancel" class="auth-btn auth-btn2">取消</button></div>
+  </div>
+</div>
+<style>
+.auth-ov,.auth-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.82);font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+.auth-modal{display:none;background:rgba(15,23,42,.7)}
+.auth-card{background:#fff;color:#1f2937;width:340px;max-width:92vw;padding:26px 24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.auth-logo{font-size:20px;font-weight:800;text-align:center;color:#2563eb}
+.auth-sub{font-size:13px;color:#6b7280;text-align:center;margin:6px 0 16px}
+.auth-row{display:flex;align-items:center;margin:10px 0;gap:8px}
+.auth-row label{width:84px;font-size:13px;color:#374151;flex:none}
+.auth-row input{flex:1;padding:9px 10px;border:1px solid #d1d5db;border-radius:9px;font-size:14px;outline:none}
+.auth-row input:focus{border-color:#2563eb}
+.auth-row input[readonly]{background:#f3f4f6;color:#6b7280}
+.auth-err{color:#dc2626;font-size:12px;min-height:16px;margin:4px 0}
+.auth-btn{width:100%;padding:11px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.auth-btn2{background:#e5e7eb;color:#374151}
+.auth-btn:hover{opacity:.92}
+.auth-links{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
+.auth-links a{color:#2563eb;cursor:pointer;text-decoration:none}
+.auth-gear{position:fixed;top:10px;right:12px;z-index:99998;height:40px;padding:0 12px;border:none;border-radius:20px;background:#2563eb;color:#fff;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none}
+@media (prefers-color-scheme:dark){.auth-card{background:#1f2937;color:#e5e7eb}.auth-row label{color:#cbd5e1}.auth-row input{border-color:#374151;background:#111827;color:#e5e7eb}.auth-btn2{background:#374151;color:#e5e7eb}}
+</style>
+<script>
+(function(){
+  var KEY="tril_auth_v1", SKEY="tril_auth_sess_v1";
+  function g(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function s(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function L(){try{return JSON.parse(g(KEY))||null}catch(e){return null}}
+  function Sv(o){s(KEY,JSON.stringify(o))}
+  var a=L();
+  if(!a){a={user:"bi6099445",pass:"123456",reminder:"12",changed:false};Sv(a);}
+  var ov=document.getElementById("authOverlay"),gear=document.getElementById("authGear"),modal=document.getElementById("authSettings"),errEl=document.getElementById("authErr");
+  function showApp(){ov.style.display="none";gear.style.display="block";}
+  function showLogin(){ov.style.display="flex";gear.style.display="none";}
+  if(g(SKEY)==="1"){showApp();}else{showLogin();}
+  document.getElementById("authLogin").onclick=function(){
+    var u=document.getElementById("authUser").value.trim();
+    var p=document.getElementById("authPass").value;
+    if(u===a.user&&p===a.pass){s(SKEY,"1");errEl.textContent="";showApp();}
+    else{errEl.textContent="账号或密码错误";}
+  };
+  document.getElementById("authPass").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("authLogin").click();});
+  document.getElementById("authForgot").onclick=function(){alert("密码提醒："+(a.reminder||"（未设置）")+"\n账号："+a.user);};
+  document.getElementById("authOpenSet").onclick=function(){modal.style.display="flex";document.getElementById("setErr").textContent="";};
+  gear.onclick=function(){modal.style.display="flex";document.getElementById("setErr").textContent="";};
+  document.getElementById("setCancel").onclick=function(){modal.style.display="none";};
+  document.getElementById("setSave").onclick=function(){
+    var old=document.getElementById("setOld").value,nw=document.getElementById("setNew").value,nw2=document.getElementById("setNew2").value,rem=document.getElementById("setRem").value;
+    var e=document.getElementById("setErr");
+    if(old!==a.pass){e.textContent="当前密码不正确";return;}
+    if(!/^\d{6}$/.test(nw)){e.textContent="新密码必须是6位数字";return;}
+    if(nw!==nw2){e.textContent="两次输入的新密码不一致";return;}
+    if(rem.length!==2){e.textContent="密码提醒需为2位（数字或字符）";return;}
+    a.pass=nw;a.reminder=rem;a.changed=true;Sv(a);
+    e.style.color="#16a34a";e.textContent="已保存";
+    setTimeout(function(){modal.style.display="none";e.style.color="#dc2626";},900);
+  };
+})();
+</script><script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function (e) { console.log('SW 注册失败', e); });
+  });
+}
+</script>
+<script src="auth-client.js"></script>
+<script src="tril-translate.js"></script>
+<script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
+</body>
+</html>

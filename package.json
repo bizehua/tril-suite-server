@@ -1,0 +1,13 @@
+{
+  "name": "tril-suite-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "四语母语习得套件 · 零依赖全栈后端 (Node http + node:sqlite)",
+  "scripts": {
+    "start": "node --experimental-sqlite server.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

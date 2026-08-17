@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四语母语习得 · 学习器与测试器</title>
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="四语母语习得">
+<link rel="manifest" href="./index.webmanifest">
+<link rel="apple-touch-icon" href="./icon-learner.png">
+<link rel="icon" type="image/png" href="./favicon-learner.png">
+<style>
+:root{--bg:#0e1320;--bg2:#151c2e;--panel:#1a2238;--panel2:#212c47;--line:#2c3756;--txt:#e8edf7;--muted:#93a0bd;--accent:#5b8cff;--en:#5b8cff;--bm:#ffb454;--zh:#4fd1a5;--th:#c792ea}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(160deg,var(--bg),var(--bg2));color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  display:flex;flex-direction:column;align-items:center;padding:40px 18px}
+header{text-align:center;margin-bottom:30px}
+header h1{font-size:24px;margin:0 0 8px;font-weight:800}
+header p{color:var(--muted);margin:0;font-size:14px;line-height:1.7}
+.wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;width:100%;max-width:760px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px;transition:.18s;text-decoration:none;color:var(--txt);display:block}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.card .emoji{font-size:40px}
+.card h2{margin:14px 0 8px;font-size:18px}
+.card .desc{color:var(--muted);font-size:13px;line-height:1.7}
+.card .tag{display:inline-block;margin-top:14px;font-size:12px;padding:5px 12px;border-radius:99px;background:var(--panel2);color:var(--accent)}
+footer{margin-top:34px;color:var(--muted);font-size:12px;text-align:center;line-height:1.8}
+.install{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 24px;width:100%;max-width:760px;margin:0 0 20px 0}
+.install h2{margin:0 0 14px;font-size:17px}
+.install .qrwrap{display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:center}
+.install img{max-width:180px;border-radius:12px;background:#fff;padding:6px}
+.install ol{padding-left:18px;margin:0;font-size:13px;color:var(--muted);line-height:1.9;flex:1;min-width:220px}
+.install ol li{margin:6px 0}
+.install .note{font-size:12px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.install .badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.install .badge{font-size:12px;background:var(--panel2);color:var(--accent);padding:4px 10px;border-radius:99px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📚 四语母语习得 · 套件</h1>
+  <p>英语 · 马来语 · 中文 · 泰语 ｜ 50000+ 词条 · 87% 含泰文 · 全学段贯通 · 可朗读解说<br>
+  新增：8 大行业/工厂主题词库（安全·工具·上下班·班中用语·设备·交通·日常·麦尔滋石灰窑）· 测试器按难度分级自测 · 全词库例句可点击朗读<br>
+  ✨ 学习器每条单词前可点「☆ 收藏标记」，自动归入测试器「⭐ 我的收藏」强化自测（本地持久化）；测试器新增「📕 错题本」，答错自动收录，连续答对 10 次自动移除，含独立练习入口<br>
+  单文件离线应用，任何设备用浏览器打开即可使用（无需安装、无需联网）</p>
+</header>
+<div class="install">
+  <div class="badges"><span class="badge">PWA 可安装</span><span class="badge">iOS · 安卓 · 平板</span><span class="badge">扫码即用</span></div>
+  <h2>📲 安装到手机 / 平板</h2>
+  <div class="qrwrap">
+    <img src="扫码安装.png" alt="扫码打开">
+    <ol>
+      <li>用 iPhone/iPad 的 <strong>Safari</strong>，或安卓的 <strong>Chrome</strong> 扫描二维码，打开本页。</li>
+      <li>点击下方卡片进入「学习器」「测试器」或「快速播放器」即可使用。</li>
+      <li><strong>添加到主屏幕</strong>：iOS 点底部分享按钮 →「添加到主屏幕」；安卓 Chrome 点菜单 →「安装应用」。</li>
+      <li>之后主屏幕就会出现 App 图标，点开即全屏使用，就像原生 App 一样。</li>
+    </ol>
+  </div>
+  <div class="note">提示：安装后会自动缓存应用文件，首次加载后无网络也能继续使用。若存储空间不足导致缓存失败，仍可联网使用。</div>
+</div>
+<div class="wrap">
+  <a class="card" href="三语母语习得学习器.html">
+    <div class="emoji">🎧</div>
+    <h2>可朗读解说学习器</h2>
+    <div class="desc">按学段/词根区浏览，逐条四语串讲，支持 Web Speech 朗读解说、进度保存、词根派生习得。每条单词附例句，点击即可朗读。每条单词前的「☆」可收藏，自动同步到测试器「我的收藏」。</div>
+    <span class="tag">打开学习器 →</span>
+  </a>
+  <a class="card" href="三语母语习得测试器.html">
+    <div class="emoji">📝</div>
+    <h2>单元自测测试器</h2>
+    <div class="desc">每个单元一份小测，以选择题为主（含听力辨义），作答即时判分并展示四语对照，自动记录最佳成绩。新增「难度分级」筛选，可对行业大类按 ①基础/②进阶/③专业 分级自测，反馈含可朗读例句。内置「⭐ 我的收藏」与「📕 错题本」两个独立练习入口，错题连续答对 10 次自动移除。</div>
+    <span class="tag">打开测试器 →</span>
+  </a>
+  <a class="card" href="三语母语习得快速播放器.html">
+    <div class="emoji">🔊</div>
+    <h2>单词快速播放器</h2>
+    <div class="desc">覆盖全部单元，按单元逐词自动朗读。可调间隔/语速/音量，支持屏蔽语种或单语播放（单语可选中文/马来文释义或隐藏释义），大字号阅读模式，可一键隐藏下方控制面板获得纯净播放界面。右下角悬浮按钮随时播放/暂停。</div>
+    <span class="tag">打开播放器 →</span>
+  </a>
+</div>
+<footer>
+  提示：若点击「播放解说 / 测试」听不到声音，请用 Safari 或 Chrome 打开本页面（双击文件即可正常朗读）。<br>
+  进度保存在本机浏览器（localStorage），换设备不会同步。
+</footer>
+<div id="authOverlay" class="auth-ov">
+  <div class="auth-card">
+    <div class="auth-logo">四语母语习得 · 线上版</div>
+    <div class="auth-sub">请登录后进入（账号已预置）</div>
+    <div class="auth-row"><label>账号</label><input id="authUser" type="text" readonly value="bi6099445"></div>
+    <div class="auth-row"><label>密码</label><input id="authPass" type="password" placeholder="请输入6位密码" maxlength="6"></div>
+    <div id="authErr" class="auth-err"></div>
+    <button id="authLogin" class="auth-btn">登录</button>
+    <div class="auth-links"><a id="authForgot">忘记密码？</a><a id="authOpenSet">修改密码/提醒</a></div>
+  </div>
+</div>
+<button id="authGear" class="auth-gear" title="账号设置">⚙ 设置</button>
+<div id="authSettings" class="auth-modal">
+  <div class="auth-card">
+    <div class="auth-logo">账号设置</div>
+    <div class="auth-row"><label>当前密码</label><input id="setOld" type="password" maxlength="6" placeholder="原密码"></div>
+    <div class="auth-row"><label>新密码</label><input id="setNew" type="password" maxlength="6" placeholder="6位数字"></div>
+    <div class="auth-row"><label>确认新密码</label><input id="setNew2" type="password" maxlength="6" placeholder="再次输入"></div>
+    <div class="auth-row"><label>密码提醒</label><input id="setRem" maxlength="2" placeholder="2位提醒 如12"></div>
+    <div id="setErr" class="auth-err"></div>
+    <div class="auth-btns"><button id="setSave" class="auth-btn">保存</button><button id="setCancel" class="auth-btn auth-btn2">取消</button></div>
+  </div>
+</div>
+<style>
+.auth-ov,.auth-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.86);font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+.auth-modal{display:none;background:rgba(15,23,42,.7)}
+.auth-card{background:#fff;color:#1f2937;width:340px;max-width:92vw;padding:26px 24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.auth-logo{font-size:20px;font-weight:800;text-align:center;color:#2563eb}
+.auth-sub{font-size:13px;color:#6b7280;text-align:center;margin:6px 0 16px}
+.auth-row{display:flex;align-items:center;margin:10px 0;gap:8px}
+.auth-row label{width:84px;font-size:13px;color:#374151;flex:none}
+.auth-row input{flex:1;padding:9px 10px;border:1px solid #d1d5db;border-radius:9px;font-size:14px;outline:none}
+.auth-row input:focus{border-color:#2563eb}
+.auth-row input[readonly]{background:#f3f4f6;color:#6b7280}
+.auth-err{color:#dc2626;font-size:12px;min-height:16px;margin:4px 0}
+.auth-btn{width:100%;padding:11px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.auth-btn2{background:#e5e7eb;color:#374151}
+.auth-btn:hover{opacity:.92}
+.auth-links{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
+.auth-links a{color:#2563eb;cursor:pointer;text-decoration:none}
+.auth-gear{position:fixed;top:10px;right:12px;z-index:99998;height:40px;padding:0 12px;border:none;border-radius:20px;background:#2563eb;color:#fff;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none}
+@media (prefers-color-scheme:dark){.auth-card{background:#1f2937;color:#e5e7eb}.auth-row label{color:#cbd5e1}.auth-row input{border-color:#374151;background:#111827;color:#e5e7eb}.auth-btn2{background:#374151;color:#e5e7eb}}
+</style>
+<script>
+(function(){
+  var KEY="tril_auth_v1", SKEY="tril_auth_sess_v1";
+  function g(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function s(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function L(){try{return JSON.parse(g(KEY))||null}catch(e){return null}}
+  function Sv(o){s(KEY,JSON.stringify(o))}
+  var a=L();
+  if(!a){a={user:"bi6099445",pass:"123456",reminder:"12",changed:false};Sv(a);}
+  var ov=document.getElementById("authOverlay"),gear=document.getElementById("authGear"),modal=document.getElementById("authSettings"),errEl=document.getElementById("authErr");
+  function showApp(){ov.style.display="none";gear.style.display="none";}
+  function showLogin(){ov.style.display="flex";gear.style.display="none";}
+  showApp();
+  document.getElementById("authLogin").onclick=function(){
+    var u=document.getElementById("authUser").value.trim();
+    var p=document.getElementById("authPass").value;
+    if(u===a.user&&p===a.pass){s(SKEY,"1");errEl.textContent="";showApp();}
+    else{errEl.textContent="账号或密码错误";}
+  };
+  document.getElementById("authPass").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("authLogin").click();});
+  document.getElementById("authForgot").onclick=function(){alert("密码提醒："+(a.reminder||"（未设置）")+"\n账号："+a.user);};
+  document.getElementById("authOpenSet").onclick=function(){modal.style.display="flex";document.getElementById("setErr").textContent="";};
+  gear.onclick=function(){modal.style.display="flex";document.getElementById("setErr").textContent="";};
+  document.getElementById("setCancel").onclick=function(){modal.style.display="none";};
+  document.getElementById("setSave").onclick=function(){
+    var old=document.getElementById("setOld").value,nw=document.getElementById("setNew").value,nw2=document.getElementById("setNew2").value,rem=document.getElementById("setRem").value;
+    var e=document.getElementById("setErr");
+    if(old!==a.pass){e.textContent="当前密码不正确";return;}
+    if(!/^\d{6}$/.test(nw)){e.textContent="新密码必须是6位数字";return;}
+    if(nw!==nw2){e.textContent="两次输入的新密码不一致";return;}
+    if(rem.length!==2){e.textContent="密码提醒需为2位（数字或字符）";return;}
+    a.pass=nw;a.reminder=rem;a.changed=true;Sv(a);
+    e.style.color="#16a34a";e.textContent="已保存";
+    setTimeout(function(){modal.style.display="none";e.style.color="#dc2626";},900);
+  };
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function (e) { console.log('SW 注册失败', e); });
+  });
+}
+</script>
+</body>
+</html>

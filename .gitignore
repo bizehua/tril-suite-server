@@ -1,0 +1,16 @@
+# 依赖与本地数据
+node_modules/
+npm-debug.log*
+*.log
+
+# 运行时数据库（部署时会自动重建种子账号）
+app.db
+app.db-*
+*.sqlite
+*.sqlite3
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

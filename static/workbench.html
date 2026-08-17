@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英语学习工作台</title>
+<style>
+:root{--bg:#0e1320;--panel:#1a2238;--line:#2c3756;--txt:#e8edf7;--muted:#93a0bd;--accent:#5b8cff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,var(--bg),#151c2e);color:var(--txt);font:14px system-ui,"PingFang SC",sans-serif;padding:24px}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:15px;margin:18px 0 8px;color:var(--accent)}
+.sub{color:var(--muted);font-size:12px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;max-width:680px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#11192c;color:var(--txt);font:13px system-ui;box-sizing:border-box}
+button{padding:10px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;margin-top:12px}
+.session{border-top:1px solid var(--line);padding:10px 0;font-size:13px}
+.session b{color:#5b8cff}.muted{color:var(--muted);font-size:12px}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+</style>
+</head>
+<body>
+<h1>📚 英语学习工作台</h1>
+<div class="sub">记录你的学习过程（按账号隔离，不与其它用户共享）。管理员可查看任意用户。</div>
+<div class="card" id="app">
+  <div id="loginHint" class="empty">请先登录（右上角「登录」），登录后即可记录与查看。</div>
+  <div id="wb" style="display:none">
+    <h2>＋ 新增学习记录</h2>
+    <label>学习单元 / 主题</label><input id="fUnit" placeholder="如：Day5 拼读实战 / 行业-设备">
+    <label>学习时长（分钟）</label><input id="fDur" type="number" min="0" value="15">
+    <label>自评掌握度（1-5）</label><select id="fRate"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+    <label>笔记 / 反思</label><textarea id="fNote" rows="3" placeholder="今天卡在哪、怎么突破的…"></textarea>
+    <button id="saveBtn">保存记录</button>
+    <h2>📜 我的学习轨迹</h2>
+    <div id="list"></div>
+    <div id="adminView" style="display:none"><h2>🔍 查看其他用户（管理员）</h2>
+      <input id="fUser" placeholder="输入用户名，如 bi6099445"><button id="viewBtn" style="margin-top:6px">查看</button>
+      <div id="alist"></div></div>
+  </div>
+</div>
+<script src="auth-client.js"></script>
+<script>
+function token(){return localStorage.getItem('tril_token');}
+function uh(){return {'Authorization':'Bearer '+token(),'Content-Type':'application/json'};}
+function fmt(d){try{return new Date(d).toLocaleString('zh-CN');}catch(e){return d;}}
+function refresh(){
+  fetch('/api/me/workbench',{headers:uh()}).then(r=>r.json()).then(d=>{
+    var box=document.getElementById('list'); box.innerHTML='';
+    if(!d.ok||!d.items.length){box.innerHTML='<div class="empty">还没有记录，添加第一条吧。</div>';return;}
+    d.items.sort((a,b)=>b.updated_at.localeCompare(a.updated_at));
+    d.items.forEach(function(it){
+      var x=it.data;
+      var el=document.createElement('div');el.className='session';
+      el.innerHTML='<b>'+esc(x.unit||'(未命名)')+'</b> <span class="muted">· '+fmt(it.updated_at)+'</span><br>'+
+        '时长 '+ (x.duration||0)+' 分 · 自评 '+ (x.rating||'-') +'/5'+(x.note?'<br>'+esc(x.note):'');
+      box.appendChild(el);
+    });
+  });
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+document.getElementById('saveBtn').onclick=function(){
+  var data={unit:document.getElementById('fUnit').value, duration:+document.getElementById('fDur').value||0,
+    rating:+document.getElementById('fRate').value||0, note:document.getElementById('fNote').value, at:Date.now()};
+  fetch('/api/me/workbench',{method:'PUT',headers:uh(),body:JSON.stringify({key:'s_'+Date.now(),data:data})})
+    .then(r=>r.json()).then(function(d){ if(d.ok){document.getElementById('fNote').value='';refresh();} else alert('保存失败:'+(d.error||'')); });
+};
+document.getElementById('viewBtn').onclick=function(){
+  var u=document.getElementById('fUser').value.trim(); if(!u)return;
+  fetch('/api/admin/workbench/'+encodeURIComponent(u),{headers:uh()}).then(r=>r.json()).then(function(d){
+    var box=document.getElementById('alist'); box.innerHTML='';
+    if(!d.ok){box.innerHTML='<div class="empty">'+(d.error||'无权限')+'</div>';return;}
+    if(!d.items.length){box.innerHTML='<div class="empty">该用户暂无记录。</div>';return;}
+    d.items.sort((a,b)=>b.updated_at.localeCompare(a.updated_at));
+    d.items.forEach(function(it){var x=it.data;var el=document.createElement('div');el.className='session';
+      el.innerHTML='<b>'+esc(x.unit||'(未命名)')+'</b> <span class="muted">· '+fmt(it.updated_at)+'</span><br>时长 '+(x.duration||0)+' 分 · 自评 '+(x.rating||'-')+'/5'+(x.note?'<br>'+esc(x.note):'');box.appendChild(el);});
+  });
+};
+// 登录态切换
+var _origInit=window.TrilAuth.init;
+function sync(){
+  var ok=!!token();
+  document.getElementById('loginHint').style.display=ok?'none':'block';
+  document.getElementById('wb').style.display=ok?'block':'none';
+  if(ok){ refresh(); if(window.TrilAuth.isAdmin()) document.getElementById('adminView').style.display='block'; }
+}
+// 轮询登录态
+var t=setInterval(function(){ if(token() && document.getElementById('wb').style.display==='none') sync(); },800);
+window.addEventListener('load',function(){ setTimeout(sync,500); });
+</script>
+</body>
+</html>

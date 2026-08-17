@@ -1,0 +1,20 @@
+# Render.com 一键部署配置（免费版）
+# 部署方式：把 /server 目录作为独立仓库推到 GitHub，在 Render 新建 "Web Service" 选择该仓库，
+# 或在本目录执行 `render蓝图` 导入。Render 会自动执行 start 命令。
+services:
+  - type: web
+    name: tril-suite
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: "echo no-build"
+    startCommand: "node --experimental-sqlite server.mjs"
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: PORT
+        value: "10000"
+      - key: STATIC_DIR
+        value: "./static"
+    healthCheckPath: /api/health
