@@ -34,7 +34,7 @@ git push -u origin main
 2. **New → Web Service** → 选刚才推送的仓库。
 3. 配置（基本都已自动填好，核对即可）：
    - **Runtime**：`Node`
-   - **Build Command**：**留空**（不需要构建）
+   - **Build Command**：填 `echo "no build needed"`（Render 要求此项必填，本项目零依赖无需构建）
    - **Start Command**：`node --experimental-sqlite server.mjs`（⚠️ 必须带 `--experimental-sqlite`，否则 node:sqlite 无法加载会启动失败）
    - **Instance Type**：`Free`（免费）
 4. 点 **Create Web Service**。
