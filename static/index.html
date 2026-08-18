@@ -42,6 +42,7 @@ footer{margin-top:34px;color:var(--muted);font-size:12px;text-align:center;line-
 </head>
 <body>
 <header>
+  <div class="topactions"><button id="authGear" class="auth-gear" title="账号设置">⚙ 设置</button></div>
   <h1>📚 四语母语习得 · 套件</h1>
   <p>英语 · 马来语 · 中文 · 泰语 ｜ 50000+ 词条 · 87% 含泰文 · 全学段贯通 · 可朗读解说<br>
   新增：8 大行业/工厂主题词库（安全·工具·上下班·班中用语·设备·交通·日常·麦尔滋石灰窑）· 测试器按难度分级自测 · 全词库例句可点击朗读<br>
@@ -97,7 +98,6 @@ footer{margin-top:34px;color:var(--muted);font-size:12px;text-align:center;line-
     <div class="auth-links"><a id="authForgot">忘记密码？</a><a id="authOpenSet">修改密码/提醒</a></div>
   </div>
 </div>
-<button id="authGear" class="auth-gear" title="账号设置">⚙ 设置</button>
 <div id="authSettings" class="auth-modal">
   <div class="auth-card">
     <div class="auth-logo">账号设置</div>
@@ -126,7 +126,9 @@ footer{margin-top:34px;color:var(--muted);font-size:12px;text-align:center;line-
 .auth-btn:hover{opacity:.92}
 .auth-links{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
 .auth-links a{color:#2563eb;cursor:pointer;text-decoration:none}
-.auth-gear{position:fixed;top:10px;right:12px;z-index:99998;height:40px;padding:0 12px;border:none;border-radius:20px;background:#2563eb;color:#fff;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none}
+.topactions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:10px}
+.auth-gear{height:36px;padding:0 14px;border:none;border-radius:18px;background:#2563eb;color:#fff;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.auth-gear:hover{opacity:.92}
 @media (prefers-color-scheme:dark){.auth-card{background:#1f2937;color:#e5e7eb}.auth-row label{color:#cbd5e1}.auth-row input{border-color:#374151;background:#111827;color:#e5e7eb}.auth-btn2{background:#374151;color:#e5e7eb}}
 </style>
 <script>
@@ -139,7 +141,7 @@ footer{margin-top:34px;color:var(--muted);font-size:12px;text-align:center;line-
   var a=L();
   if(!a){a={user:"bi6099445",pass:"123456",reminder:"12",changed:false};Sv(a);}
   var ov=document.getElementById("authOverlay"),gear=document.getElementById("authGear"),modal=document.getElementById("authSettings"),errEl=document.getElementById("authErr");
-  function showApp(){ov.style.display="none";gear.style.display="none";}
+  function showApp(){ov.style.display="none";gear.style.display="inline-block";}
   function showLogin(){ov.style.display="flex";gear.style.display="none";}
   showApp();
   document.getElementById("authLogin").onclick=function(){

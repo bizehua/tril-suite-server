@@ -28,6 +28,8 @@
     #trilTopbar{display:flex;gap:8px;align-items:center;margin-left:auto;flex-shrink:0}
     #trilTopbar.floating{position:fixed;top:0;left:0;right:0;z-index:99990;background:rgba(15,23,42,.82);backdrop-filter:blur(6px);color:#e8edf7;font:13px system-ui,sans-serif;padding:6px 12px;justify-content:flex-end}
     #trilTopbar .tril-userbtn{font:13px system-ui;padding:5px 12px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer;white-space:nowrap}
+    .tril-loginbtn{font:13px system-ui;padding:5px 12px;border:none;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer;white-space:nowrap;margin-right:8px}
+    @media(max-width:520px){.tril-loginbtn{font-size:12px;padding:4px 10px}}
     #trilTopbar .tril-backbtn{margin-left:8px;padding:6px 12px;border:none;border-radius:8px;background:rgba(255,255,255,.12);color:#e8edf7;font:13px system-ui;cursor:pointer;white-space:nowrap}
     /* 融入页面 header 时, 放宽高度上限避免折叠按钮被 overflow:hidden 裁掉; 同时保留 hide-topbar 收起能力 */
     header.tril-integrated{display:flex;flex-wrap:wrap;align-items:center;max-height:600px}
@@ -114,14 +116,14 @@
         if(!d.ok){ throw new Error(d.error||'登录失败'); }
         state.token=d.token; state.user=d.user; state.role=d.role; state.start=Date.now();
         try{ localStorage.setItem(LS_TOKEN,d.token); localStorage.setItem(LS_USER,d.user); localStorage.setItem(LS_ROLE,d.role); }catch(e){}
-        return loadSettings().then(function(){ renderTopbar(); applyGating(); if(d.role==='admin'){ renderAdmin(); } });
+        return loadSettings().then(function(){ renderTopbar(); renderLoginBtn(); applyGating(); if(d.role==='admin'){ renderAdmin(); } });
       });
   }
   function doLogout(){
     reportLogout();
     state.token=null; state.user=null; state.role=null;
     try{ localStorage.removeItem(LS_TOKEN); localStorage.removeItem(LS_USER); localStorage.removeItem(LS_ROLE); }catch(e){}
-    renderTopbar(); applyGating(); toggleUserMenu(false);
+    renderTopbar(); renderLoginBtn(); applyGating(); toggleUserMenu(false);
     var p=el('trilAdminPanel'); if(p) p.classList.remove('show');
   }
   function loadSettings(){
@@ -244,8 +246,36 @@
       var hdr=document.querySelector('header');
       if(hdr){ hdr.appendChild(bar); adjustHeader(hdr); } else { bar.classList.add('floating'); document.body.appendChild(bar); }
     }
-    var label = state.token ? '👤 '+esc(state.user)+' ▾' : (state.online ? '👤 登录' : '👤 离线');
-    bar.innerHTML='<button class="tril-userbtn" onclick="TrilAuth.toggleUserMenu(true)">'+label+'</button>';
+    if(state.token){
+      bar.style.display='flex';
+      bar.innerHTML='<button class="tril-userbtn" onclick="TrilAuth.toggleUserMenu(true)">👤 '+esc(state.user)+' ▾</button>';
+    } else {
+      bar.style.display='none';
+      bar.innerHTML='';
+    }
+    renderLoginBtn();
+  }
+  function renderLoginBtn(){
+    var hdr=document.querySelector('header'); if(!hdr) return;
+    var btn=el('trilLoginBtn');
+    if(state.token || !state.online){
+      if(btn) btn.remove();
+      return;
+    }
+    if(!btn){
+      btn=h('button',{id:'trilLoginBtn',class:'tril-loginbtn',onclick:function(){ showLogin(); }},'🔑 登录');
+      var ref=hdr.querySelector('.laybtn, #settingsBtn, [data-layout]');
+      if(ref && ref.parentNode===hdr) hdr.insertBefore(btn, ref);
+      else hdr.appendChild(btn);
+    }
+  }
+  function back(){
+    toggleUserMenu(false); TrilAuth.toggleAdmin(false); TrilAuth.toggleModules(false);
+    if(state._nav && state._nav.length){ var f=state._nav.pop(); try{f();}catch(e){} return; }
+    if(typeof window.TrilAppBack==='function' && window.TrilAppBack()) return;
+    if(history.length>1){ history.back(); return; }
+    var target = new URL('index.html', location.href).href;
+    if(location.href.split('#')[0] !== target) location.href = target;
   }
   function renderUserMenu(){
     var menu=el('trilUserMenu'); if(!menu){ menu=h('div',{id:'trilUserMenu'}); document.body.appendChild(menu); }
@@ -305,12 +335,12 @@
       if(!el('trilAdminPanel')){ var p=h('div',{id:'trilAdminPanel'}); document.body.appendChild(p); }
       if(!el('trilModules')){ var m=h('div',{id:'trilModules'}); document.body.appendChild(m); }
       bindUnload();
-      // 通用返回上一级按钮(所有用户): 优先浏览器返回, 应用内可调用 TrilAuth.pushNav 接管
+      // 通用返回按钮: 应用内逐级返回(优先 TrilAppBack / _nav), 否则 history.back, 否则回到三器选择页
       (function(){
-        var b=h('button',{id:'trilBack',onclick:function(){ if(state._nav&&state._nav.length){ var f=state._nav.pop(); try{f();}catch(e){} } else if(history.length>1){ history.back(); } }});
+        var b=h('button',{id:'trilBack',class:'tril-backbtn',onclick:back});
         b.textContent='← 返回';
         var hdr2=document.querySelector('header');
-        if(hdr2){ b.className='tril-backbtn'; hdr2.appendChild(b); }
+        if(hdr2){ hdr2.appendChild(b); }
         else { b.style.cssText='position:fixed;right:10px;top:46px;z-index:99992;padding:6px 12px;border:none;border-radius:18px;background:rgba(37,99,235,.9);color:#fff;font:13px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)'; document.body.appendChild(b); }
       })();
       state._nav=[]; window.TrilAuth.pushNav=function(fn){ state._nav.push(fn); };
@@ -358,6 +388,7 @@
       window.addEventListener('tril:entry', function(){ if(state.role==='admin') modulesUI(); });
     },
     showLogin: showLogin,
+    back: back,
     logout: doLogout,
     login: function(u,p){ return doLogin(u,p); },
     toggleAdmin: function(v){ var p=el('trilAdminPanel'); if(p){ p.classList.toggle('show', v); if(v) refreshAdmin(); } },
