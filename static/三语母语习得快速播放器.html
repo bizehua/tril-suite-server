@@ -186,6 +186,7 @@ body.show-sidebar-m #navBackdrop{display:block}
   <button class="laybtn iconbtn" data-layout="examples" title="显示 / 隐藏 例句">💬 例句</button>
   <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶栏">▭ 顶栏</button>
   <button class="laybtn iconbtn" data-layout="controls" title="显示 / 隐藏 下方控制面板">▤ 控制</button>
+  <button class="laybtn iconbtn" id="editLibBtn" title="我的自定义词库">✎ 词库</button>
 </header>
 <div id="layoutDock">
   <button data-layout="sidebar" title="目录">☰ 目录</button>
@@ -261,6 +262,22 @@ body.show-sidebar-m #navBackdrop{display:block}
         </select>
       </div>
       <div class="optrow">
+        <span class="lab">循环模式（点击切换，再次点击关闭高亮）</span>
+        <div class="seg" id="loopSeg">
+          <button data-loop="unit" id="loopUnit">🔁 单元循环</button>
+          <button data-loop="word" id="loopWord">🔂 单词循环</button>
+        </div>
+        <span class="note" id="loopHint">当前：不循环</span>
+      </div>
+      <div class="optrow" id="wordLoopBox" style="display:none">
+        <span class="lab">单词循环次数</span>
+        <input type="range" id="wordLoopCount" min="1" max="10" step="1" value="3" style="flex:1;accent-color:var(--accent)">
+        <span class="val"><span id="wordLoopCountTxt">3</span> 次</span>
+      </div>
+      <div class="optrow">
+        <button class="primary" id="aiSentenceBtn" style="width:100%">✨ AI 生成情景句（当前词）</button>
+      </div>
+      <div class="optrow">
         <label class="toggle"><input type="checkbox" id="readExample" checked>🔊 朗读例句</label>
         <label class="toggle"><input type="checkbox" id="continuousNext">⏭ 单元结束自动播下一单元</label>
       </div>
@@ -286,6 +303,44 @@ body.show-sidebar-m #navBackdrop{display:block}
     <div style="text-align:right;margin-top:10px"><button class="primary" id="closeSettings">完成</button></div>
   </div>
 </div>
+<div class="overlay" id="libOverlay">
+  <div class="modal" style="width:440px">
+    <h2>✎ 我的自定义词库</h2>
+    <div class="field">
+      <label>单元标题</label>
+      <input type="text" id="libUnitTitle" placeholder="如：我的每日生词 / 工厂常用词" style="width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13px">
+    </div>
+    <div class="field">
+      <label>词条（英文）</label>
+      <input type="text" id="libEn" placeholder="apple" style="width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13px">
+    </div>
+    <div class="field">
+      <label>中文释义</label>
+      <input type="text" id="libZh" placeholder="苹果" style="width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13px">
+    </div>
+    <div class="field">
+      <label>马来文</label>
+      <input type="text" id="libBm" placeholder="epal" style="width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13px">
+    </div>
+    <div class="field">
+      <label>泰文</label>
+      <input type="text" id="libTh" placeholder="แอปเปิ้ล" style="width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13px">
+    </div>
+    <div class="field">
+      <label>例句（中文，可选）</label>
+      <input type="text" id="libEx" placeholder="我每天吃一个苹果。" style="width:100%;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13px">
+    </div>
+    <div class="field">
+      <button id="libAdd" class="laybtn" style="width:100%">＋ 加入本单元</button>
+      <div id="libPreview" style="margin-top:8px;font-size:12px;color:var(--muted);max-height:90px;overflow:auto"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="primary" id="libSave" style="flex:1">💾 保存单元</button>
+      <button id="libClear" class="laybtn" style="flex:1">🗑 清空我的词库</button>
+      <button id="libClose" class="laybtn" style="flex:1">完成</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="三语母语习得快速播放器.data.js"></script>
@@ -306,6 +361,23 @@ const LSHORT = {en:"EN", bm:"BM", zh:"ZH", th:"TH"};
 var LS_KEY = "tril_player_progress_v1";
 var LS_SET = "tril_player_settings_v1";
 
+/* ===== 自定义词库：从 localStorage 读取并合并进导航 ===== */
+const LIB_KEY = "tril_player_custom_v1";
+function loadCustomStage(){
+  try{ const c=JSON.parse(localStorage.getItem(LIB_KEY)); if(c&&c.files) return c; }catch(e){}
+  return {name:"📁 我的自定义词库", files:[{name:"自定义单元", units:[]}]};
+}
+function saveCustomStage(st){ try{ localStorage.setItem(LIB_KEY, JSON.stringify(st)); }catch(e){} }
+let customStage = loadCustomStage();
+if(customStage.files[0] && customStage.files[0].units.length){
+  DATA.stages = DATA.stages.concat([customStage]);
+}
+
+/* ===== 播放循环模式 ===== */
+let loopMode = "none";        // none | unit | word
+let wordLoopLeft = 0;
+let wordLoopMax = 3;
+
 /* ===== 扁平化全部单元 ===== */
 let units = [];
 DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
@@ -324,7 +396,8 @@ function isDone(u){ return !!progress[uid(u)]; }
 /* ===== 设置 ===== */
 let settings = {rate:1, volume:1, interval:5, mode:"all",
   enabledLangs:{en:true,bm:true,zh:true,th:true}, singleLang:"en", singleMeaning:"zh",
-  readExample:true, continuousNext:false, voiceEn:"",voiceBm:"",voiceZh:"",voiceTh:""};
+  readExample:true, continuousNext:false, voiceEn:"",voiceBm:"",voiceZh:"",voiceTh:"",
+  loopMode:"none", wordLoopMax:3};
 try{ Object.assign(settings, JSON.parse(localStorage.getItem(LS_SET)||"{}")); }catch(e){}
 if(!settings.enabledLangs) settings.enabledLangs={en:true,bm:true,zh:true,th:true};
 function saveSettings(){ try{ localStorage.setItem(LS_SET, JSON.stringify(settings)); }catch(e){} }
@@ -511,10 +584,11 @@ function showWord(i, autoplay){
   if(!cur) return;
   pos=Math.max(0,Math.min(i,curWords.length-1));
   const w=curWords[pos];
+  window.TRIL_CURRENT = w;
   renderCard(w);
   renderExample(w);
   updateStrip(); updateIdx();
-  if(autoplay && playing) speakWord(w, ()=>afterWord());
+  if(autoplay && playing){ if(loopMode==="word") wordLoopLeft=wordLoopMax; speakWord(w, ()=>afterWord()); }
 }
 function renderCard(w){
   const card=document.getElementById("bigcard");
@@ -543,7 +617,7 @@ function renderCard(w){
       const txt=getLang(w,L);
       if(!txt && !(L==="bm"&&w.bm_pron)) return; /* 跳过无内容的语种（如词根单元无泰文） */
       html+='<div class="wrow" data-lang="'+L+'">';
-      html+='<div class="wlabel">'+LNAME[L]+'</div>';
+      html+='<div class="wlabel">'+LNAME[L]+' · 🔊点击朗读</div>';
       html+='<div class="wtext">'+escapeHtml(txt||"—")+'</div>';
       if(L==="en"&&w.en_ipa) html+='<div class="wipa">'+escapeHtml(w.en_ipa)+'</div>';
       if(L==="bm"){ if(w.bm_ipa) html+='<div class="wipa">'+escapeHtml(w.bm_ipa)+'</div>'; if(w.bm_pron) html+='<div class="spron">中文音译：'+escapeHtml(w.bm_pron)+'</div>'; }
@@ -553,6 +627,16 @@ function renderCard(w){
     if(!html) html='<div class="empty">该模式下所有语言均被屏蔽，请在控制面板勾选至少一种语言。</div>';
   }
   card.innerHTML=html;
+  /* 点击单词卡片：单独朗读对应语种发音，并高亮，交互清晰 */
+  card.querySelectorAll('.wrow').forEach(r=>{
+    r.style.cursor='pointer';
+    r.onclick=()=>{ stopPlay(); const L=r.dataset.lang; speak(getLang(w,L),L); highlightLang(L); };
+  });
+  const sc=card.querySelector('.single');
+  if(sc){
+    sc.style.cursor='pointer';
+    sc.onclick=()=>{ stopPlay(); const L=settings.singleLang; speak(getLang(w,L),L); highlightLang(L); };
+  }
 }
 function renderExample(w){
   const body=document.getElementById("exbody");
@@ -613,10 +697,22 @@ function highlightLang(L){
 }
 function afterWord(){
   if(!playing) return;
+  /* 单词循环：重复朗读当前词，达到次数后再前进 */
+  if(loopMode==="word" && wordLoopLeft>1){
+    wordLoopLeft--;
+    playTimer=setTimeout(()=>{ if(playing) showWord(pos, true); }, (settings.interval||2)*1000);
+    return;
+  }
   if(pos < curWords.length-1){
     playTimer=setTimeout(()=>{ if(playing) showWord(pos+1, true); }, (settings.interval||5)*1000);
   } else {
-    finishUnit();
+    /* 单元循环：播完最后一词后回到开头继续 */
+    if(loopMode==="unit"){
+      pos=0;
+      playTimer=setTimeout(()=>{ if(playing) showWord(0, true); }, (settings.interval||3)*1000);
+    } else {
+      finishUnit();
+    }
   }
 }
 function finishUnit(){
@@ -688,6 +784,87 @@ document.querySelectorAll('#langBlock input[type=checkbox]').forEach(c=>{
 });
 document.getElementById("singleLang").onchange=e=>{ settings.singleLang=e.target.value; saveSettings(); if(cur) showWord(pos,false); };
 document.getElementById("singleMeaning").onchange=e=>{ settings.singleMeaning=e.target.value; saveSettings(); if(cur) showWord(pos,false); };
+
+/* ===== 循环模式（单元循环 / 单词循环，可切换高亮） ===== */
+function setLoop(m){
+  loopMode = (loopMode===m) ? "none" : m;
+  document.getElementById("loopUnit").classList.toggle("on", loopMode==="unit");
+  document.getElementById("loopWord").classList.toggle("on", loopMode==="word");
+  document.getElementById("wordLoopBox").style.display = loopMode==="word" ? "flex" : "none";
+  document.getElementById("loopHint").textContent = "当前：" + (loopMode==="unit"?"单元循环":loopMode==="word"?"单词循环（"+wordLoopMax+"次）":"不循环");
+  settings.loopMode = loopMode; saveSettings();
+}
+document.getElementById("loopUnit").onclick=()=>setLoop("unit");
+document.getElementById("loopWord").onclick=()=>setLoop("word");
+document.getElementById("wordLoopCount").oninput=e=>{
+  wordLoopMax=+e.target.value;
+  document.getElementById("wordLoopCountTxt").textContent=wordLoopMax;
+  if(loopMode==="word") document.getElementById("loopHint").textContent="当前：单词循环（"+wordLoopMax+"次）";
+  settings.wordLoopMax=wordLoopMax; saveSettings();
+};
+/* 从设置恢复循环状态 */
+loopMode = settings.loopMode || "none";
+wordLoopMax = settings.wordLoopMax || 3;
+document.getElementById("loopUnit").classList.toggle("on", loopMode==="unit");
+document.getElementById("loopWord").classList.toggle("on", loopMode==="word");
+document.getElementById("wordLoopBox").style.display = loopMode==="word" ? "flex" : "none";
+document.getElementById("wordLoopCount").value = wordLoopMax;
+document.getElementById("wordLoopCountTxt").textContent = wordLoopMax;
+document.getElementById("loopHint").textContent = "当前：" + (loopMode==="unit"?"单元循环":loopMode==="word"?"单词循环（"+wordLoopMax+"次）":"不循环");
+
+/* ===== AI 生成情景句（当前词） ===== */
+document.getElementById("aiSentenceBtn").onclick=function(){
+  if(!window.TrilAI){ toast("AI 模块未加载"); return; }
+  if(!window.TRIL_CURRENT || !(window.TRIL_CURRENT.en||window.TRIL_CURRENT.zh)){ toast("请先选择一个单词"); return; }
+  window.TrilAI.openWithWord(window.TRIL_CURRENT);
+};
+
+/* ===== 自定义词库编辑器 ===== */
+const libOverlay=document.getElementById("libOverlay");
+let libDraft=[];
+function updateLibPreview(){
+  const pv=document.getElementById("libPreview");
+  if(!libDraft.length){ pv.textContent="（尚未添加词条，可逐条加入）"; return; }
+  pv.innerHTML=libDraft.map((w,i)=>(i+1)+". "+(w.en||"")+(w.zh&&w.en?" / ":"")+(w.zh||"")+(w.bm?" · BM:"+w.bm:"")+(w.th?" · TH:"+w.th:"")).join("<br>");
+}
+document.getElementById("editLibBtn").onclick=()=>{ libOverlay.classList.add("show"); updateLibPreview(); };
+(function(b){ if(b) b.onclick=()=>libOverlay.classList.remove("show"); })(document.getElementById("libClose"));
+libOverlay.onclick=(e)=>{ if(e.target===libOverlay) libOverlay.classList.remove("show"); };
+document.getElementById("libAdd").onclick=()=>{
+  const en=document.getElementById("libEn").value.trim();
+  const zh=document.getElementById("libZh").value.trim();
+  if(!en && !zh){ toast("至少填写「英文」或「中文」"); return; }
+  libDraft.push({en:en, zh:zh, bm:document.getElementById("libBm").value.trim(), th:document.getElementById("libTh").value.trim(),
+    example:document.getElementById("libEx").value.trim()?{zh:document.getElementById("libEx").value.trim()}:{}});
+  ["libEn","libZh","libBm","libTh","libEx"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("libEn").focus();
+  updateLibPreview(); toast("已加入，可继续添加");
+};
+function rebuildUnits(){
+  units=[];
+  DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
+    units.push({si,fi,ui,stage:st.name,file:f.name,title:u.title,type:u.type||"table",
+      langs:u.langs||["en","bm","zh","th"],entries:u.entries||[],summary:u.summary||"",notes:u.notes||""});
+  })));
+}
+document.getElementById("libSave").onclick=()=>{
+  const title=document.getElementById("libUnitTitle").value.trim()||("自定义单元 "+new Date().toLocaleDateString());
+  if(!libDraft.length){ toast("请先添加至少一条词条"); return; }
+  if(!customStage) customStage=loadCustomStage();
+  customStage.files[0].units.push({title:title, type:"table", langs:["en","bm","zh","th"],
+    entries:libDraft.map(d=>({en:d.en,bm:d.bm,zh:d.zh,th:d.th,example:d.example})), summary:"", notes:""});
+  saveCustomStage(customStage);
+  DATA.stages=DATA.stages.filter(s=>s!==customStage); DATA.stages=DATA.stages.concat([customStage]);
+  rebuildUnits(); libDraft=[]; updateLibPreview(); renderNav();
+  libOverlay.classList.remove("show");
+  toast("✓ 已保存「"+title+"」，可在目录「📁 我的自定义词库」中找到");
+};
+document.getElementById("libClear").onclick=()=>{
+  if(!window.confirm("确定清空整个自定义词库？此操作不可恢复。")) return;
+  customStage=loadCustomStage(); customStage.files[0].units=[]; saveCustomStage(customStage);
+  DATA.stages=DATA.stages.filter(s=>s.name!=="📁 我的自定义词库");
+  rebuildUnits(); renderNav(); toast("已清空自定义词库");
+};
 
 /* ===== 设置弹窗 ===== */
 const overlay=document.getElementById("overlay");
@@ -783,7 +960,7 @@ requestAnimationFrame(()=>{ renderNav(); showWelcome(); });
 }
 </script>
 <script src="auth-client.js"></script>
-<script src="tril-translate.js"></script>
+<script src="tril-ai.js"></script>
 <script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
 </body>
 </html>

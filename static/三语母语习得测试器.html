@@ -611,6 +611,7 @@ function startQuiz(){
 
 function renderQuestion(){
   const q=state.questions[state.qIndex];
+  if(q && q.triple) window.TRIL_CURRENT = q.triple;
   state.answered=false;
   const total=state.questions.length;
   const dirTxt = q.listen ? "🔊 听力辨义" : (DIRLABEL[q.promptLang]+" → "+DIRLABEL[q.answerLang]);
@@ -802,7 +803,7 @@ window.TrilAppBack = function(){
 };
 </script>
 <script src="auth-client.js"></script>
-<script src="tril-translate.js"></script>
+<script src="tril-ai.js"></script>
 <script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
 </body>
 </html>
