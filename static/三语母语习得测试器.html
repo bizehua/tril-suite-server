@@ -786,86 +786,7 @@ function applyLayout(){
 document.querySelectorAll('[data-layout]').forEach(b=>{ b.onclick=()=>toggleLayout(b.dataset.layout); });
 applyLayout();
 </script>
-<div id="authOverlay" class="auth-ov">
-  <div class="auth-card">
-    <div class="auth-logo">四语母语自测</div>
-    <div class="auth-sub">请登录后使用（线上账号）</div>
-    <div class="auth-row"><label>账号</label><input id="authUser" type="text" readonly value="bi6099445"></div>
-    <div class="auth-row"><label>密码</label><input id="authPass" type="password" placeholder="请输入6位密码" maxlength="6"></div>
-    <div id="authErr" class="auth-err"></div>
-    <button id="authLogin" class="auth-btn">登录</button>
-    <div class="auth-links"><a id="authForgot">忘记密码？</a><a id="authOpenSet">修改密码/提醒</a></div>
-  </div>
-</div>
-<button id="authGear" class="auth-gear" title="账号设置">⚙ 设置</button>
-<div id="authSettings" class="auth-modal">
-  <div class="auth-card">
-    <div class="auth-logo">账号设置</div>
-    <div class="auth-row"><label>当前密码</label><input id="setOld" type="password" maxlength="6" placeholder="原密码"></div>
-    <div class="auth-row"><label>新密码</label><input id="setNew" type="password" maxlength="6" placeholder="6位数字"></div>
-    <div class="auth-row"><label>确认新密码</label><input id="setNew2" type="password" maxlength="6" placeholder="再次输入"></div>
-    <div class="auth-row"><label>密码提醒</label><input id="setRem" maxlength="2" placeholder="2位提醒 如12"></div>
-    <div id="setErr" class="auth-err"></div>
-    <div class="auth-btns"><button id="setSave" class="auth-btn">保存</button><button id="setCancel" class="auth-btn auth-btn2">取消</button></div>
-  </div>
-</div>
-<style>
-.auth-ov,.auth-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.82);font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
-.auth-modal{display:none;background:rgba(15,23,42,.7)}
-.auth-card{background:#fff;color:#1f2937;width:340px;max-width:92vw;padding:26px 24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-.auth-logo{font-size:20px;font-weight:800;text-align:center;color:#2563eb}
-.auth-sub{font-size:13px;color:#6b7280;text-align:center;margin:6px 0 16px}
-.auth-row{display:flex;align-items:center;margin:10px 0;gap:8px}
-.auth-row label{width:84px;font-size:13px;color:#374151;flex:none}
-.auth-row input{flex:1;padding:9px 10px;border:1px solid #d1d5db;border-radius:9px;font-size:14px;outline:none}
-.auth-row input:focus{border-color:#2563eb}
-.auth-row input[readonly]{background:#f3f4f6;color:#6b7280}
-.auth-err{color:#dc2626;font-size:12px;min-height:16px;margin:4px 0}
-.auth-btn{width:100%;padding:11px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
-.auth-btn2{background:#e5e7eb;color:#374151}
-.auth-btn:hover{opacity:.92}
-.auth-links{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
-.auth-links a{color:#2563eb;cursor:pointer;text-decoration:none}
-.auth-gear{position:fixed;top:10px;right:12px;z-index:99998;height:40px;padding:0 12px;border:none;border-radius:20px;background:#2563eb;color:#fff;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none}
-@media (prefers-color-scheme:dark){.auth-card{background:#1f2937;color:#e5e7eb}.auth-row label{color:#cbd5e1}.auth-row input{border-color:#374151;background:#111827;color:#e5e7eb}.auth-btn2{background:#374151;color:#e5e7eb}}
-</style>
 <script>
-(function(){
-  var KEY="tril_auth_v1", SKEY="tril_auth_sess_v1";
-  function g(k){try{return localStorage.getItem(k)}catch(e){return null}}
-  function s(k,v){try{localStorage.setItem(k,v)}catch(e){}}
-  function L(){try{return JSON.parse(g(KEY))||null}catch(e){return null}}
-  function Sv(o){s(KEY,JSON.stringify(o))}
-  var a=L();
-  if(!a){a={user:"bi6099445",pass:"123456",reminder:"12",changed:false};Sv(a);}
-  var ov=document.getElementById("authOverlay"),gear=document.getElementById("authGear"),modal=document.getElementById("authSettings"),errEl=document.getElementById("authErr");
-  function showApp(){ov.style.display="none";gear.style.display="block";}
-  function showLogin(){ov.style.display="flex";gear.style.display="none";}
-  if(g(SKEY)==="1"){showApp();}else{showLogin();}
-  document.getElementById("authLogin").onclick=function(){
-    var u=document.getElementById("authUser").value.trim();
-    var p=document.getElementById("authPass").value;
-    if(u===a.user&&p===a.pass){s(SKEY,"1");errEl.textContent="";showApp();}
-    else{errEl.textContent="账号或密码错误";}
-  };
-  document.getElementById("authPass").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("authLogin").click();});
-  document.getElementById("authForgot").onclick=function(){alert("密码提醒："+(a.reminder||"（未设置）")+"\n账号："+a.user);};
-  document.getElementById("authOpenSet").onclick=function(){modal.style.display="flex";document.getElementById("setErr").textContent="";};
-  gear.onclick=function(){modal.style.display="flex";document.getElementById("setErr").textContent="";};
-  document.getElementById("setCancel").onclick=function(){modal.style.display="none";};
-  document.getElementById("setSave").onclick=function(){
-    var old=document.getElementById("setOld").value,nw=document.getElementById("setNew").value,nw2=document.getElementById("setNew2").value,rem=document.getElementById("setRem").value;
-    var e=document.getElementById("setErr");
-    if(old!==a.pass){e.textContent="当前密码不正确";return;}
-    if(!/^\d{6}$/.test(nw)){e.textContent="新密码必须是6位数字";return;}
-    if(nw!==nw2){e.textContent="两次输入的新密码不一致";return;}
-    if(rem.length!==2){e.textContent="密码提醒需为2位（数字或字符）";return;}
-    a.pass=nw;a.reminder=rem;a.changed=true;Sv(a);
-    e.style.color="#16a34a";e.textContent="已保存";
-    setTimeout(function(){modal.style.display="none";e.style.color="#dc2626";},900);
-  };
-})();
-</script><script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('./sw.js').catch(function (e) { console.log('SW 注册失败', e); });
@@ -875,7 +796,7 @@ if ('serviceWorker' in navigator) {
 <script>
 /* 供 auth-client 返回键逐级回退： quiz/start/result -> file -> selection */
 window.TrilAppBack = function(){
-  if(cur && cur.si>=0){ openFile(cur.si,cur.fi); return true; }
+  if(cur && cur.si>=0){ cur=null; openFile(curSi,curFi); return true; }
   if(curSi>=0 || curFi>=0){ return false; } // 已在文件列表，回到三器选择页
   return false;
 };

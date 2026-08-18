@@ -108,8 +108,31 @@
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') reportLogout(); });
   }
 
+  // ---------- 离线本地账号(无后台时降级) ----------
+  var LOCAL_USERS_KEY='tril_local_users_v1';
+  function seedLocalUsers(){
+    try{
+      if(!localStorage.getItem(LOCAL_USERS_KEY)){
+        localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify({
+          'bi6099445':{pass:'123456',role:'user'},
+          'bi6099446':{pass:'123456',role:'admin'}
+        }));
+      }
+    }catch(e){}
+  }
+  function localLogin(user, pass){
+    seedLocalUsers();
+    var users={};
+    try{ users=JSON.parse(localStorage.getItem(LOCAL_USERS_KEY)||'{}'); }catch(e){}
+    var u=users[user];
+    if(!u || u.pass!==pass){ throw new Error('账号或密码错误'); }
+    state.token='local-'+user; state.user=user; state.role=u.role; state.start=Date.now();
+    try{ localStorage.setItem(LS_TOKEN,'local-'+user); localStorage.setItem(LS_USER,user); localStorage.setItem(LS_ROLE,u.role); }catch(e){}
+    return loadSettings().then(function(){ renderTopbar(); renderLoginBtn(); applyGating(); if(u.role==='admin'){ renderAdmin(); } });
+  }
   // ---------- 登录/登出 ----------
   function doLogin(user, pass){
+    if(!state.online) return localLogin(user, pass);
     var tz='', lang='';
     try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){}
     lang = navigator.language||'';
@@ -237,7 +260,13 @@
   // ---------- 管理员面板 ----------
   function renderAdmin(){
     var p=el('trilAdminPanel'); if(!p) return;
-    if(p.dataset.ready) return; p.dataset.ready='1';
+    if(p.dataset.ready && p.dataset.offline===String(!state.online)) return;
+    p.dataset.ready='1'; p.dataset.offline=String(!state.online);
+    if(!state.online){
+      p.innerHTML='<span class="tril-closex" onclick="TrilAuth.toggleAdmin(false)">✕</span><h4>📊 管理（离线模式）</h4>'+
+        '<div class="sub" style="font-size:12px;color:#93a0bd;line-height:1.6">当前为<b>离线 / 无后台</b>模式。<b>登录记录</b>与<b>用户管理</b>需要服务端，故暂不可用；<b>扩展模块</b>与<b>主题设置</b>可正常使用。</div>';
+      return;
+    }
     p.innerHTML='<span class="tril-closex" onclick="TrilAuth.toggleAdmin(false)">✕</span><h4>📊 登录记录 / 管理（管理员）</h4>'+
       '<div class="kpi" id="adKpi"></div>'+
       '<div id="adRegion"></div>'+
@@ -255,6 +284,7 @@
     refreshAdmin();
   }
   function refreshAdmin(){
+    if(!state.online) return;
     api('/api/admin/records',{headers:authHeaders()}).then(function(d){
       if(!d.ok) return;
       el('adKpi').innerHTML =
@@ -303,7 +333,7 @@
   function renderLoginBtn(){
     var hdr=document.querySelector('header'); if(!hdr) return;
     var btn=el('trilLoginBtn');
-    if(state.token || !state.online){
+    if(state.token){
       if(btn) btn.remove();
       return;
     }
@@ -384,6 +414,7 @@
       (function(){
         var b=h('button',{id:'trilBack',class:'tril-backbtn',onclick:back});
         b.textContent='← 返回';
+        if(window.TRIL_SELECTION_PAGE) b.style.display='none';
         var hdr2=document.querySelector('header');
         if(hdr2){ hdr2.appendChild(b); }
         else { b.style.cssText='position:fixed;right:10px;top:46px;z-index:99992;padding:6px 12px;border:none;border-radius:18px;background:rgba(37,99,235,.9);color:#fff;font:13px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)'; document.body.appendChild(b); }
@@ -429,6 +460,7 @@
         loadSettings().then(function(){ renderTopbar(); applyGating(); applyTheme(); if(state.role==='admin') renderAdmin(); }).catch(function(){ renderTopbar(); applyTheme(); });
       } else {
         renderTopbar(); applyGating();
+        if(state.role==='admin') renderAdmin();
       }
       // 词条变化时刷新模块
       window.addEventListener('tril:entry', function(){ if(state.role==='admin') modulesUI(); });
