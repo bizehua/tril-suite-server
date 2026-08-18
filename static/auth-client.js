@@ -18,7 +18,16 @@
 
   function $(s){ return document.querySelector(s); }
   function el(id){ return document.getElementById(id); }
-  function h(tag, attrs, html){ var e=document.createElement(tag); if(attrs) for(var k in attrs) e.setAttribute(k,attrs[k]); if(html!=null) e.innerHTML=html; return e; }
+  function h(tag, attrs, html){
+    var e=document.createElement(tag);
+    if(attrs) for(var k in attrs){
+      // 事件处理器(函数)必须用属性赋值, setAttribute 会把函数转成无效字符串导致点击无反应
+      if(typeof attrs[k]==='function' && /^on/.test(k)) e[k]=attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    }
+    if(html!=null) e.innerHTML=html;
+    return e;
+  }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
   function injectCSS(){
