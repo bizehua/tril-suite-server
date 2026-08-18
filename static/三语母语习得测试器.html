@@ -748,7 +748,6 @@ function refreshProgress(){
 }
 
 const overlay=document.getElementById("overlay");
-(function(btn){ if(btn) btn.onclick=()=>{ try{ if(!voices.length) loadVoices(); fillVoiceSelects(); }catch(e){} overlay.classList.add("show"); }; })(document.getElementById("settingsBtn"));
 (function(btn){ if(btn) btn.onclick=()=>overlay.classList.remove("show"); })(document.getElementById("closeSettings"));
 overlay.onclick=(e)=>{ if(e.target===overlay) overlay.classList.remove("show"); };
 document.getElementById("voiceEn").onchange=e=>{settings.en=e.target.value;saveSettings();};

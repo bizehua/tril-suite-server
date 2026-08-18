@@ -12,7 +12,7 @@
 (function(){
   'use strict';
   var API = (location.protocol === 'file:') ? null : ''; // 相对路径; file:// 下为离线
-  var LS_TOKEN = 'tril_token', LS_USER='tril_user', LS_ROLE='tril_role';
+  var LS_TOKEN = 'tril_token', LS_USER='tril_user', LS_ROLE='tril_role', LS_THEME='tril_theme';
   var state = { online: API!==null, token:null, user:null, role:null, start: Date.now(), settings:{} };
   var root = document.documentElement;
 
@@ -70,6 +70,8 @@
     #trilModules h4{margin:0 0 8px;font-size:13px}
     #trilModules .mod{border-top:1px solid #2c3756;padding:6px 0}
     #trilModules .mod b{color:#5b8cff}
+    .tril-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.25);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+    .tril-dot.on{box-shadow:0 0 0 2px #5b8cff,inset 0 0 0 1px rgba(0,0,0,.15)}
     .tril-closex{position:absolute;top:8px;right:8px;cursor:pointer;color:#93a0bd;font-size:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px}
     .tril-closex:hover{background:rgba(255,255,255,.08)}
     .tril-toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:99999;background:#11192c;color:#e8edf7;
@@ -133,15 +135,50 @@
     }).catch(function(){});
   }
 
-  // ---------- 主题(仅管理员) ----------
+  // ---------- 主题(所有用户均可本地切换, 登录后同步服务端) ----------
+  function loadLocalTheme(){
+    try{
+      var t=JSON.parse(localStorage.getItem(LS_THEME)||'{}');
+      if(t.bg || t.font) state.settings = Object.assign(state.settings, t);
+    }catch(e){}
+  }
+  function saveLocalTheme(){
+    try{ localStorage.setItem(LS_THEME, JSON.stringify({bg:state.settings.bg||'', font:state.settings.font||''})); }catch(e){}
+  }
   function applyTheme(){
     var s=state.settings||{};
-    if(s.bg) root.style.setProperty('--bg', s.bg);
+    if(s.bg){ root.style.setProperty('--bg', s.bg); root.style.setProperty('--bg2', s.bg); }
     if(s.font) root.style.setProperty('--txt', s.font);
+    // 根据背景亮度简单调整派生面板色(保持可读性)
+    if(s.bg){
+      var lum=0;
+      var m=s.bg.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+      if(m){ lum=(parseInt(m[1],16)*0.299+parseInt(m[2],16)*0.587+parseInt(m[3],16)*0.114)/255; }
+      if(lum>0.6){
+        root.style.setProperty('--panel','#ffffff'); root.style.setProperty('--panel2','#f3f4f6');
+        root.style.setProperty('--line','#e5e7eb'); root.style.setProperty('--muted','#6b7280');
+      } else {
+        root.style.setProperty('--panel','#1a2238'); root.style.setProperty('--panel2','#212c47');
+        root.style.setProperty('--line','#2c3756'); root.style.setProperty('--muted','#93a0bd');
+      }
+    }
+  }
+  var BG_PRESETS=['#0e1320','#f3f4f6','#0b1f1a','#1a0f05','#150a1f','#05101a','#1a0505'];
+  var FONT_PRESETS=['#e8edf7','#1f2937','#d1fae5','#fef3c7','#f3e8ff','#e0f2fe','#ffe4e6'];
+  function colorDots(vals, cur, setFn){
+    return vals.map(function(c){
+      var active=(cur===c);
+      return '<button type="button" class="tril-dot'+(active?' on':'')+'" style="background:'+c+';border-color:'+(active?'#5b8cff':'rgba(255,255,255,.25)')+'" onclick="TrilAuth.setTheme('+setFn(c)+')" title="'+esc(c)+'"></button>';
+    }).join('');
   }
   function themeUI(){
     var wrap=h('div',{class:'mod'});
-    wrap.innerHTML = '<b>主题(管理员)</b><div style="display:flex;gap:6px;margin-top:4px">'+
+    wrap.innerHTML = '<b>主题颜色</b>'+
+      '<div style="margin-top:6px;font-size:11px;opacity:.75">背景颜色</div>'+
+      '<div style="display:flex;gap:7px;margin-top:5px;flex-wrap:wrap">'+colorDots(BG_PRESETS, state.settings.bg, function(c){ return '\''+c+'\',null'; })+'</div>'+
+      '<div style="margin-top:8px;font-size:11px;opacity:.75">字体颜色</div>'+
+      '<div style="display:flex;gap:7px;margin-top:5px;flex-wrap:wrap">'+colorDots(FONT_PRESETS, state.settings.font, function(c){ return 'null,\''+c+'\''; })+'</div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
       '<input id="thBg" placeholder="背景色 #0e1320" value="'+(state.settings.bg||'')+'">'+
       '<input id="thFont" placeholder="字体色 #e8edf7" value="'+(state.settings.font||'')+'">'+
       '</div><button class="mini" id="thSave">保存主题</button>';
@@ -151,8 +188,13 @@
     var m=el('trilThemeModal'); if(!m){
       m=h('div',{class:'tril-modal',id:'trilThemeModal'});
       m.innerHTML='<div class="tril-card"><h3>主题设置（管理员）</h3>'+
-        '<label>背景颜色</label><input id="thBg2" placeholder="#0e1320" value="'+(state.settings.bg||'')+'">'+
-        '<label>字体颜色</label><input id="thFont2" placeholder="#e8edf7" value="'+(state.settings.font||'')+'">'+
+        '<div style="font-size:12px;color:#6b7280;margin-bottom:10px">点击下方色块快速切换，或在输入框自定义 HEX 颜色。</div>'+
+        '<label>背景颜色</label>'+
+        '<div style="display:flex;gap:8px;margin:6px 0 10px;flex-wrap:wrap" id="thBgDots"></div>'+
+        '<input id="thBg2" placeholder="#0e1320" value="'+(state.settings.bg||'')+'">'+
+        '<label>字体颜色</label>'+
+        '<div style="display:flex;gap:8px;margin:6px 0 10px;flex-wrap:wrap" id="thFontDots"></div>'+
+        '<input id="thFont2" placeholder="#e8edf7" value="'+(state.settings.font||'')+'">'+
         '<div class="err" id="thErr"></div>'+
         '<div class="row"><button id="thSave2">保存</button><button class="ghost" id="thCancel2">取消</button></div></div>';
       document.body.appendChild(m);
@@ -161,9 +203,11 @@
         state.settings.bg=el('thBg2').value||''; state.settings.font=el('thFont2').value||'';
         saveSettings(); applyTheme(); m.classList.remove('show'); toast('主题已保存');
       };
-    } else {
-      el('thBg2').value=state.settings.bg||''; el('thFont2').value=state.settings.font||'';
     }
+    el('thBg2').value=state.settings.bg||''; el('thFont2').value=state.settings.font||'';
+    var bd=el('thBgDots'), fd=el('thFontDots');
+    if(bd) bd.innerHTML=colorDots(BG_PRESETS, state.settings.bg, function(c){ return '\''+c+'\',null'; });
+    if(fd) fd.innerHTML=colorDots(FONT_PRESETS, state.settings.font, function(c){ return 'null,\''+c+'\''; });
     m.classList.add('show');
   }
 
@@ -185,6 +229,7 @@
     var sb=el('thSave'); if(sb) sb.onclick=function(){ state.settings.bg=el('thBg').value||''; state.settings.font=el('thFont').value||''; saveSettings(); applyTheme(); toast('主题已保存'); };
   }
   function saveSettings(){
+    saveLocalTheme();
     if(!state.online || !state.token) return;
     api('/api/me/settings', {method:'PUT', headers:authHeaders(), body:JSON.stringify(state.settings)}).catch(function(){});
   }
@@ -264,7 +309,7 @@
     }
     if(!btn){
       btn=h('button',{id:'trilLoginBtn',class:'tril-loginbtn',onclick:function(){ showLogin(); }},'🔑 登录');
-      var ref=hdr.querySelector('.laybtn, #settingsBtn, [data-layout]');
+      var ref=hdr.querySelector('.laybtn, [data-layout]');
       if(ref && ref.parentNode===hdr) hdr.insertBefore(btn, ref);
       else hdr.appendChild(btn);
     }
@@ -273,7 +318,7 @@
     toggleUserMenu(false); TrilAuth.toggleAdmin(false); TrilAuth.toggleModules(false);
     if(state._nav && state._nav.length){ var f=state._nav.pop(); try{f();}catch(e){} return; }
     if(typeof window.TrilAppBack==='function' && window.TrilAppBack()) return;
-    if(history.length>1){ history.back(); return; }
+    // 三器子应用：一律回到三器选择页，不再依赖浏览器 history.back()
     var target = new URL('index.html', location.href).href;
     if(location.href.split('#')[0] !== target) location.href = target;
   }
@@ -282,10 +327,10 @@
     var html='';
     if(state.token){
       html+='<div class="hdr">'+esc(state.user)+'（'+(state.role==='admin'?'管理员':'普通用户')+'）</div>';
+      html+='<div class="item" onclick="TrilAuth.toggleUserMenu(false);TrilAuth.showTheme()">🎨 主题设置</div>';
       if(state.role==='admin'){
         html+='<div class="item" onclick="TrilAuth.toggleUserMenu(false);TrilAuth.toggleAdmin(true)">📊 登录记录</div>';
         html+='<div class="item" onclick="TrilAuth.toggleUserMenu(false);TrilAuth.toggleModules(true)">🧩 扩展模块</div>';
-        html+='<div class="item" onclick="TrilAuth.toggleUserMenu(false);TrilAuth.showTheme()">🎨 主题设置</div>';
       }
       html+='<div class="sep"></div><div class="item" onclick="TrilAuth.toggleUserMenu(false);TrilAuth.logout()">🚪 退出登录</div>';
     } else {
@@ -379,8 +424,9 @@
       }
       // 已有 token?
       try{ state.token=localStorage.getItem(LS_TOKEN); state.user=localStorage.getItem(LS_USER); state.role=localStorage.getItem(LS_ROLE); }catch(e){}
+      loadLocalTheme(); applyTheme();
       if(state.online && state.token){
-        loadSettings().then(function(){ renderTopbar(); applyGating(); if(state.role==='admin') renderAdmin(); }).catch(function(){ renderTopbar(); });
+        loadSettings().then(function(){ renderTopbar(); applyGating(); applyTheme(); if(state.role==='admin') renderAdmin(); }).catch(function(){ renderTopbar(); applyTheme(); });
       } else {
         renderTopbar(); applyGating();
       }
@@ -391,10 +437,22 @@
     back: back,
     logout: doLogout,
     login: function(u,p){ return doLogin(u,p); },
-    toggleAdmin: function(v){ var p=el('trilAdminPanel'); if(p){ p.classList.toggle('show', v); if(v) refreshAdmin(); } },
-    toggleModules: function(v){ var m=el('trilModules'); if(m){ if(v){ modulesUI(); m.classList.add('show'); } else m.classList.remove('show'); } },
+    toggleAdmin: function(v){
+      var p=el('trilAdminPanel'); if(!p){ p=h('div',{id:'trilAdminPanel'}); document.body.appendChild(p); }
+      p.classList.toggle('show', v);
+      if(v){ renderAdmin(); refreshAdmin(); }
+    },
+    toggleModules: function(v){
+      var m=el('trilModules'); if(!m){ m=h('div',{id:'trilModules'}); document.body.appendChild(m); }
+      if(v){ modulesUI(); m.classList.add('show'); } else m.classList.remove('show');
+    },
     toggleUserMenu: toggleUserMenu,
     showTheme: showTheme,
+    setTheme: function(bg,font){
+      if(bg!=null) state.settings.bg=bg; if(font!=null) state.settings.font=font;
+      if(el('thBg2')) el('thBg2').value=state.settings.bg||''; if(el('thFont2')) el('thFont2').value=state.settings.font||'';
+      saveSettings(); applyTheme(); modulesUI(); toast('主题已更新');
+    },
     setpass: function(user){ var i=el('sp_'+user); if(!i) return; api('/api/admin/users/'+encodeURIComponent(user)+'/setpass',{method:'POST',headers:authHeaders(),body:JSON.stringify({pass:i.value})}).then(function(d){ toast(d.ok?'已改密':'失败'); if(d.ok) i.value=''; }); },
     isAdmin: function(){ return state.role==='admin'; },
     setCurrent: function(obj){ window.TRIL_CURRENT=obj; if(state.role==='admin'&&el('trilModules').classList.contains('show')) modulesUI(); }
