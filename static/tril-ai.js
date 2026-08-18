@@ -411,7 +411,7 @@
       '<label>API Key</label>' +
       '<input id="trilAiKey" type="password" placeholder="sk-... 或 ark-...">' +
       '<label>模型名 model</label>' +
-      '<input id="trilAiModel" placeholder="doubao-seed-1-6-250615 / gpt-4o / 自定义">' +
+      '<input id="trilAiModel" placeholder="ep-2026xxxx（豆包推理接入点ID）/ gpt-4o / deepseek-chat">' +
       '<label>温度 temperature（0–1，越大越发散）</label>' +
       '<input id="trilAiTemp" type="number" min="0" max="1" step="0.1" value="0.7">' +
       '<div id="trilAiCfgHint" class="hint"></div>' +
