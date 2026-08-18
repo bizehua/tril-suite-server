@@ -169,6 +169,7 @@ body.hide-examples .example-block{display:none}
   <button class="laybtn iconbtn" data-layout="sidebar" title="显示 / 隐藏 左侧目录栏">☰ 目录</button>
   <button class="laybtn iconbtn" data-layout="examples" title="显示 / 隐藏 例句区域">💬 例句</button>
   <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶部栏">▭ 顶栏</button>
+  <button class="laybtn iconbtn" id="editLibBtn" title="我的自定义词库">✎ 词库</button>
 </header>
 <div id="layoutDock">
   <button data-layout="sidebar" title="目录栏">☰ 目录</button>
@@ -209,6 +210,7 @@ body.hide-examples .example-block{display:none}
 <script>
 </script>
 <script src="三语母语习得测试器.data.js"></script>
+<script src="tril-lib.js"></script>
 <div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
 <script>const DATA = window.__TESTER_DATA__;
 const LS_KEY = "tril_quiz_progress_v1";
@@ -216,6 +218,7 @@ const LS_SET = "tril_quiz_settings_v1";
 
 /* 单元扁平化 + 归一化三语三元组 */
 let flat = [];
+if(window.TrilLib) TrilLib.mergeStages(DATA);
 DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
   flat.push({stage:st.name,file:f.name,si,fi,ui,title:u.title,type:u.type||"table",
     langs:u.langs||["en","zh","bm"],entries:u.entries||[]});
@@ -761,6 +764,17 @@ function toast(msg){
   const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
   clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2200);
 }
+
+/* ===== 自定义词库（共享 tril-lib.js） ===== */
+function rebuildIndexes(){
+  flat=[]; DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
+    flat.push({stage:st.name,file:f.name,si,fi,ui,title:u.title,type:u.type||"table",langs:u.langs||["en","zh","bm"],entries:u.entries||[]});
+  })));
+  POOL.en.clear(); POOL.bm.clear(); POOL.zh.clear(); POOL.th.clear();
+  flat.forEach(u=>u.entries.forEach(e=>{ const t=makeTriple(u,e); if(t.en) POOL.en.add(t.en); if(t.bm) POOL.bm.add(t.bm); if(t.zh) POOL.zh.add(t.zh); if(t.th) POOL.th.add(t.th); }));
+  renderNav();
+}
+(function(btn){ if(btn) btn.onclick=function(){ if(!window.TrilLib){ toast("自定义词库模块未加载"); return; } TrilLib.openEditor({onSaved:function(){ TrilLib.mergeStages(DATA); rebuildIndexes(); toast("✓ 自定义词库已更新"); }}); }; })(document.getElementById("editLibBtn"));
 
 renderNav();
 refreshProgress();

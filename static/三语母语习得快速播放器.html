@@ -344,6 +344,7 @@ body.show-sidebar-m #navBackdrop{display:block}
 <div class="toast" id="toast"></div>
 
 <script src="三语母语习得快速播放器.data.js"></script>
+<script src="tril-lib.js"></script>
 <script>
 const DATA = window.__PLAYER_DATA__;
 if(!DATA){
@@ -362,12 +363,9 @@ var LS_KEY = "tril_player_progress_v1";
 var LS_SET = "tril_player_settings_v1";
 
 /* ===== 自定义词库：从 localStorage 读取并合并进导航 ===== */
-const LIB_KEY = "tril_player_custom_v1";
-function loadCustomStage(){
-  try{ const c=JSON.parse(localStorage.getItem(LIB_KEY)); if(c&&c.files) return c; }catch(e){}
-  return {name:"📁 我的自定义词库", files:[{name:"自定义单元", units:[]}]};
-}
-function saveCustomStage(st){ try{ localStorage.setItem(LIB_KEY, JSON.stringify(st)); }catch(e){} }
+const LIB_KEY = "tril_custom_units_v1";
+function loadCustomStage(){ return TrilLib.loadStage(); }
+function saveCustomStage(st){ TrilLib.saveStage(st); }
 let customStage = loadCustomStage();
 if(customStage.files[0] && customStage.files[0].units.length){
   DATA.stages = DATA.stages.concat([customStage]);
