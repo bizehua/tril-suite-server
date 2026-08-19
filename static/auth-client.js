@@ -129,6 +129,15 @@
       }
     }catch(e){}
   }
+  var LOCAL_RECORDS_KEY='tril_local_records_v1';
+  function recordLocalLogin(user){
+    try{
+      var arr=[]; try{ arr=JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY)||'[]'); }catch(e){}
+      arr.push({username:user, tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''), login_at:new Date().toISOString(), duration_sec:0});
+      if(arr.length>200) arr=arr.slice(-200);
+      localStorage.setItem(LOCAL_RECORDS_KEY, JSON.stringify(arr));
+    }catch(e){}
+  }
   function localLogin(user, pass){
     seedLocalUsers();
     var users={};
@@ -136,6 +145,7 @@
     var u=users[user];
     if(!u || u.pass!==pass){ throw new Error('账号或密码错误'); }
     state.token='local-'+user; state.user=user; state.role=u.role; state.start=Date.now();
+    recordLocalLogin(user);
     try{ localStorage.setItem(LS_TOKEN,'local-'+user); localStorage.setItem(LS_USER,user); localStorage.setItem(LS_ROLE,u.role); }catch(e){}
     return loadSettings().then(function(){ renderTopbar(); renderLoginBtn(); applyGating(); if(u.role==='admin'){ renderAdmin(); } });
   }
@@ -151,6 +161,10 @@
         state.token=d.token; state.user=d.user; state.role=d.role; state.start=Date.now();
         try{ localStorage.setItem(LS_TOKEN,d.token); localStorage.setItem(LS_USER,d.user); localStorage.setItem(LS_ROLE,d.role); }catch(e){}
         return loadSettings().then(function(){ renderTopbar(); renderLoginBtn(); applyGating(); if(d.role==='admin'){ renderAdmin(); } });
+      })
+      .catch(function(err){
+        // 后端不可用（静态托管无 /api）→ 自动回退本机预置账号
+        return localLogin(user, pass);
       });
   }
   function doLogout(){
@@ -272,8 +286,15 @@
     if(p.dataset.ready && p.dataset.offline===String(!state.online)) return;
     p.dataset.ready='1'; p.dataset.offline=String(!state.online);
     if(!state.online){
-      p.innerHTML='<span class="tril-closex" onclick="TrilAuth.toggleAdmin(false)">✕</span><h4>📊 管理（离线模式）</h4>'+
-        '<div class="sub" style="font-size:12px;color:#93a0bd;line-height:1.6">当前为<b>离线 / 无后台</b>模式。<b>登录记录</b>与<b>用户管理</b>需要服务端，故暂不可用；<b>扩展模块</b>与<b>主题设置</b>可正常使用。</div>';
+      var recs=[]; try{ recs=JSON.parse(localStorage.getItem('tril_local_records_v1')||'[]'); }catch(e){}
+      var uniq={}; recs.forEach(function(r){ uniq[r.username]=1; });
+      var rc='<table><tr><th>用户</th><th>地区</th><th>登录时间</th></tr>';
+      recs.slice(-12).reverse().forEach(function(r){ rc+='<tr><td>'+esc(r.username)+'</td><td>'+esc(r.tz||'')+'</td><td>'+esc(r.login_at||'')+'</td></tr>'; });
+      rc+='</table>';
+      p.innerHTML='<span class="tril-closex" onclick="TrilAuth.toggleAdmin(false)">✕</span><h4>📊 登录记录（离线本地）</h4>'+
+        '<div class="kpi"><div><b>'+recs.length+'</b>总登录</div><div><b>'+Object.keys(uniq).length+'</b>独立用户</div></div>'+
+        '<div style="font-size:12px;color:#93a0bd;line-height:1.6;margin-bottom:8px">当前为<b>离线 / 无后台</b>模式，登录记录保存在本机浏览器。<b>扩展模块</b>与<b>主题设置</b>可正常使用。</div>'+
+        '<h4>近期登录</h4><div style="max-height:160px;overflow:auto">'+rc+'</div>';
       return;
     }
     p.innerHTML='<span class="tril-closex" onclick="TrilAuth.toggleAdmin(false)">✕</span><h4>📊 登录记录 / 管理（管理员）</h4>'+
@@ -458,9 +479,13 @@
           if(lm) lm.classList.remove('show'); if(tm) tm.classList.remove('show');
         }
       });
-      // 离线检测
+      // 离线检测（静态托管无后端时，/api/health 返回 404 视为离线，自动切回本机账号）
       if(state.online){
-        fetch((API||'')+'/api/health',{method:'GET'}).then(function(){ return true; }).catch(function(){ state.online=false; renderTopbar(); });
+        if(typeof fetch!=='function'){
+          state.online=false; renderTopbar(); applyGating(); if(state.role==='admin') renderAdmin();
+        } else {
+          fetch((API||'')+'/api/health',{method:'GET'}).then(function(r){ if(!r.ok) throw new Error('no backend'); }).catch(function(){ state.online=false; renderTopbar(); applyGating(); if(state.role==='admin') renderAdmin(); if(location.protocol!=='file:') toast('已切换为离线模式（本机预置账号可用）'); });
+        }
       }
       // 已有 token?
       try{ state.token=localStorage.getItem(LS_TOKEN); state.user=localStorage.getItem(LS_USER); state.role=localStorage.getItem(LS_ROLE); }catch(e){}

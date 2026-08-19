@@ -275,7 +275,26 @@ const LANGS=[
 ];
 const langMeta = k => LANGS.find(l=>l.k===k) || LANGS[0];
 
-/* ===== 简易图画（具象词用照片/emoji，非具象词用象征图标；预留真实照片 img 字段） ===== */
+/* ===== 具象词用真实照片（AI 生成），非具象词用象征性 emoji 图标 ===== */
+/* 照片映射：英文/马来文/中文/泰文小写键 → 相对图片路径（照片集中放在 imgs/ 目录） */
+const IMG_MAP={
+  'apple':'imgs/apple.png','苹果':'imgs/apple.png',
+  'water':'imgs/water.png','水':'imgs/water.png',
+  'sun':'imgs/sun.png','太阳':'imgs/sun.png',
+  'moon':'imgs/moon.png','月亮':'imgs/moon.png',
+  'tree':'imgs/tree.png','树':'imgs/tree.png',
+  'flower':'imgs/flower.png','花':'imgs/flower.png',
+  'fish':'imgs/fish.png','鱼':'imgs/fish.png',
+  'dog':'imgs/dog.png','狗':'imgs/dog.png',
+  'cat':'imgs/cat.png','猫':'imgs/cat.png',
+  'cow':'imgs/cow.png','牛':'imgs/cow.png',
+  'rice':'imgs/rice.png','米饭':'imgs/rice.png',
+  'egg':'imgs/egg.png','蛋':'imgs/egg.png',
+  'bread':'imgs/bread.png','面包':'imgs/bread.png',
+  'book':'imgs/book.png','书':'imgs/book.png',
+  'door':'imgs/door.png','门':'imgs/door.png',
+  'house':'imgs/house.png','房子':'imgs/house.png'
+};
 const PIC={
   apple:'🍎',water:'💧',fire:'🔥',sun:'☀️',moon:'🌙',star:'⭐',tree:'🌳',flower:'🌸',grass:'🌿',fish:'🐟',bird:'🐦',dog:'🐶',cat:'🐱',cow:'🐄',pig:'🐖',chicken:'🐔',horse:'🐴',sheep:'🐑',duck:'🦆',rice:'🍚',egg:'🥚',bread:'🍞',meat:'🥩',salt:'🧂',sugar:'🍬',milk:'🥛',tea:'🍵',coffee:'☕',book:'📖',pen:'🖊️',pencil:'✏️',paper:'📄',door:'🚪',window:'🪟',house:'🏠',car:'🚗',bus:'🚌',bike:'🚲',boat:'⛵',ship:'🚢',train:'🚆',plane:'✈️',road:'🛣️',mountain:'⛰️',hill:'🏔️',river:'🌊',sea:'🌊',lake:'🏞️',rain:'🌧️',snow:'❄️',wind:'🌬️',hand:'✋',arm:'💪',leg:'🦵',foot:'🦶',head:'🤕',eye:'👁️',ear:'👂',nose:'👃',mouth:'👄',tooth:'🦷',heart:'❤️',blood:'🩸',bone:'🦴',doctor:'👨‍⚕️',nurse:'👩‍⚕️',teacher:'👩‍🏫',student:'🧑‍🎓',worker:'👷',farmer:'👨‍🌾',helmet:'⛑️',hat:'🧢',shoe:'👟',shirt:'👕',tool:'🔧',hammer:'🔨',knife:'🔪',key:'🔑',lock:'🔒',phone:'📱',computer:'💻',tv:'📺',light:'💡',lamp:'💡',chair:'🪑',table:'🛋️',bed:'🛏️',school:'🏫',hospital:'🏥',factory:'🏭',shop:'🏪',store:'🏪',market:'🛒',money:'💰',coin:'🪙',bank:'🏦',time:'⏰',clock:'🕐',watch:'⌚',day:'🌞',night:'🌜',red:'🔴',green:'🟢',blue:'🔵',yellow:'🟡',black:'⚫',white:'⚪',orange:'🟠',big:'🔺',small:'🔻',tall:'📏',fast:'⚡',slow:'🐢',hot:'🔥',cold:'🧊',new:'🆕',old:'📜',good:'👍',bad:'👎',happy:'😊',sad:'😢',angry:'😠',love:'❤️',hate:'💢',eat:'🍽️',drink:'🥤',run:'🏃',walk:'🚶',read:'📖',write:'✍️',speak:'🗣️',listen:'👂',see:'👀',think:'💭',know:'🧠',learn:'📚',idea:'💡',question:'❓',answer:'💡',word:'🔤',language:'🗣️',number:'🔢',letter:'🔠',name:'🏷️',man:'👨',woman:'👩',child:'🧒',baby:'👶',friend:'🤝',family:'👪',city:'🏙️',country:'🏞️',world:'🌍',earth:'🌍',sky:'🌌',cloud:'☁️',stone:'🪨',wood:'🪵',iron:'⚙️',steel:'🏗️',metal:'🔩',wheel:'⚙️',color:'🎨',music:'🎵',song:'🎶',job:'💼',work:'🛠️',rest:'😴',sleep:'🛌',food:'🍱',fruit:'🍎',vegetable:'🥦',animal:'🐾',plant:'🌱',leaf:'🍃',flower2:'🌺',money2:'💵',price:'🏷️',gate:'🚪',bridge:'🌉',box:'📦',bag:'🎒',cup:'☕',bowl:'🥣',plate:'🍽️',fork:'🍴',spoon:'🥄',engine:'🛠️',machine:'🏭',pipe:'💧',wire:'🔌',electric:'⚡',power:'🔋',oil:'🛢️',gas:'⛽',cement:'🧱',brick:'🧱',wall:'🧱',roof:'🏠',floor:'🪵',clean:'🧹',dirty:'🪣',wash:'🚿',cook:'🍳',build:'🏗️',cut:'✂️',strong:'💪',weak:'🥀',rich:'💰',poor:'🪙',healthy:'💪',sick:'🤒',safe:'🛡️',danger:'⚠️'
 };
@@ -283,6 +302,7 @@ function picFor(e){
   if(!e) return null;
   if(e.img) return {type:'img',src:e.img};
   var keys=[e.en,e.bm,e.zh,e.th].map(function(s){return (s||'').toLowerCase().trim();});
+  for(var i=0;i<keys.length;i++){ if(IMG_MAP[keys[i]]) return {type:'img',src:IMG_MAP[keys[i]]}; }
   for(var i=0;i<keys.length;i++){ if(PIC[keys[i]]) return {type:'emoji',ch:PIC[keys[i]]}; }
   return null;
 }
