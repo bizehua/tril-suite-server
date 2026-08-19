@@ -1,0 +1,26 @@
+{
+  "name": "四语母语习得学习器",
+  "short_name": "四语学习",
+  "description": "英语·马来语·中文·泰语 四语词汇学习器，支持朗读、例句与进度保存。",
+  "start_url": "./三语母语习得学习器.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "./icon-learner-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-learner.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

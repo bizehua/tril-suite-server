@@ -1,0 +1,25 @@
+{
+  "name": "四语母语习得套件",
+  "short_name": "四语套件",
+  "description": "英语·马来语·中文·泰语 词汇学习器与测试器 PWA 落地页。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "./icon-learner-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-learner.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
