@@ -136,7 +136,7 @@ function edgeTts(text, voice){
     let ws;
     try{ ws=new WS(url); }catch(e){ return reject(e); }
     const chunks=[]; let ended=false;
-    const done=(err)=>{ try{ ws.close(); }catch(_){} if(err) reject(err); else resolve(fixMp3(Buffer.concat(chunks))); };
+    const done=(err)=>{ if(ended) return; ended=true; try{ ws.close(); }catch(_){} if(err) reject(err); else resolve(fixMp3(Buffer.concat(chunks))); };
     ws.onopen=async ()=>{
       try{
         ws.send('ConnectionId: '+connId+'\r\nVersion: 0.0.0.0\r\nMessageType: SpeechConfig\r\nContent-Type: application/json; charset=utf-8\r\nPath: speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}');
