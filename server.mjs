@@ -165,7 +165,7 @@ async function handleApi(req, res, u){
   const q = u.searchParams;
 
   // 健康检查
-  if(p==='/api/health'){ return sendJSON(res,200,{ok:true, time:Date.now()}); }
+  if(p==='/api/health'){ return sendJSON(res,200,{ok:true, version:'edge2-46e4174', time:Date.now()}); }
 
   // 云端朗读代理（同源兜底，无需密钥）
   // 支持两种模式：
