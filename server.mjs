@@ -137,10 +137,12 @@ function edgeTts(text, voice){
     try{ ws=new WS(url); }catch(e){ return reject(e); }
     const chunks=[]; let ended=false;
     const done=(err)=>{ try{ ws.close(); }catch(_){} if(err) reject(err); else resolve(fixMp3(Buffer.concat(chunks))); };
-    ws.onopen=()=>{
+    ws.onopen=async ()=>{
       try{
         ws.send('ConnectionId: '+connId+'\r\nVersion: 0.0.0.0\r\nMessageType: SpeechConfig\r\nContent-Type: application/json; charset=utf-8\r\nPath: speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}');
+        await new Promise(r=>setTimeout(r,60));
         ws.send('X-RequestId: '+reqId+'\r\nContent-Type: application/json; charset=utf-8\r\nPath: synthesis.context\r\n\r\n{"device":{"os":"Linux","version":"1.0"},"browser":{"name":"Edge","version":"1.0"}}');
+        await new Promise(r=>setTimeout(r,60));
         ws.send('X-RequestId: '+reqId+'\r\nContent-Type: application/ssml+xml\r\nPath: ssml\r\n\r\n<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="'+lang+'"><voice name="'+voice+'">'+escapeXml(text)+'</voice></speak>');
       }catch(e){ done(e); }
     };
@@ -185,6 +187,7 @@ async function handleApi(req, res, u){
     if(isEdge){
       try{
         const buf = await edgeTts(text, voice);
+        res.setHeader('X-Edge-V', '2');
         res.writeHead(200, {'Content-Type':'audio/mpeg', 'Cache-Control':'public, max-age=86400'});
         return res.end(buf);
       }catch(e){ /* Edge 失败则回退 Google */ }
