@@ -48,6 +48,7 @@
   function $(s) { return document.querySelector(s); }
   function el(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function escXml(s) { return String(s == null ? '' : s).replace(/[<>&]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]; }); }
   function toast(m){ if(window.TrilLib && TrilLib.toast) TrilLib.toast(m); }
 
   function load() {
@@ -84,9 +85,62 @@
   function defaultCloudVoice(k) { var cv = CLOUD_VOICES[k]; return cv && cv.length ? cv[0].id : null; }
   function googleLangFor(voiceId) { var p = (voiceId || '').split('-')[0]; return (p === 'zh') ? 'zh-CN' : (p || 'en'); }
 
-  /* ---------- 云端朗读（Edge TTS 男/女多语音，跨平台一致） ---------- */
+  /* ---------- 浏览器直连 Edge TTS（男/女多语音，跨平台一致，不依赖本服务器） ----------
+   * 关键：安卓/苹果浏览器原生 Web Speech 往往只给一个"默认"嗓音、无男女可选；
+   *       这里让浏览器直接连微软 Edge TTS 的 WebSocket，按所选嗓音返回真实男/女声，
+   *       任何浏览器（安卓 Chrome / iOS Safari）、任何平台都一致。 */
+  function browserEdgeTts(text, voiceId) {
+    return new Promise(function (resolve, reject) {
+      if (typeof WebSocket === 'undefined') return reject(new Error('no-ws'));
+      var connId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
+      var reqId = connId;
+      var lang = (voiceId || '').split('-').slice(0, 2).join('-') || 'en-US';
+      var url = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4&ConnectionId=' + connId;
+      var ws;
+      try { ws = new WebSocket(url); } catch (e) { return reject(e); }
+      try { ws.binaryType = 'arraybuffer'; } catch (_) {}
+      var parts = [];
+      var ended = false;
+      function finish(err) {
+        if (ended) return; ended = true;
+        try { ws.close(); } catch (_) {}
+        if (err) return reject(err);
+        var total = 0, i;
+        for (i = 0; i < parts.length; i++) total += parts[i].length;
+        var all = new Uint8Array(total), off = 0;
+        for (i = 0; i < parts.length; i++) { all.set(parts[i], off); off += parts[i].length; }
+        var start = 0;
+        for (i = 0; i < all.length - 1; i++) { if (all[i] === 0xFF && (all[i + 1] & 0xE0) === 0xE0) { start = i; break; } }
+        try { resolve(URL.createObjectURL(new Blob([all.subarray(start)], { type: 'audio/mpeg' }))); }
+        catch (e) { reject(e); }
+      }
+      ws.onopen = function () {
+        try {
+          ws.send('ConnectionId: ' + connId + '\r\nVersion: 0.0.0.0\r\nMessageType: SpeechConfig\r\nContent-Type: application/json; charset=utf-8\r\nPath: speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}');
+          setTimeout(function () {
+            ws.send('X-RequestId: ' + reqId + '\r\nContent-Type: application/json; charset=utf-8\r\nPath: synthesis.context\r\n\r\n{"device":{"os":"Linux","version":"1.0"},"browser":{"name":"Edge","version":"1.0"}}');
+            setTimeout(function () {
+              ws.send('X-RequestId: ' + reqId + '\r\nContent-Type: application/ssml+xml\r\nPath: ssml\r\n\r\n<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="' + lang + '"><voice name="' + voiceId + '">' + escXml(text) + '</voice></speak>');
+            }, 80);
+          }, 80);
+        } catch (e) { finish(e); }
+      };
+      ws.onmessage = function (ev) {
+        if (typeof ev.data === 'string') {
+          if (ev.data.indexOf('Path:turn.end') !== -1) finish(null);
+        } else if (ev.data) {
+          try { parts.push(new Uint8Array(ev.data instanceof ArrayBuffer ? ev.data : (ev.data.buffer || ev.data))); } catch (_) {}
+        }
+      };
+      ws.onerror = function () { if (!ended) finish(new Error('edge-ws-error')); };
+      ws.onclose = function () { if (!ended) finish(new Error('edge-ws-closed')); };
+      setTimeout(function () { if (!ended) finish(new Error('edge-timeout')); }, 20000);
+    });
+  }
+
+  /* ---------- 云端朗读：浏览器直连 Edge(男/女) → 服务器兜底 → Google 兜底 ---------- */
   var audioEl = null;
-  function ensureAudio() { if (!audioEl) { try { audioEl = new (window.Audio || window.webkitAudio)(); audioEl.preload = 'none'; } catch (e) { audioEl = null; } } return audioEl; }
+  function ensureAudio() { if (!audioEl) { try { audioEl = new window.Audio(); audioEl.preload = 'none'; } catch (e) { audioEl = null; } } return audioEl; }
   function cloudSpeak(text, voiceId) {
     text = (text || '').trim(); if (!text) return;
     var a = ensureAudio(); if (!a) { toast('当前环境不支持音频播放'); return; }
@@ -94,14 +148,22 @@
     var serverUrl = '/api/tts?voice=' + encodeURIComponent(voiceId) + '&text=' + encodeURIComponent(text);
     var gl = googleLangFor(voiceId);
     var googleUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&q=' + encodeURIComponent(text) + '&tl=' + encodeURIComponent(gl) + '&client=tw-ob';
-    var triedGoogle = false;
-    function toGoogle() {
-      if (triedGoogle) { toast('云端朗读不可用（请检查网络）'); return; }
-      triedGoogle = true; a.src = googleUrl; a.play().catch(function () { toast('云端朗读不可用（请检查网络）'); });
+    var step = 0;
+    function play(url, onFail) {
+      a.onerror = function () { if (onFail) onFail(); };
+      a.src = url;
+      var p = a.play(); if (p && p.catch) p.catch(function () { if (onFail) onFail(); });
     }
-    a.onerror = toGoogle;
-    if (useServer) { a.src = serverUrl; a.play().catch(toGoogle); }
-    else { a.src = googleUrl; a.play().catch(function () { toast('云端朗读不可用（请检查网络）'); }); }
+    function google() { if (step >= 3) { toast('云端朗读不可用（请检查网络）'); return; } step = 3; play(googleUrl); }
+    function server() { if (step >= 2 || !useServer) { google(); return; } step = 2; play(serverUrl, google); }
+    function edge() {
+      if (step >= 1) { server(); return; }
+      step = 1;
+      browserEdgeTts(text, voiceId).then(function (blobUrl) {
+        play(blobUrl, server); // 直连成功；万一 blob 播放失败再走服务器
+      }).catch(function () { server(); });
+    }
+    edge();
   }
 
   /* ---------- 原生朗读（Web Speech） ---------- */
