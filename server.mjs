@@ -141,7 +141,7 @@ function edgeTts(text, voice){
       try{
         ws.send('ConnectionId: '+connId+'\r\nVersion: 0.0.0.0\r\nMessageType: SpeechConfig\r\nContent-Type: application/json; charset=utf-8\r\nPath: speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}');
         ws.send('X-RequestId: '+reqId+'\r\nContent-Type: application/json; charset=utf-8\r\nPath: synthesis.context\r\n\r\n{"device":{"os":"Linux","version":"1.0"},"browser":{"name":"Edge","version":"1.0"}}');
-        ws.send('X-RequestId: '+reqId+'\r\nContent-Type: application/ssml+xml\r\nPath: ssml\r\n\r\n<speak version=\'1.0\' xmlns=\'http://www.w3.org/2001/10/synthesis\' xml:lang=\''+lang+'\'><voice name=\''+voice+'\'>'+escapeXml(text)+'</voice></speak>');
+        ws.send('X-RequestId: '+reqId+'\r\nContent-Type: application/ssml+xml\r\nPath: ssml\r\n\r\n<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="'+lang+'"><voice name="'+voice+'">'+escapeXml(text)+'</voice></speak>');
       }catch(e){ done(e); }
     };
     ws.onmessage=(ev)=>{
