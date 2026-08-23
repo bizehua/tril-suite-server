@@ -1,16 +1,15 @@
 /* =========================================================================
- * 四语母语习得 · 朗读语音版本（统一浮动控件）(tril-tts.js)
- * 作用：为「学习器 / 测试器 / 快速播放器 / 闪记」四器统一补充"朗读语音版本"
- *       - 可隐藏的浮动按钮（置于左下角，非遮挡区，桌面/移动自适应）
- *       - 点击展开设置：朗读引擎 + 每语言"男/女多语音"选择 + 语速 + 音量
- *       - 一键朗读"当前词"（应用设置 window.TRIL_CURRENT 或页面选中文本）
+ * 四语母语习得 · 朗读语音版本（统一浮动控件 + 统一朗读引擎）(tril-tts.js)
+ * 作用：为「学习器 / 测试器 / 快速播放器 / 闪记」四器统一提供朗读能力：
+ *   - 可隐藏的浮动按钮（左下角），点击展开：朗读引擎 + 每语言男/女多语音 + 语速 + 音量
+ *   - 四器自身的逐词朗读 / 自动连读 全部统一走本模块引擎（window.speak 被本模块接管）
  * 朗读引擎（三选一，默认"自动"）：
- *   · 自动     —— 按所选语音自动走云端(男/女)或本机嗓音
- *   · 浏览器原生 —— 只用本机语音合成（离线，部分语言/安卓可能无可选嗓音）
- *   · 云端朗读 —— 走 Edge TTS 男/女多语音，任何浏览器/任何平台都能选声（需联网）
- * 关键：每个语言的语音下拉框"始终列出云端男/女声"，不依赖本机是否装了语音包，
- *       因此安卓端也能正常选择朗读语音，实现多端对齐一致。
- * 约定：window.TrilTTS.speak(text, lang) 可被各应用直接调用
+ *   · 自动     —— 有本机嗓音用本机（桌面可挑男女声，安卓用设备自带声，发音最准）；
+ *               本机没有该语言嗓音时（如安卓的马来/泰）自动转云端，保证发音正确
+ *   · 浏览器原生 —— 只用本机语音合成（离线可用，部分语言/安卓可能只有默认声）
+ *   · 云端朗读  —— 走 Edge TTS 男/女多语音（需联网；联网失败自动降级）
+ * 关键：每个语言下拉框"始终列出云端男/女声 + 本机嗓音"，安卓/苹果/电脑通用。
+ * 约定：window.TrilTTS.speak(text, lang, onend) 可被各应用直接调用
  * ========================================================================= */
 (function () {
   'use strict';
@@ -21,7 +20,7 @@
     { k: 'zh', label: '中文', v: 'zh-CN', g: 'zh-CN' },
     { k: 'th', label: '泰文', v: 'th-TH', g: 'th' }
   ];
-  // 云端男/女多语音（Edge TTS，免费、跨平台一致）
+  // 云端男/女多语音（Edge TTS，免费、跨平台一致；作为本机嗓音之外的补充/兜底）
   var CLOUD_VOICES = {
     en: [
       { id: 'en-US-AriaNeural', label: '女声 Aria' },
@@ -49,28 +48,29 @@
   function el(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function escXml(s) { return String(s == null ? '' : s).replace(/[<>&]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]; }); }
-  function toast(m){ if(window.TrilLib && TrilLib.toast) TrilLib.toast(m); }
+  function toast(m) { if (window.TrilLib && TrilLib.toast) TrilLib.toast(m); else { try { console.log('[tts]', m); } catch (e) {} } }
 
   function load() {
     var d = { voice: {}, rate: 1, volume: 1, hidden: false, engine: 'auto' };
     try { Object.assign(d, JSON.parse(localStorage.getItem(LS) || '{}')); } catch (e) {}
     if (['auto', 'native', 'cloud'].indexOf(d.engine) < 0) d.engine = 'auto';
+    if (!d.voice || typeof d.voice !== 'object') d.voice = {};
     return d;
   }
   function save(d) { try { localStorage.setItem(LS, JSON.stringify(d)); } catch (e) {} }
   var cfg = load();
 
-  /* ---------- 语音列表 ---------- */
+  /* ---------- 语音列表（本机） ---------- */
   var voices = [];
   function loadVoices() { voices = (window.speechSynthesis ? speechSynthesis.getVoices() : []) || []; }
   if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = function () { loadVoices(); fillVoiceSelects(); }; }
 
-  // iOS / 部分浏览器：需在用户首次交互后才解锁语音列表
   function warmup() { if (window.speechSynthesis) { try { speechSynthesis.getVoices(); } catch (e) {} } }
   document.addEventListener('pointerdown', warmup, { once: true });
   document.addEventListener('keydown', warmup, { once: true });
 
-  function langPrefix(k) { var L = LANGS.filter(function (x) { return x.k === k; })[0]; return L ? L.v.split('-')[0].toLowerCase() : k; }
+  function langMeta(k) { var L = LANGS.filter(function (x) { return x.k === k; })[0]; return L || LANGS[0]; }
+  function langPrefix(k) { var L = langMeta(k); return L.v.split('-')[0].toLowerCase(); }
   function hasVoiceFor(k) { var p = langPrefix(k); return voices.some(function (v) { return (v.lang || '').toLowerCase().indexOf(p) === 0; }); }
   function pickVoice(k) {
     var p = langPrefix(k);
@@ -85,10 +85,8 @@
   function defaultCloudVoice(k) { var cv = CLOUD_VOICES[k]; return cv && cv.length ? cv[0].id : null; }
   function googleLangFor(voiceId) { var p = (voiceId || '').split('-')[0]; return (p === 'zh') ? 'zh-CN' : (p || 'en'); }
 
-  /* ---------- 浏览器直连 Edge TTS（男/女多语音，跨平台一致，不依赖本服务器） ----------
-   * 关键：安卓/苹果浏览器原生 Web Speech 往往只给一个"默认"嗓音、无男女可选；
-   *       这里让浏览器直接连微软 Edge TTS 的 WebSocket，按所选嗓音返回真实男/女声，
-   *       任何浏览器（安卓 Chrome / iOS Safari）、任何平台都一致。 */
+  /* ---------- 浏览器直连 Edge TTS（云端男/女多语音，跨平台一致） ----------
+   * 让浏览器直接连微软 Edge TTS 的 WebSocket，按所选嗓音返回真实男/女声。 */
   function browserEdgeTts(text, voiceId) {
     return new Promise(function (resolve, reject) {
       if (typeof WebSocket === 'undefined') return reject(new Error('no-ws'));
@@ -107,6 +105,7 @@
         if (err) return reject(err);
         var total = 0, i;
         for (i = 0; i < parts.length; i++) total += parts[i].length;
+        if (!total) return reject(new Error('edge-empty'));
         var all = new Uint8Array(total), off = 0;
         for (i = 0; i < parts.length; i++) { all.set(parts[i], off); off += parts[i].length; }
         var start = 0;
@@ -138,12 +137,14 @@
     });
   }
 
-  /* ---------- 云端朗读：浏览器直连 Edge(男/女) → 服务器兜底 → Google 兜底 ---------- */
+  /* ---------- 云端朗读：浏览器直连 Edge(男/女) → 服务器兜底 → Google 兜底 → 本机兜底 ---------- */
   var audioEl = null;
   function ensureAudio() { if (!audioEl) { try { audioEl = new window.Audio(); audioEl.preload = 'none'; } catch (e) { audioEl = null; } } return audioEl; }
-  function cloudSpeak(text, voiceId) {
-    text = (text || '').trim(); if (!text) return;
-    var a = ensureAudio(); if (!a) { toast('当前环境不支持音频播放'); return; }
+  function cloudSpeak(text, voiceId, lang, onend) {
+    text = (text || '').trim(); if (!text) { if (onend) onend(); return; }
+    var L = langMeta(lang);
+    var a = ensureAudio();
+    if (!a) { nativeFallback(text, L, onend); return; }
     var useServer = (location.protocol !== 'file:');
     var serverUrl = '/api/tts?voice=' + encodeURIComponent(voiceId) + '&text=' + encodeURIComponent(text);
     var gl = googleLangFor(voiceId);
@@ -151,11 +152,18 @@
     var step = 0;
     function play(url, onFail) {
       a.onerror = function () { if (onFail) onFail(); };
+      a.onended = function () { if (onend) onend(); };
       a.src = url;
       var p = a.play(); if (p && p.catch) p.catch(function () { if (onFail) onFail(); });
     }
-    function google() { if (step >= 3) { toast('云端朗读不可用（请检查网络）'); return; } step = 3; play(googleUrl); }
-    function server() { if (step >= 2 || !useServer) { google(); return; } step = 2; play(serverUrl, google); }
+    function google() {
+      if (step >= 3) { nativeFallback(text, L, onend); return; }
+      step = 3; play(googleUrl, function () { nativeFallback(text, L, onend); });
+    }
+    function server() {
+      if (step >= 2 || !useServer) { google(); return; }
+      step = 2; play(serverUrl, google);
+    }
     function edge() {
       if (step >= 1) { server(); return; }
       step = 1;
@@ -165,9 +173,20 @@
     }
     edge();
   }
+  // 云端全部失败时，退回本机（尽量出声）
+  function nativeFallback(text, L, onend) {
+    if (window.speechSynthesis) { try { nativeSpeak(text, L, null, onend, false); return; } catch (e) {} }
+    if (onend) onend();
+    toast('云端与本机朗读均不可用（请检查网络或浏览器语音权限）');
+  }
 
   /* ---------- 原生朗读（Web Speech） ---------- */
-  function nativeSpeak(text, L, nativeName) {
+  function nativeSpeak(text, L, nativeName, onend, allowCloud) {
+    if (!window.speechSynthesis) {
+      if (allowCloud !== false) cloudSpeak(text, defaultCloudVoice(L.k), L.k, onend);
+      else if (onend) onend();
+      return;
+    }
     try { speechSynthesis.cancel(); } catch (e) {}
     var u = new SpeechSynthesisUtterance(text);
     u.lang = L.v;
@@ -176,27 +195,36 @@
     else { v = pickVoice(L.k); }
     if (v) u.voice = v;
     u.rate = (cfg.rate || 1); u.volume = (cfg.volume != null ? cfg.volume : 1);
-    var fell = false;
-    u.onerror = function () { if (!fell) { fell = true; cloudSpeak(text, defaultCloudVoice(L.k)); } };
-    try { speechSynthesis.speak(u); } catch (e) { cloudSpeak(text, defaultCloudVoice(L.k)); }
+    u.onend = function () { if (onend) onend(); };
+    u.onerror = function () { if (allowCloud !== false) cloudSpeak(text, defaultCloudVoice(L.k), L.k, onend); else if (onend) onend(); };
+    try { speechSynthesis.resume(); } catch (e) {}
+    try { speechSynthesis.speak(u); } catch (e) {
+      if (allowCloud !== false) cloudSpeak(text, defaultCloudVoice(L.k), L.k, onend); else if (onend) onend();
+    }
   }
 
-  /* ---------- 对外朗读（引擎 + 语音调度） ---------- */
-  function speak(text, lang) {
-    text = (text || '').trim(); if (!text) return;
+  /* ---------- 对外朗读（引擎 + 语音调度，四器统一入口） ----------
+   * text: 要读的文本；lang: en/bm/zh/th；onend: 读完后的回调（用于连读/自动读） */
+  function speak(text, lang, onend) {
+    text = (text || '').trim(); if (!text) { if (onend) onend(); return; }
     try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
-    var L = LANGS.filter(function (x) { return x.k === lang; })[0] || LANGS[0];
+    var L = langMeta(lang);
     var eng = cfg.engine || 'auto';
     var sel = cfg.voice[lang];
-    var isCloud = isCloudVoice(sel);
-    if (eng === 'cloud' || (sel && isCloud)) { cloudSpeak(text, sel || defaultCloudVoice(lang)); return; }
-    if (window.speechSynthesis && (eng === 'native' || hasVoiceFor(lang))) { nativeSpeak(text, L, (sel && !isCloud) ? sel : null); }
-    else { cloudSpeak(text, defaultCloudVoice(lang)); }
+    // 1) 明确选了云端嗓音 或 引擎=云端 → 走云端（男/女多语音）
+    if (eng === 'cloud' || isCloudVoice(sel)) { cloudSpeak(text, sel || defaultCloudVoice(lang), lang, onend); return; }
+    // 2) 本机可用（引擎=原生 或 该语言有本机嗓音）→ 用本机（桌面可挑男女声；安卓用设备自带声，发音最准）
+    if (window.speechSynthesis && (eng === 'native' || hasVoiceFor(lang))) { nativeSpeak(text, L, isCloudVoice(sel) ? null : sel, onend, true); return; }
+    // 3) 该语言本机没有嗓音（如安卓的马来/泰）→ 转云端，由 Google/Edge 给出正确发音（含男/女）
+    cloudSpeak(text, defaultCloudVoice(lang), lang, onend);
   }
 
   function currentText() {
     if (window.TRIL_CURRENT) {
       var c = window.TRIL_CURRENT;
+      // 优先使用应用当前展示语言（如闪记的"正面语言"），否则按 en/zh/bm/th 顺序取首个非空
+      var prefer = window.TRIL_CURRENT_LANG;
+      if (prefer && c[prefer]) return { text: c[prefer], lang: prefer };
       var order = ['en', 'zh', 'bm', 'th'];
       for (var i = 0; i < order.length; i++) { if (c[order[i]]) return { text: c[order[i]], lang: order[i] }; }
     }
@@ -235,18 +263,19 @@
       var sel = el('ttsVoice_' + L.k); if (!sel) return;
       var cur = sel.value;
       sel.innerHTML = '';
-      // 云端男/女声（任何浏览器/平台通用，不依赖本机语音包）—— 这是关键：安卓也能选
-      (CLOUD_VOICES[L.k] || []).forEach(function (v) {
-        var o = document.createElement('option'); o.value = v.id; o.textContent = '☁ ' + v.label; sel.appendChild(o);
-      });
+      var nativeOpts = [];
       // 本机嗓音（若有）
       voices.forEach(function (v) {
         if (v.lang && v.lang.toLowerCase().indexOf(L.v.split('-')[0].toLowerCase()) === 0) {
-          var o = document.createElement('option'); o.value = v.name; o.textContent = '📱 本机: ' + v.name; sel.appendChild(o);
+          var o = document.createElement('option'); o.value = v.name; o.textContent = '📱 本机: ' + v.name; sel.appendChild(o); nativeOpts.push(o);
         }
       });
-      // 选中持久化（首次默认选第一个云端女声，保证多端一致）
-      if (!cur && sel.options.length) cur = sel.options[0].value;
+      // 云端男/女声（任何浏览器/平台通用，不依赖本机语音包）
+      (CLOUD_VOICES[L.k] || []).forEach(function (v) {
+        var o = document.createElement('option'); o.value = v.id; o.textContent = '☁ ' + v.label; sel.appendChild(o);
+      });
+      // 选中持久化：默认优先"本机嗓音"（发音最准、桌面可挑男女），无本机嗓音时默认第一个云端声
+      if (!cur) cur = (nativeOpts.length ? nativeOpts[0].value : (sel.options.length ? sel.options[0].value : ''));
       if (cur) {
         var q = sel.querySelector('option[value="' + cur.replace(/"/g, '\\"') + '"]');
         if (q) { sel.value = cur; cfg.voice[L.k] = cur; save(cfg); }
@@ -282,7 +311,7 @@
       '<div class="row"><label>音量</label><input id="ttsVol" type="range" min="0" max="1" step="0.1" value="' + cfg.volume + '"><span id="ttsVolV" style="width:30px;color:#93a0bd;font-size:11px;text-align:right">' + cfg.volume + '</span></div>' +
       '<button class="speak" id="ttsSpeak">🔊 朗读当前词</button>' +
       '<button class="hide" id="ttsHide">🙈 隐藏此按钮</button>' +
-      '<div class="hint">每个语言下拉框都列出「☁ 云端男/女声」，安卓/苹果/电脑通用，联网即可选声朗读。选择「📱 本机」则用设备自带嗓音（离线可用，但安卓通常只有默认声）。</div>' +
+      '<div class="hint">每个语言下拉框都列出「☁ 云端男/女声」和「📱 本机嗓音」。默认用本机嗓音（发音最准，电脑可挑男女声）；联网不畅或本机缺该语言嗓音（如手机马来/泰）时自动走云端，保证发音正确。引擎选「云端朗读·多语音」可强制走云端男/女声。</div>' +
       '</div>';
     document.body.appendChild(panel);
 
@@ -323,5 +352,8 @@
   if (document.readyState !== 'loading') init();
   else document.addEventListener('DOMContentLoaded', init);
 
+  // 关键：接管全局 speak，让四器（学习器/测试器/快速播放器/闪记）的全部逐词朗读、自动连读
+  // 都统一走本模块引擎，使"朗读语音"面板里的选择对所有朗读生效。
   window.TrilTTS = { speak: speak, open: openPanel, init: init, config: cfg };
+  try { window.speak = speak; } catch (e) {}
 })();

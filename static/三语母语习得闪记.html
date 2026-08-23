@@ -453,7 +453,7 @@ function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.fl
 
 function renderStudy(){
   const e=cards[pos];
-  if(e) window.TRIL_CURRENT=e;
+  if(e){ window.TRIL_CURRENT=e; window.TRIL_CURRENT_LANG=settings.frontLang; }
   const known=getMaster(cur,e);
   const backLangs = computeBackLangs();
   const total=cards.length;
