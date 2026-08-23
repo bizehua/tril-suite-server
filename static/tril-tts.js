@@ -261,7 +261,7 @@
   function fillVoiceSelects() {
     LANGS.forEach(function (L) {
       var sel = el('ttsVoice_' + L.k); if (!sel) return;
-      var cur = sel.value;
+      var saved = cfg.voice[L.k] || '';   // 还原用户已保存的选择（不依赖临时 DOM 值）
       sel.innerHTML = '';
       var nativeOpts = [];
       // 本机嗓音（若有）
@@ -274,12 +274,12 @@
       (CLOUD_VOICES[L.k] || []).forEach(function (v) {
         var o = document.createElement('option'); o.value = v.id; o.textContent = '☁ ' + v.label; sel.appendChild(o);
       });
-      // 选中持久化：默认优先"本机嗓音"（发音最准、桌面可挑男女），无本机嗓音时默认第一个云端声
-      if (!cur) cur = (nativeOpts.length ? nativeOpts[0].value : (sel.options.length ? sel.options[0].value : ''));
-      if (cur) {
-        var q = sel.querySelector('option[value="' + cur.replace(/"/g, '\\"') + '"]');
-        if (q) { sel.value = cur; cfg.voice[L.k] = cur; save(cfg); }
-      }
+      // 优先恢复用户已保存的选择；无保存则默认本机嗓音（有则）或第一个云端声
+      var choose = saved || (nativeOpts.length ? nativeOpts[0].value : (sel.options.length ? sel.options[0].value : ''));
+      var q = sel.querySelector('option[value="' + choose.replace(/"/g, '\\"') + '"]');
+      if (q) { sel.value = choose; cfg.voice[L.k] = choose; save(cfg); }
+      // 关键：用户每次在下拉框里选择，立即持久化，否则"选了不生效"
+      sel.onchange = function () { cfg.voice[L.k] = this.value; save(cfg); };
     });
   }
 
