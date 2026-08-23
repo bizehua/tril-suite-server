@@ -165,7 +165,21 @@ async function handleApi(req, res, u){
   const q = u.searchParams;
 
   // 健康检查
-  if(p==='/api/health'){ return sendJSON(res,200,{ok:true, version:'edge2-46e4174', time:Date.now()}); }
+  if(p==='/api/health'){ return sendJSON(res,200,{ok:true, version:'edge3-debug01', time:Date.now()}); }
+
+  // 诊断：直接对比 Edge 男女声是否真的不同（临时排错用）
+  if(p==='/api/tts-debug' && method==='GET'){
+    const out = { ok:true, ws: typeof globalThis.WebSocket, voices:{} };
+    for(const v of ['en-US-AriaNeural','en-US-GuyNeural']){
+      try{
+        const buf = await edgeTts('hello', v);
+        out.voices[v] = { len: buf.length, head: Array.from(buf.slice(0,4)) };
+      }catch(e){ out.voices[v] = { error: String(e && e.message || e) }; }
+    }
+    const a = out.voices['en-US-AriaNeural'], g = out.voices['en-US-GuyNeural'];
+    out.aria_eq_guy = (a && g && a.len && g.len && a.len===g.len && JSON.stringify(a.head)===JSON.stringify(g.head));
+    return sendJSON(res,200,out);
+  }
 
   // 云端朗读代理（同源兜底，无需密钥）
   // 支持两种模式：
