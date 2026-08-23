@@ -128,6 +128,24 @@ async function handleApi(req, res, u){
   // 健康检查
   if(p==='/api/health'){ return sendJSON(res,200,{ok:true, time:Date.now()}); }
 
+  // 云端朗读代理（同源兜底，无需密钥，支持 en/zh/ms/th）
+  // 让任意浏览器都能朗读任意语言，不依赖本机是否安装了语音包
+  if(p==='/api/tts' && method==='GET'){
+    const text = (q.get('text')||'').slice(0,200).trim();
+    const langMap = { en:'en', bm:'ms', zh:'zh-CN', th:'th' };
+    const lang = langMap[(q.get('lang')||'en').toLowerCase()] || 'en';
+    if(!text) return sendJSON(res,400,{ok:false, error:'缺少 text'});
+    try{
+      const g = await fetch('https://translate.google.com/translate_tts?ie=UTF-8&q='+encodeURIComponent(text)+'&tl='+encodeURIComponent(lang)+'&client=tw-ob', {
+        headers:{ 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      });
+      if(!g.ok) return sendJSON(res,502,{ok:false, error:'tts upstream '+g.status});
+      const buf = Buffer.from(await g.arrayBuffer());
+      res.writeHead(200, {'Content-Type':'audio/mpeg', 'Cache-Control':'public, max-age=86400'});
+      return res.end(buf);
+    }catch(e){ return sendJSON(res,502,{ok:false, error:'tts failed'}); }
+  }
+
   // 登录
   if(p==='/api/auth/login' && method==='POST'){
     const b = await readBody(req);

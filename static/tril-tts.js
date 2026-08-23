@@ -2,48 +2,95 @@
  * 四语母语习得 · 朗读语音版本（统一浮动控件）(tril-tts.js)
  * 作用：为「学习器 / 测试器 / 快速播放器 / 闪记」四器统一补充"朗读语音版本"
  *       - 可隐藏的浮动按钮（置于左下角，非遮挡区，桌面/移动自适应）
- *       - 点击展开设置：逐语言选择 TTS 嗓音 + 语速 + 音量
+ *       - 点击展开设置：朗读引擎 + 逐语言选择 TTS 嗓音 + 语速 + 音量
  *       - 一键朗读"当前词"（应用设置 window.TRIL_CURRENT 或页面选中文本）
+ * 朗读引擎（三选一，默认"自动"）：
+ *   · 自动     —— 浏览器有该语言嗓音就用原生 Web Speech，否则走云端朗读
+ *   · 原生     —— 只用浏览器自带语音合成（离线、音质好，部分语言可能无嗓音）
+ *   · 云端     —— 走云端 TTS，任何浏览器、任何语言都能出声（需联网）
  * 约定：window.TrilTTS.speak(text, lang) 可被各应用直接调用
  * ========================================================================= */
 (function () {
   'use strict';
   var LS = 'tril_tts_v1';
   var LANGS = [
-    { k: 'en', label: '英文', v: 'en-US' },
-    { k: 'bm', label: '马来文', v: 'ms-MY' },
-    { k: 'zh', label: '中文', v: 'zh-CN' },
-    { k: 'th', label: '泰文', v: 'th-TH' }
+    { k: 'en', label: '英文', v: 'en-US', g: 'en' },
+    { k: 'bm', label: '马来文', v: 'ms-MY', g: 'ms' },
+    { k: 'zh', label: '中文', v: 'zh-CN', g: 'zh-CN' },
+    { k: 'th', label: '泰文', v: 'th-TH', g: 'th' }
   ];
   function $(s) { return document.querySelector(s); }
   function el(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function toast(m){ if(window.TrilLib && TrilLib.toast) TrilLib.toast(m); }
 
   function load() {
-    var d = { voice: {}, rate: 1, volume: 1, hidden: false };
+    var d = { voice: {}, rate: 1, volume: 1, hidden: false, engine: 'auto' };
     try { Object.assign(d, JSON.parse(localStorage.getItem(LS) || '{}')); } catch (e) {}
+    if (['auto', 'native', 'cloud'].indexOf(d.engine) < 0) d.engine = 'auto';
     return d;
   }
   function save(d) { try { localStorage.setItem(LS, JSON.stringify(d)); } catch (e) {} }
   var cfg = load();
 
+  /* ---------- 语音列表 ---------- */
   var voices = [];
   function loadVoices() { voices = (window.speechSynthesis ? speechSynthesis.getVoices() : []) || []; }
-  if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+  if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = function () { loadVoices(); fillVoiceSelects(); }; }
 
-  /* ---------- 对外朗读 ---------- */
-  function speak(text, lang) {
-    text = (text || '').trim();
-    if (!text) return;
-    if (!window.speechSynthesis) { if (window.TrilLib && TrilLib.toast) TrilLib.toast('当前环境不支持语音合成'); return; }
+  // iOS / 部分浏览器：需在用户首次交互后才解锁语音列表
+  function warmup() { if (window.speechSynthesis) { try { speechSynthesis.getVoices(); } catch (e) {} } }
+  document.addEventListener('pointerdown', warmup, { once: true });
+  document.addEventListener('keydown', warmup, { once: true });
+
+  function langPrefix(k) { var L = LANGS.filter(function (x) { return x.k === k; })[0]; return L ? L.v.split('-')[0].toLowerCase() : k; }
+  function hasVoiceFor(k) { var p = langPrefix(k); return voices.some(function (v) { return (v.lang || '').toLowerCase().indexOf(p) === 0; }); }
+  function pickVoice(k) {
+    var p = langPrefix(k);
+    var exact = voices.filter(function (v) { return (v.lang || '').toLowerCase().indexOf(p) === 0; });
+    if (exact.length) return exact[0];
+    return null;
+  }
+
+  /* ---------- 云端朗读（任何浏览器 / 任何语言） ---------- */
+  var audioEl = null;
+  function ensureAudio() { if (!audioEl) { try { audioEl = new (window.Audio || window.webkitAudio)(); audioEl.preload = 'none'; } catch (e) { audioEl = null; } } return audioEl; }
+  function cloudSpeak(text, googleLang) {
+    text = (text || '').trim(); if (!text) return;
+    var a = ensureAudio();
+    if (!a) { toast('当前环境不支持音频播放'); return; }
+    var googleUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&q=' + encodeURIComponent(text) + '&tl=' + encodeURIComponent(googleLang) + '&client=tw-ob';
+    var useServer = (location.protocol !== 'file:');
+    var triedGoogle = false;
+    function switchToGoogle() { if (triedGoogle) { toast('云端朗读不可用（请检查网络）'); return; } triedGoogle = true; a.src = googleUrl; a.play().catch(function () { toast('云端朗读不可用（请检查网络）'); }); }
+    a.onerror = switchToGoogle;
+    if (useServer) { a.src = '/api/tts?text=' + encodeURIComponent(text) + '&lang=' + encodeURIComponent(googleLang); a.play().catch(switchToGoogle); }
+    else { a.src = googleUrl; a.play().catch(function () { toast('云端朗读不可用（请检查网络）'); }); }
+  }
+
+  /* ---------- 原生朗读（Web Speech） ---------- */
+  function nativeSpeak(text, L) {
     try { speechSynthesis.cancel(); } catch (e) {}
     var u = new SpeechSynthesisUtterance(text);
-    var L = LANGS.filter(function (x) { return x.k === lang; })[0] || LANGS[0];
     u.lang = L.v;
-    var sel = cfg.voice[lang];
+    var sel = cfg.voice[L.k];
     if (sel) { var v = voices.filter(function (x) { return x.name === sel; })[0]; if (v) u.voice = v; }
+    else { var pv = pickVoice(L.k); if (pv) u.voice = pv; }
     u.rate = (cfg.rate || 1); u.volume = (cfg.volume != null ? cfg.volume : 1);
-    speechSynthesis.speak(u);
+    var fell = false;
+    u.onerror = function () { if (!fell) { fell = true; cloudSpeak(text, L.g); } };
+    try { speechSynthesis.speak(u); } catch (e) { cloudSpeak(text, L.g); }
+  }
+
+  /* ---------- 对外朗读（引擎调度） ---------- */
+  function speak(text, lang) {
+    text = (text || '').trim(); if (!text) return;
+    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+    var L = LANGS.filter(function (x) { return x.k === lang; })[0] || LANGS[0];
+    var eng = cfg.engine || 'auto';
+    if (eng === 'cloud') { cloudSpeak(text, L.g); return; }
+    if (window.speechSynthesis && (eng === 'native' || hasVoiceFor(lang))) { nativeSpeak(text, L); }
+    else { cloudSpeak(text, L.g); }
   }
 
   function currentText() {
@@ -82,6 +129,20 @@
     document.head.appendChild(c);
   }
 
+  function fillVoiceSelects() {
+    LANGS.forEach(function (L) {
+      var sel = el('ttsVoice_' + L.k); if (!sel) return;
+      var cur = sel.value;
+      sel.innerHTML = '';
+      var opt0 = document.createElement('option'); opt0.value = ''; opt0.textContent = '（默认嗓音）'; sel.appendChild(opt0);
+      voices.forEach(function (v) {
+        var o = document.createElement('option'); o.value = v.name; o.textContent = v.name + (v.lang ? ' · ' + v.lang : '');
+        if (v.lang && v.lang.toLowerCase().indexOf(L.v.split('-')[0].toLowerCase()) === 0) sel.appendChild(o);
+      });
+      sel.value = (cur && sel.querySelector('option[value="' + (cur + '').replace(/"/g, '\\"') + '"]')) ? cur : '';
+    });
+  }
+
   function buildUI() {
     injectCSS();
     if (cfg.hidden) {
@@ -98,6 +159,11 @@
     panel.innerHTML =
       '<div class="hd"><b>🎚 朗读语音版本</b><span class="x" id="trilTtsClose">✕</span></div>' +
       '<div class="bd">' +
+      '<div class="row"><label>朗读引擎</label><select id="ttsEngine">' +
+      '<option value="auto">自动（推荐）</option>' +
+      '<option value="native">浏览器原生</option>' +
+      '<option value="cloud">云端朗读·任何浏览器</option>' +
+      '</select></div>' +
       LANGS.map(function (L) {
         return '<div class="row"><label>' + L.label + '</label><select id="ttsVoice_' + L.k + '"></select></div>';
       }).join('') +
@@ -105,26 +171,19 @@
       '<div class="row"><label>音量</label><input id="ttsVol" type="range" min="0" max="1" step="0.1" value="' + cfg.volume + '"><span id="ttsVolV" style="width:30px;color:#93a0bd;font-size:11px;text-align:right">' + cfg.volume + '</span></div>' +
       '<button class="speak" id="ttsSpeak">🔊 朗读当前词</button>' +
       '<button class="hide" id="ttsHide">🙈 隐藏此按钮</button>' +
-      '<div class="hint">嗓音列表取自本机浏览器已安装语音；若为空，说明该浏览器未装对应语言语音包（用系统默认嗓音）。设置仅保存在本机。</div>' +
+      '<div class="hint">「自动」优先用本机语音，缺哪国语言就自动走云端朗读，保证任何浏览器都能出声。云端朗读需联网；嗓音列表取自本机已安装语音包。</div>' +
       '</div>';
     document.body.appendChild(panel);
 
-    // 填充嗓音下拉
-    LANGS.forEach(function (L) {
-      var sel = el('ttsVoice_' + L.k);
-      var opt0 = document.createElement('option'); opt0.value = ''; opt0.textContent = '（默认嗓音）'; sel.appendChild(opt0);
-      voices.forEach(function (v) {
-        var o = document.createElement('option'); o.value = v.name; o.textContent = v.name + (v.lang ? ' · ' + v.lang : '');
-        if (v.lang && v.lang.toLowerCase().indexOf(L.v.split('-')[0].toLowerCase()) === 0) sel.appendChild(o);
-      });
-      sel.value = cfg.voice[L.k] || '';
-      sel.onchange = function () { cfg.voice[L.k] = sel.value; save(cfg); };
-    });
+    el('ttsEngine').value = cfg.engine;
+    el('ttsEngine').onchange = function () { cfg.engine = this.value; save(cfg); };
+
+    fillVoiceSelects();
     el('ttsRate').oninput = function () { cfg.rate = parseFloat(this.value); el('ttsRateV').textContent = this.value; save(cfg); };
     el('ttsVol').oninput = function () { cfg.volume = parseFloat(this.value); el('ttsVolV').textContent = this.value; save(cfg); };
     el('ttsSpeak').onclick = function () {
       var c = currentText();
-      if (!c) { if (window.TrilLib && TrilLib.toast) TrilLib.toast('没有可朗读的当前词'); return; }
+      if (!c) { toast('没有可朗读的当前词'); return; }
       speak(c.text, c.lang);
     };
     el('ttsHide').onclick = function () { cfg.hidden = true; save(cfg); panel.classList.remove('show'); location.reload(); };
