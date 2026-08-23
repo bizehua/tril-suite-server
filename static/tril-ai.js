@@ -241,7 +241,7 @@
       'background:#0f1729;color:#e8edf7;border:1px solid #2c3756;border-radius:16px;display:none;flex-direction:column;' +
       'font:13px/1.5 system-ui;box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden}' +
       '#trilAi.show{display:flex}' +
-      '#trilAi .hd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #2c3756;background:#15203a}' +
+      '#trilAi .hd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #2c3756;background:#15203a;cursor:move;touch-action:none;user-select:none}' +
       '#trilAi .hd b{font-size:14px;color:#7aa2ff;flex:1}' +
       '#trilAi .hd .x{cursor:pointer;color:#93a0bd;font-size:16px;padding:2px 6px}' +
       '#trilAi .ctx{font-size:11px;color:#93a0bd;padding:8px 14px;border-bottom:1px solid #1d2742;background:#11192c;line-height:1.6}' +
@@ -392,6 +392,7 @@
       '<div class="prov" id="trilAiProvTxt"></div>' +
       '</div>';
     document.body.appendChild(panel);
+    makeDraggableResizable();
 
     var cfgM = document.createElement('div');
     cfgM.id = 'trilAiCfg';
@@ -445,6 +446,52 @@
   }
   function updateProvTxt() {
     var p = el('trilAiProvTxt'); if (p) p.textContent = '当前模式：' + (PROVIDERS[cfg.provider] ? PROVIDERS[cfg.provider].label : cfg.provider);
+  }
+
+  /* ---------- 拖拽 + 缩放（浮动窗，不遮挡底层内容） ---------- */
+  function makeDraggableResizable(){
+    var panel = el('trilAi'); if(!panel) return;
+    var hd = panel.querySelector('.hd');
+    var sx, sy, ox, oy, dragging = false;
+    hd.addEventListener('pointerdown', function(e){
+      if(e.target.classList.contains('x')) return;
+      dragging = true;
+      panel.style.right = 'auto'; panel.style.bottom = 'auto';
+      var r = panel.getBoundingClientRect();
+      ox = r.left; oy = r.top;
+      panel.style.left = ox + 'px'; panel.style.top = oy + 'px';
+      try { hd.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    hd.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      var nx = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, ox + (e.clientX - sx)));
+      var ny = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, oy + (e.clientY - sy)));
+      panel.style.left = nx + 'px'; panel.style.top = ny + 'px';
+    });
+    hd.addEventListener('pointerup', function(e){ dragging = false; try { hd.releasePointerCapture(e.pointerId); } catch(_){} });
+    hd.addEventListener('pointercancel', function(){ dragging = false; });
+
+    var rz = document.createElement('div');
+    rz.id = 'trilAiRz';
+    rz.style.cssText = 'position:absolute;right:2px;bottom:2px;width:20px;height:20px;cursor:nwse-resize;touch-action:none;z-index:5';
+    rz.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20"><path d="M15 5 L5 15 M15 10 L10 15 M15 15 L15 15" stroke="#5b8cff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>';
+    panel.appendChild(rz);
+    var rsx, rsy, rw, rh, resizing = false;
+    rz.addEventListener('pointerdown', function(e){
+      e.stopPropagation();
+      resizing = true;
+      var r = panel.getBoundingClientRect();
+      rw = r.width; rh = r.height; rsx = e.clientX; rsy = e.clientY;
+      try { rz.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    rz.addEventListener('pointermove', function(e){
+      if(!resizing) return;
+      var nw = Math.max(260, Math.min(window.innerWidth - 16, rw + (e.clientX - rsx)));
+      var nh = Math.max(220, Math.min(window.innerHeight - 16, rh + (e.clientY - rsy)));
+      panel.style.width = nw + 'px'; panel.style.height = nh + 'px';
+    });
+    rz.addEventListener('pointerup', function(e){ resizing = false; try { rz.releasePointerCapture(e.pointerId); } catch(_){} });
+    rz.addEventListener('pointercancel', function(){ resizing = false; });
   }
 
   /* ---------- 启动 ---------- */
