@@ -5,15 +5,16 @@
 <script src="tril-skin.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>四语母语习得 · 学习器与测试器</title>
+<title>四语母语习得 · 学习看板</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
+<meta name="mobile-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="四语母语习得">
+<meta name="apple-mobile-web-app-title" content="四语学习看板">
 <link rel="manifest" href="./index.webmanifest">
 <link rel="apple-touch-icon" href="./icon-learner.png">
 <link rel="icon" type="image/png" href="./favicon-learner.png">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js" crossorigin="anonymous"></script>
 <style>
 :root{--bg:#0e1320;--bg2:#151c2e;--panel:#1a2238;--panel2:#212c47;--line:#2c3756;--txt:#e8edf7;--muted:#93a0bd;--accent:#5b8cff;--en:#5b8cff;--bm:#ffb454;--zh:#4fd1a5;--th:#c792ea;--shadow:rgba(0,0,0,.35)}
 *{box-sizing:border-box}
@@ -27,58 +28,96 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
    radial-gradient(420px 260px at 18% 80%, rgba(255,180,84,.10), transparent 60%),
    radial-gradient(360px 220px at 60% 30%, rgba(91,140,255,.08), transparent 60%)}
-.hero{position:relative;width:100%;max-width:920px;text-align:center;padding:72px 18px 34px}
-.hero h1{font-size:clamp(28px,6vw,46px);font-weight:800;margin:0 0 14px;background:linear-gradient(90deg,var(--en),var(--bm) 50%,var(--zh));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
-.hero p{max-width:680px;margin:0 auto;color:var(--muted);font-size:15px;line-height:1.75}
-.topbar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:flex-end;gap:10px;padding:16px 4px}
-.btn-icon{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--line);border-radius:19px;background:var(--panel);color:var(--txt);font-size:13px;cursor:pointer;transition:.15s;backdrop-filter:blur(6px)}
+.hero{position:relative;width:100%;max-width:920px;text-align:center;padding:48px 18px 18px}
+.hero h1{font-size:clamp(26px,5vw,40px);font-weight:800;margin:0 0 10px;background:linear-gradient(90deg,var(--en),var(--bm) 50%,var(--zh));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.hero p{max-width:680px;margin:0 auto;color:var(--muted);font-size:14px;line-height:1.7}
+.topbar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:flex-end;gap:10px;padding:14px 4px}
+.btn-icon{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--txt);font-size:13px;cursor:pointer;transition:.15s;backdrop-filter:blur(6px)}
 .btn-icon:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
 .dev-credit{display:inline-flex;align-items:center;font-size:13px;color:var(--txt);background:var(--panel);border:1px solid var(--line);padding:8px 16px;border-radius:19px;backdrop-filter:blur(6px);box-shadow:0 4px 14px var(--shadow);white-space:nowrap}
-.section{width:100%;max-width:760px;margin:0 0 26px;text-align:center}
-.section h2{margin:0 0 6px;font-size:17px;font-weight:700}
-.section .sub{margin:0 0 14px;font-size:13px;color:var(--muted)}
-.theme-chips{display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.theme-chips button{width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;box-shadow:0 4px 10px var(--shadow);transition:.15s;position:relative}
+.section{width:100%;max-width:920px;margin:0 0 22px;text-align:center}
+.section h2{margin:0 0 6px;font-size:15px;font-weight:700;color:var(--txt)}
+.section .sub{margin:0 0 12px;font-size:12px;color:var(--muted)}
+.theme-chips{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.theme-chips button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;box-shadow:0 4px 10px var(--shadow);transition:.15s;position:relative}
 .theme-chips button:hover{transform:scale(1.1)}
 .theme-chips button.on{box-shadow:0 0 0 2px var(--accent),0 4px 10px var(--shadow)}
-.cards{width:100%;max-width:760px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:28px}
-.card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px 22px;text-decoration:none;color:var(--txt);display:flex;flex-direction:column;transition:.2s;overflow:hidden;backdrop-filter:blur(4px)}
-.card::before{content:"";position:absolute;inset:0;border-radius:20px;padding:1px;background:linear-gradient(135deg,rgba(91,140,255,.35),transparent 50%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.6}
-.card:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 16px 40px var(--shadow)}
-.card .emoji{font-size:42px;margin-bottom:12px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
-.card h2{margin:0 0 8px;font-size:18px;font-weight:700}
-.card .desc{color:var(--muted);font-size:13px;line-height:1.7;flex:1}
-.card .tag{display:inline-flex;align-items:center;align-self:flex-start;margin-top:16px;font-size:12px;padding:6px 14px;border-radius:99px;background:var(--panel2);color:var(--accent);font-weight:600}
+.cards{width:100%;max-width:920px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
+.card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 20px;text-decoration:none;color:var(--txt);display:flex;flex-direction:column;transition:.2s;overflow:hidden;backdrop-filter:blur(4px)}
+.card::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(91,140,255,.35),transparent 50%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.6}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 14px 36px var(--shadow)}
+.card .emoji{font-size:38px;margin-bottom:10px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
+.card h2{margin:0 0 6px;font-size:16px;font-weight:700}
+.card .desc{color:var(--muted);font-size:12px;line-height:1.65;flex:1}
+.card .tag{display:inline-flex;align-items:center;align-self:flex-start;margin-top:14px;font-size:12px;padding:5px 12px;border-radius:99px;background:var(--panel2);color:var(--accent);font-weight:600}
 .card:hover .tag{background:var(--accent);color:#fff}
-.install{width:100%;max-width:760px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;backdrop-filter:blur(4px)}
-.install h2{margin:0 0 14px;font-size:17px;display:flex;align-items:center;gap:8px}
-.install .qrwrap{display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:center}
-.install img{max-width:170px;border-radius:14px;background:#fff;padding:6px;box-shadow:0 8px 24px var(--shadow)}
-.install ol{padding-left:18px;margin:0;font-size:13px;color:var(--muted);line-height:1.9;flex:1;min-width:220px}
-.install ol li{margin:6px 0}
-.install .note{font-size:12px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center}
-.badge{font-size:12px;background:var(--panel2);color:var(--accent);padding:4px 10px;border-radius:99px}
-footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-height:1.8;max-width:760px}
-.auth-ov,.auth-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,15,28,.88);font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;opacity:0;pointer-events:none;transition:.2s}
-.auth-ov.show,.auth-modal.show{opacity:1;pointer-events:auto}
-.auth-card{background:#fff;color:#1f2937;width:360px;max-width:92vw;padding:28px 24px;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.45);transform:translateY(10px);transition:.2s}
-.auth-ov.show .auth-card,.auth-modal.show .auth-card{transform:translateY(0)}
-.auth-logo{font-size:20px;font-weight:800;text-align:center;color:#2563eb}
-.auth-sub{font-size:13px;color:#6b7280;text-align:center;margin:6px 0 18px}
-.auth-row{display:flex;align-items:center;margin:12px 0;gap:8px}
-.auth-row label{width:84px;font-size:13px;color:#374151;flex:none}
-.auth-row input{flex:1;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;outline:none}
-.auth-row input:focus{border-color:#2563eb}
-.auth-row input[readonly]{background:#f3f4f6;color:#6b7280}
-.auth-err{color:#dc2626;font-size:12px;min-height:16px;margin:4px 0}
-.auth-btn{width:100%;padding:12px;border:none;border-radius:11px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:.15s}
-.auth-btn2{background:#e5e7eb;color:#374151}
-.auth-btn:hover{opacity:.92;transform:translateY(-1px)}
-.auth-links{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
-.auth-links a{color:#2563eb;cursor:pointer;text-decoration:none}
-@media (max-width:560px){.hero{padding-top:66px}.cards{grid-template-columns:1fr}.install .qrwrap{flex-direction:column}}
-@media (prefers-color-scheme:dark){.auth-card{background:#1f2937;color:#e5e7eb}.auth-row label{color:#cbd5e1}.auth-row input{border-color:#374151;background:#111827;color:#e5e7eb}.auth-btn2{background:#374151;color:#e5e7eb}}
+.install{width:100%;max-width:920px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;backdrop-filter:blur(4px)}
+.install h2{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px}
+.install .qrwrap{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:center}
+.install img{max-width:160px;border-radius:12px;background:#fff;padding:6px;box-shadow:0 8px 24px var(--shadow)}
+.install ol{padding-left:18px;margin:0;font-size:12px;color:var(--muted);line-height:1.9;flex:1;min-width:220px}
+.install ol li{margin:5px 0}
+.install .note{font-size:11px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;justify-content:center}
+.badge{font-size:11px;background:var(--panel2);color:var(--accent);padding:3px 9px;border-radius:99px}
+footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-height:1.8;max-width:920px}
+
+/* ============ 看板（B2-1 + B2-2 浅色底） ============ */
+.dashboard{
+  width:100%;max-width:920px;margin:0 0 22px;
+  background:linear-gradient(180deg,#ffffff 0%,#f9fafb 100%);
+  border:1px solid #e5e7eb;border-radius:20px;
+  padding:22px;box-shadow:0 8px 32px rgba(15,23,42,.06),0 1px 0 rgba(255,255,255,.8) inset;
+  color:#1f2937;position:relative;overflow:hidden;
+}
+.dashboard::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#2563eb,#5b8cff 30%,#4fd1a5 60%,#D4AF37 90%,#C8102E)}
+.dash-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.dash-head .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2563eb,#4fd1a5);color:white;font-size:18px;box-shadow:0 4px 12px rgba(37,99,235,.25)}
+.dash-head h2{margin:0;font-size:16px;font-weight:700;color:#1f2937}
+.dash-head .meta{margin-left:auto;font-size:11px;color:#9ca3af;display:flex;gap:6px;align-items:center}
+.dash-head .meta a{color:#2563eb;text-decoration:none;font-weight:600}
+
+.dash-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.dash-hero .sc{
+  background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;
+  padding:14px 14px 12px;position:relative;overflow:hidden;
+}
+.dash-hero .sc::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--sc-accent,#5b8cff);opacity:.6}
+.dash-hero .sc[data-color="ok"]::after{background:#10b981}.dash-hero .sc[data-color="warn"]::after{background:#f59e0b}
+.dash-hero .sc[data-color="bad"]::after{background:#ef4444}.dash-hero .sc[data-color="muted"]::after{background:#9ca3af}
+.dash-hero .sc .lbl{font-size:11px;color:#6b7280;letter-spacing:.3px}
+.dash-hero .sc .val{font-size:28px;font-weight:800;color:#1f2937;margin-top:3px;line-height:1.15}
+.dash-hero .sc .val.ok{color:#10b981}.dash-hero .sc .val.warn{color:#f59e0b}.dash-hero .sc .val.bad{color:#ef4444}
+.dash-hero .sc .sub{font-size:11px;color:#9ca3af;margin-top:3px}
+
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.dash-grid .cc{background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:12px 14px 8px}
+.dash-grid .cc h3{margin:0 0 6px;font-size:13px;color:#1f2937;font-weight:700;display:flex;align-items:center;gap:6px}
+.dash-grid .cc .ct{height:180px;width:100%}
+.dash-grid .cc .loading{height:180px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px}
+
+.dash-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding-top:6px;border-top:1px dashed #e5e7eb}
+.dash-cta a{
+  font-size:13px;color:#fff;
+  background:linear-gradient(135deg,#2563eb,#5b8cff);
+  border-radius:99px;padding:8px 16px;text-decoration:none;font-weight:600;
+  box-shadow:0 4px 10px rgba(37,99,235,.18);transition:.15s;
+}
+.dash-cta a:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,99,235,.28)}
+.dash-cta a.go-review{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.dash-cta a.go-test{background:linear-gradient(135deg,#10b981,#4fd1a5)}
+.dash-cta a.go-flash{background:linear-gradient(135deg,#c792ea,#a855f7)}
+
+.dash-empty{padding:30px 16px;text-align:center;color:#6b7280}
+.dash-empty h4{margin:0 0 6px;font-size:14px;color:#1f2937}
+.dash-empty p{font-size:12px;line-height:1.7;margin:4px 0}
+.dash-empty .hint{font-size:11px;color:#9ca3af;margin-top:8px}
+
+@media (max-width:760px){
+  .dash-hero{grid-template-columns:repeat(2,1fr)}
+  .dash-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){.hero{padding-top:50px}.cards{grid-template-columns:1fr}.install .qrwrap{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -86,9 +125,44 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
   <div class="topbar">
     <span class="dev-credit">网站开发者：毕泽华</span>
   </div>
-  <h1>📚 四语母语习得 · 套件</h1>
-  <p>英语 · 马来语 · 中文 · 泰语 ｜ 50000+ 词条 · 87% 含泰文<br>学习器 + 测试器 + 快速播放器 + 闪记，浏览器打开即可朗读学习</p>
+  <h1>📚 四语母语习得 · 学习看板</h1>
+  <p>英语 · 马来语 · 中文 · 泰语 ｜ 50000+ 词条 · 87% 含泰文<br>今日学习目标、复习排期、词条掌握度，一屏掌握</p>
 </header>
+
+<!-- ========== 看板 ========== -->
+<section class="dashboard" id="dashboard">
+  <div class="dash-head">
+    <div class="ico">📊</div>
+    <h2>今日学习看板</h2>
+    <div class="meta">
+      <span id="dashDate"></span>
+      <span>·</span>
+      <a href="#" onclick="event.preventDefault();location.reload()">🔄 刷新</a>
+    </div>
+  </div>
+
+  <div class="dash-hero" id="dashHero">
+    <div class="sc" data-color="warn"><div class="lbl">今日待复习</div><div class="val" id="mDue">—</div><div class="sub">到期 SRS 词条</div></div>
+    <div class="sc" data-color="muted"><div class="lbl">本周到期</div><div class="val" id="mWeek">—</div><div class="sub">含今日 · 7 日内</div></div>
+    <div class="sc" data-color="ok"><div class="lbl">已掌握 (L≥5)</div><div class="val ok" id="mMaster">—</div><div class="sub" id="mTotal">总词条 —</div></div>
+    <div class="sc" data-color="muted"><div class="lbl">学习进度</div><div class="val" id="mProg">—</div><div class="sub" id="mProgSub">📕 — · ★ —</div></div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="cc"><h3>📅 7 日复习预测</h3><div class="ct" id="ctForecast"><div class="loading">⏳ 计算中…</div></div></div>
+    <div class="cc"><h3>📊 SRS 等级分布</h3><div class="ct" id="ctLevel"><div class="loading">⏳ 计算中…</div></div></div>
+    <div class="cc"><h3>🥧 30 日评分</h3><div class="ct" id="ctRating"><div class="loading">⏳ 计算中…</div></div></div>
+    <div class="cc"><h3>📚 单元完成度</h3><div class="ct" id="ctStage"><div class="loading">⏳ 计算中…</div></div></div>
+  </div>
+
+  <div class="dash-cta" id="dashCta">
+    <a class="go-review" href="三语母语习得复习.html">🔁 开始今日复习</a>
+    <a class="go-test" href="三语母语习得测试器.html">📝 做单元自测</a>
+    <a class="go-flash" href="三语母语习得闪记.html">⚡ 闪记练词卡</a>
+    <a href="三语母语习得学习器.html">🎧 进入学习器</a>
+    <a href="三语母语习得快速播放器.html">🔊 单词播放器</a>
+  </div>
+</section>
 
 <section class="section">
   <h2>🎨 外观主题</h2>
@@ -154,19 +228,230 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
     <img src="扫码安装.png" alt="扫码打开">
     <ol>
       <li>用 iPhone/iPad 的 <strong>Safari</strong>，或安卓的 <strong>Chrome</strong> 扫描二维码，打开本页。</li>
-      <li>点击下方卡片进入「学习器」「测试器」「快速播放器」或「闪记」即可使用。</li>
+      <li>点击下方卡片进入「学习器」「测试器」「快速播放器」「闪记」或「复习」。</li>
       <li><strong>添加到主屏幕</strong>：iOS 点底部分享按钮 →「添加到主屏幕」；安卓 Chrome 点菜单 →「安装应用」。</li>
       <li>之后主屏幕就会出现 App 图标，点开即全屏使用，就像原生 App 一样。</li>
     </ol>
   </div>
-  <div class="note">提示：安装后会自动缓存应用文件，首次加载后无网络也能继续使用。进度保存在本机浏览器（localStorage），换设备不会同步。</div>
+  <div class="note">提示：看板数据全部来自本机 localStorage，无网络上传。换设备不会自动同步；如需迁移可在每个 app 内用 ⤴ / ⤵ 按钮导出/导入 JSON。</div>
 </section>
 
 <footer>
-  提示：若点击「播放解说 / 测试」听不到声音，请用 Safari 或 Chrome 打开本页面（双击文件即可正常朗读）。<br>
+  提示：若点击「播放解说 / 测试」听不到声音，请用 Safari 或 Chrome 打开本页面。<br>
   四语母语习得 · 英语学习库 / 马来语学习库 / 工程主题词库
 </footer>
 
+<script src="tril-db.js"></script>
+<script src="tril-migrate.js"></script>
+<script>
+"use strict";
+
+(function(){
+  var DAY = 86400000;
+
+  function load(k){ try{ return JSON.parse(localStorage.getItem(k)||"null"); }catch(e){ return null; } }
+  function fmtDate(d){ var y=d.getFullYear(), m=(d.getMonth()+1<10?"0":"")+(d.getMonth()+1), dd=(d.getDate()<10?"0":"")+d.getDate(); return y+"-"+m+"-"+dd; }
+  function daysFromNow(ts){ return Math.ceil((ts - Date.now()) / DAY); }
+
+  function el(id, txt){ var n=document.getElementById(id); if(n && txt !== undefined) n.textContent = txt; return n; }
+
+  /* ==== 数据汇总 ==== */
+  var review = load("tril_review_v1") || {};
+  var reviewMeta = load("tril_review_meta_v1") || {};
+  var progress = load("tril_root_progress_v1") || {};
+  var flashDone = load("tril_flash_done_v1") || {};
+  var wrongbook = load("tril_wrongbook_v1") || {};
+  var marks = load("tril_marks_v1") || {};
+
+  var now = Date.now();
+  var due = 0, week = 0, master = 0;
+  Object.keys(review).forEach(function(k){
+    var s = review[k];
+    if(!s.next_review) return;
+    if(s.next_review <= now) due++;
+    if(s.next_review <= now + 7*DAY) week++;
+    if((s.level||0) >= 5) master++;
+  });
+
+  var totalReview = Object.keys(review).length;
+  var doneUnits = 0;
+  Object.keys(progress).forEach(function(k){ if(progress[k] && progress[k].done) doneUnits++; });
+  Object.keys(flashDone).forEach(function(k){ if(flashDone[k] && flashDone[k].done) doneUnits++; });
+
+  /* ==== 顶部指标 ==== */
+  el("dashDate").textContent = fmtDate(new Date());
+  el("mDue").textContent = due;
+  el("mDue").className = "val " + (due>5?"bad":due>0?"warn":"ok");
+  el("mWeek").textContent = week;
+  el("mMaster").textContent = master;
+  el("mTotal").textContent = "总词条 " + totalReview;
+  el("mProg").textContent = doneUnits;
+  el("mProgSub").textContent = "📕 " + Object.keys(wrongbook).length + " · ★ " + Object.keys(marks).length;
+
+  /* ==== ECharts 渲染 ==== */
+  function whenEcharts(cb){
+    if(window.echarts){ cb(); return; }
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if(window.echarts){ clearInterval(iv); cb(); }
+      else if(tries > 60){ clearInterval(iv); /* CDN 失败 */ }
+    }, 80);
+  }
+
+  whenEcharts(function(){
+    var axisCommon = {
+      axisLine:{lineStyle:{color:"#cbd5e1"}},
+      axisLabel:{color:"#6b7280",fontSize:11},
+      splitLine:{lineStyle:{color:"#e5e7eb"}},
+    };
+
+    /* 1) 7 日复习预测（line） */
+    (function(){
+      var c = document.getElementById("ctForecast");
+      if(!c) return;
+      var days = [];
+      var counts = [];
+      for(var i=0;i<7;i++){
+        var d = new Date(now + i*DAY);
+        var dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        var dayEnd = dayStart + DAY;
+        var cnt = 0;
+        Object.keys(review).forEach(function(k){
+          var ts = review[k].next_review;
+          if(ts && ts >= dayStart && ts < dayEnd) cnt++;
+        });
+        days.push((d.getMonth()+1) + "/" + d.getDate());
+        counts.push(cnt);
+      }
+      var chart = echarts.init(c);
+      chart.setOption({
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
+        grid:{top:18,left:36,right:14,bottom:24},
+        xAxis:{type:"category",data:days, ...axisCommon},
+        yAxis:{type:"value",minInterval:1, ...axisCommon},
+        series:[{
+          type:"line",data:counts,smooth:true,
+          lineStyle:{color:"#2563eb",width:2.5},
+          itemStyle:{color:"#2563eb"},
+          areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"rgba(37,99,235,.25)"},{offset:1,color:"rgba(37,99,235,.02)"}]}},
+          label:{show:true,position:"top",color:"#2563eb",fontSize:11,fontWeight:600,formatter:function(p){ return p.value>0 ? p.value:""; }}
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+
+    /* 2) SRS 等级分布（bar） */
+    (function(){
+      var c = document.getElementById("ctLevel");
+      if(!c) return;
+      var buckets = [0,0,0,0,0,0,0];  // level 0..6
+      Object.keys(review).forEach(function(k){
+        var lv = Math.min(6, review[k].level||0);
+        buckets[lv]++;
+      });
+      var chart = echarts.init(c);
+      chart.setOption({
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12},
+          formatter:function(p){ return "L"+p[0].dataIndex+"："+p[0].value+" 条"; }},
+        grid:{top:14,left:36,right:14,bottom:22},
+        xAxis:{type:"category",data:["L0","L1","L2","L3","L4","L5","L6"],...axisCommon},
+        yAxis:{type:"value",minInterval:1,...axisCommon},
+        series:[{
+          type:"bar",data:buckets,barWidth:"55%",
+          itemStyle:{
+            color:function(p){
+              var colors = ["#ff6b6b","#ff9a3c","#ffd166","#a3d977","#4fd1a5","#3da9c4","#5b8cff"];
+              return colors[p.dataIndex];
+            },
+            borderRadius:[6,6,0,0]
+          },
+          label:{show:true,position:"top",color:"#6b7280",fontSize:10,fontWeight:600}
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+
+    /* 3) 30 日评分（pie） */
+    (function(){
+      var c = document.getElementById("ctRating");
+      if(!c) return;
+      var cutoff = now - 30*DAY;
+      var k=0,f=0,u=0;
+      Object.keys(review).forEach(function(key){
+        var s = review[key];
+        if(s.last_review && s.last_review >= cutoff && s.last_rating){
+          if(s.last_rating==="know") k++;
+          else if(s.last_rating==="fuzzy") f++;
+          else if(s.last_rating==="unknown") u++;
+        }
+      });
+      var has = k+f+u > 0;
+      var chart = echarts.init(c);
+      if(!has){
+        c.innerHTML = '<div class="loading">30 天内还没有复习记录<br><span style="font-size:11px;color:#9ca3af">先去「复习」打个卡</span></div>';
+        return;
+      }
+      chart.setOption({
+        tooltip:{trigger:"item",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
+        legend:{bottom:0,textStyle:{color:"#6b7280",fontSize:11},itemWidth:10,itemHeight:10},
+        series:[{
+          type:"pie",radius:["38%","68%"],center:["50%","45%"],
+          label:{show:false},labelLine:{show:false},
+          data:[
+            {value:k,name:"✓ 认识",itemStyle:{color:"#10b981"}},
+            {value:f,name:"? 模糊",itemStyle:{color:"#f59e0b"}},
+            {value:u,name:"✗ 不认识",itemStyle:{color:"#ef4444"}}
+          ]
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+
+    /* 4) 各学段完成度（bar） */
+    (function(){
+      var c = document.getElementById("ctStage");
+      if(!c) return;
+      var rows = [];
+      for(var k in progress){
+        if(progress[k] && progress[k].done){
+          var parts = k.split("_");
+          if(parts.length>=3){
+            var si = parseInt(parts[0],10);
+            rows.push(si);
+          }
+        }
+      }
+      /* 按 si 聚合去重：每个 si 一个单元 done 计数 */
+      var perStage = {};
+      rows.forEach(function(si){ perStage[si] = (perStage[si]||0)+1; });
+      var labels = ["基础","小学","初中","高中","大学","研究生","核心","行业"];
+      var counts = [0,0,0,0,0,0,0,0];
+      Object.keys(perStage).forEach(function(si){
+        var idx = Math.min(7, parseInt(si,10));
+        counts[idx] = perStage[si];
+      });
+      var chart = echarts.init(c);
+      if(counts.every(function(v){ return v===0; })){
+        c.innerHTML = '<div class="loading">暂无单元完成记录<br><span style="font-size:11px;color:#9ca3af">去「学习器」打开任意单元开始</span></div>';
+        return;
+      }
+      chart.setOption({
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
+        grid:{top:14,left:32,right:14,bottom:22},
+        xAxis:{type:"category",data:labels,...axisCommon},
+        yAxis:{type:"value",minInterval:1,...axisCommon},
+        series:[{
+          type:"bar",data:counts,barWidth:"55%",
+          itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"#5b8cff"},{offset:1,color:"#2563eb"}]},borderRadius:[6,6,0,0]},
+          label:{show:true,position:"top",color:"#6b7280",fontSize:10,fontWeight:600}
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+  });
+})();
+</script>
 
 <script>
 (function(){
@@ -177,7 +462,7 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
     return (parseInt(m[1],16)*0.299+parseInt(m[2],16)*0.587+parseInt(m[3],16)*0.114)/255;
   }
   function setTheme(bg,font){
-    try{ if(window.TrilSkin) TrilSkin.set('default'); }catch(e){} // 选背景即退出皮肤模式
+    try{ if(window.TrilSkin) TrilSkin.set('default'); }catch(e){}
     root.style.setProperty('--bg',bg); root.style.setProperty('--bg2',bg); root.style.setProperty('--txt',font);
     var chips=document.getElementById('themeChips').querySelectorAll('button');
     chips.forEach(function(b){ b.classList.toggle('on', b.dataset.bg===bg); });
@@ -205,7 +490,6 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
     var b=e.target.closest('button'); if(!b) return;
     setTheme(b.dataset.bg, b.dataset.font);
   });
-  // 皮肤切换
   try{
     var skinChips=document.getElementById('skinChips');
     function markSkin(s){ skinChips.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.dataset.skin===s); }); }
