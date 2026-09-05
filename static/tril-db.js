@@ -99,7 +99,9 @@
     }).catch(function(){ return []; });
   }
 
-  /* 一次性把给定 localStorage 键迁到 kv 库（幂等：迁移完成后写 __migrated__ 标记） */
+  /* 一次性把给定 localStorage 键迁到 kv 库（幂等：迁移完成后写 __migrated__ 标记）
+ * 注意：迁移不删除源 LS，保留 localStorage 兜底；各 app 仍按现有 LS 流程运行，
+ * IDB 仅作 fallback / 跨设备同步的预备层。*/
   function migrate(map){
     return open().then(function(db){
       return new Promise(function(resolve){
@@ -114,10 +116,9 @@
             var raw=null; try{ raw = localStorage.getItem(lsKey); }catch(e){}
             if(raw != null){
               pending++;
-              (function(k, v){
-                var p = t.put(v, k);
+              (function(targetKey, v){
+                var p = t.put(v, targetKey);
                 p.onsuccess = function(){
-                  try{ localStorage.removeItem(lsKey); }catch(e){}
                   if(++moved >= pending){
                     t.put("1","__migrated__");
                     resolve(true);
