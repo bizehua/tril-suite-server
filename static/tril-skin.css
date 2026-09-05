@@ -1,26 +1,32 @@
 /* =========================================================
    tril-skin.css — 四语母语习得套件 · 统一主题/皮肤系统
    ---------------------------------------------------------
-   阶段0.4 (CSS 变量化) + 0.6 (tril_skin 主题键接入)
-   - :root        默认蓝（原各页 :root 调色板，集中在此单源）
-   - html[data-skin="default"]   显式默认（等同 :root）
-   - html[data-skin="guofeng"]   中国风（朱红 #C8102E / 描金 #D4AF37）
-   - html[data-skin="malaysia"]  马来西亚（深蓝 #010066 / 红 #CC0001 / 金黄 #FFCC00）
+   阶段 5+6 · 三套完整主题（整站同步：背景/导航/按钮/卡片/页脚）
+   - default  深海蓝调（精致几何点阵 + 玻璃质感）
+   - guofeng  中国风（墨底朱红 · 祥云纹 · 龙鳞纹 · 鎏金边 · 灯笼 · 五角星）
+   - malaysia 马来西亚（国旗蓝红金 · songket 星格纹 · 新月十四角星 · 条纹）
+   附加节日皮肤：chunjie 春节 / kaifa 开斋节 / zhongqiu 中秋
    切换键：localStorage.tril_skin（保留 30 天），由 tril-skin.js 写入 html[data-skin]
    ========================================================= */
 
-/* ---------- 默认调色板（单源，集中所有页面共用的语义变量） ---------- */
+/* ===================== 默认调色板 ===================== */
 :root{
   --bg:#0e1320; --bg2:#151c2e; --panel:#1a2238; --panel2:#212c47;
   --line:#2c3756; --txt:#e8edf7; --muted:#93a0bd; --accent:#5b8cff;
   --en:#5b8cff; --bm:#ffb454; --zh:#4fd1a5; --th:#c792ea; --danger:#ff6b6b;
   --ok:#4fd1a5; --glow:0 0 0 2px rgba(91,140,255,.35); --shadow:rgba(0,0,0,.35);
-  /* 0.4 提取：原散落的派生色，改为命名变量，皮肤可整体重着色 */
-  --btn-hover:#2b3a5e;            /* 原 button:hover{background:#2b3a5e} */
-  --grad-2:#7aa2ff;               /* 原 primary 渐变第二停 #7aa2ff */
-  --ex-en:#cfe0ff; --ex-bm:#ffe2bb; --ex-zh:#bff3df; --ex-th:#e9cdf7; /* 例句语种色 */
-  /* 语义皮肤标识（供后续皮肤页/看板读取） */
+  --btn-hover:#2b3a5e;
+  --grad-2:#7aa2ff;
+  --ex-en:#cfe0ff; --ex-bm:#ffe2bb; --ex-zh:#bff3df; --ex-th:#e9cdf7;
   --skin-primary:#5b8cff; --skin-gold:#ffd166; --skin-name:'默认';
+  /* 看板调色板 */
+  --dash-bg:#ffffff; --dash-bg2:#f9fafb; --dash-panel:#f8fafc; --dash-line:#e5e7eb;
+  --dash-txt:#1f2937; --dash-muted:#6b7280; --dash-faint:#9ca3af;
+  --dash-stripe:linear-gradient(90deg,#2563eb,#5b8cff 30%,#4fd1a5 60%,#D4AF37 90%,#C8102E);
+  --dash-chart1:#5b8cff; --dash-chart2:#2563eb;
+  --dash-ok:#10b981; --dash-warn:#f59e0b; --dash-bad:#ef4444;
+  --dash-levels:#ff6b6b,#ff9a3c,#ffd166,#a3d977,#4fd1a5,#3da9c4,#5b8cff;
+  --dash-heat:#5b8cff;
 }
 
 html[data-skin="default"]{
@@ -31,9 +37,16 @@ html[data-skin="default"]{
   --btn-hover:#2b3a5e; --grad-2:#7aa2ff;
   --ex-en:#cfe0ff; --ex-bm:#ffe2bb; --ex-zh:#bff3df; --ex-th:#e9cdf7;
   --skin-primary:#5b8cff; --skin-gold:#ffd166; --skin-name:'默认';
+  --dash-bg:#ffffff; --dash-bg2:#f9fafb; --dash-panel:#f8fafc; --dash-line:#e5e7eb;
+  --dash-txt:#1f2937; --dash-muted:#6b7280; --dash-faint:#9ca3af;
+  --dash-stripe:linear-gradient(90deg,#2563eb,#5b8cff 30%,#4fd1a5 60%,#D4AF37 90%,#C8102E);
+  --dash-chart1:#5b8cff; --dash-chart2:#2563eb;
+  --dash-ok:#10b981; --dash-warn:#f59e0b; --dash-bad:#ef4444;
+  --dash-levels:#ff6b6b,#ff9a3c,#ffd166,#a3d977,#4fd1a5,#3da9c4,#5b8cff;
+  --dash-heat:#5b8cff;
 }
 
-/* ---------- 中国风：墨底 + 朱红 + 描金 ---------- */
+/* ===================== 中国风 · 墨底朱红描金 ===================== */
 html[data-skin="guofeng"]{
   --bg:#160d0d; --bg2:#1f1212; --panel:#211414; --panel2:#2c1a1a;
   --line:#3a2424; --txt:#f6ead6; --muted:#b89a78; --accent:#C8102E;
@@ -42,9 +55,20 @@ html[data-skin="guofeng"]{
   --btn-hover:#3a2424; --grad-2:#e23b4e;
   --ex-en:#ffd0c8; --ex-bm:#ffe7bf; --ex-zh:#f0d9b0; --ex-th:#f0d98a;
   --skin-primary:#C8102E; --skin-gold:#D4AF37; --skin-name:'中国风';
+  --dash-bg:#faf3e3; --dash-bg2:#f5ecd8; --dash-panel:#f5ecd8; --dash-line:#e0d0b0;
+  --dash-txt:#3d2b1f; --dash-muted:#7a6650; --dash-faint:#a89878;
+  --dash-stripe:linear-gradient(90deg,#C8102E,#e23b4e 30%,#D4AF37 65%,#8a6a2a 100%);
+  --dash-chart1:#C8102E; --dash-chart2:#8a1a2a;
+  --dash-ok:#7bbf8a; --dash-warn:#d4952a; --dash-bad:#c8382e;
+  --dash-levels:#c8382e,#e06830,#d4952a,#bfa75a,#7bbf8a,#4a9a78,#2a6a8a;
+  --dash-heat:#C8102E;
+  /* 纹样：祥云团纹 + 五角星（暗金描线） */
+  --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23D4AF37' stroke-width='1.3'%3E%3Cg opacity='.085'%3E%3Ccircle cx='36' cy='38' r='15'/%3E%3Ccircle cx='52' cy='31' r='10'/%3E%3Ccircle cx='60' cy='41' r='7'/%3E%3Cpath d='M22 49q16 7 36 2'/%3E%3C/g%3E%3Cg opacity='.065'%3E%3Ccircle cx='116' cy='112' r='13'/%3E%3Ccircle cx='103' cy='104' r='9'/%3E%3Ccircle cx='124' cy='102' r='6'/%3E%3Cpath d='M100 120q18 5 32 0'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23C8102E' opacity='.10'%3E%3Cpath d='M108 20l1.6 4.1 4.4.3-3.4 2.9 1 4.3-3.6-2.3-3.6 2.3 1-4.3-3.4-2.9 4.4-.3z'/%3E%3C/g%3E%3C/svg%3E");
+  /* 龙鳞纹（卡片暗纹） */
+  --pat-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg fill='%23D4AF37' opacity='.05'%3E%3Cpath d='M0 24a12 12 0 0 1 24 0z'/%3E%3Cpath d='M-12 12a12 12 0 0 1 24 0z'/%3E%3Cpath d='M12 12a12 12 0 0 1 24 0z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* ---------- 马来西亚：深蓝 + 红 + 金黄（国旗配色） ---------- */
+/* ===================== 马来西亚 · 辉煌条纹 ===================== */
 html[data-skin="malaysia"]{
   --bg:#050a2e; --bg2:#0a1247; --panel:#0d1740; --panel2:#152261;
   --line:#26347a; --txt:#eaf0ff; --muted:#9aa6d6; --accent:#CC0001;
@@ -53,4 +77,387 @@ html[data-skin="malaysia"]{
   --btn-hover:#1a2a66; --grad-2:#ff5b5b;
   --ex-en:#fff0c2; --ex-bm:#ffd6d6; --ex-zh:#cfe6ff; --ex-th:#fff0b0;
   --skin-primary:#010066; --skin-gold:#FFCC00; --skin-name:'马来西亚';
+  --dash-bg:#f5f8ff; --dash-bg2:#edf3ff; --dash-panel:#edf3ff; --dash-line:#c8d6f5;
+  --dash-txt:#0a1a40; --dash-muted:#4a5a8a; --dash-faint:#8090b8;
+  --dash-stripe:linear-gradient(90deg,#010066,#CC0001 40%,#FFCC00 75%,#ffffff 100%);
+  --dash-chart1:#CC0001; --dash-chart2:#8a0001;
+  --dash-ok:#5fd0a0; --dash-warn:#FFCC00; --dash-bad:#CC0001;
+  --dash-levels:#CC0001,#ff6648,#FFCC00,#a8d08a,#5fd0a0,#3a9ad8,#010066;
+  --dash-heat:#010066;
+  /* 纹样：songket 星格纹（金线几何） */
+  --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg stroke='%23FFCC00' fill='none' stroke-width='1' opacity='.07'%3E%3Cpath d='M22 3L41 22L22 41L3 22z'/%3E%3Cpath d='M22 11L33 22L22 33L11 22z'/%3E%3Cpath d='M0 0l9 0L0 9z'/%3E%3Cpath d='M44 0l-9 0L44 9z'/%3E%3Cpath d='M0 44l9 0L0 35z'/%3E%3Cpath d='M44 44l-9 0L44 35z'/%3E%3C/g%3E%3Cg fill='%23FFCC00' opacity='.09'%3E%3Ccircle cx='22' cy='22' r='1.8'/%3E%3Ccircle cx='0' cy='0' r='1.5'/%3E%3Ccircle cx='44' cy='0' r='1.5'/%3E%3Ccircle cx='0' cy='44' r='1.5'/%3E%3Ccircle cx='44' cy='44' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  --pat-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cg stroke='%23FFCC00' fill='none' stroke-width='.9' opacity='.05'%3E%3Cpath d='M15 3L27 15L15 27L3 15z'/%3E%3Cpath d='M15 9L21 15L15 21L9 15z'/%3E%3C/g%3E%3C/svg%3E");
 }
+
+/* ===================== 节日皮肤 ===================== */
+html[data-skin="chunjie"]{
+  --bg:#1a0808; --bg2:#260d0d; --panel:#2a0f0f; --panel2:#3a1414;
+  --line:#4a1a1a; --txt:#ffe8d6; --muted:#c89880; --accent:#ff3b30;
+  --en:#ffd6a5; --bm:#ff9a8d; --zh:#ffcf99; --th:#ffb07a; --danger:#ff5252;
+  --ok:#9ddba4; --glow:0 0 0 2px rgba(255,59,48,.42); --shadow:rgba(0,0,0,.5);
+  --btn-hover:#4a1a1a; --grad-2:#ff6b5e;
+  --ex-en:#fff0dd; --ex-bm:#ffd9d9; --ex-zh:#ffe8c2; --ex-th:#ffddbb;
+  --skin-primary:#ff3b30; --skin-gold:#ffd700; --skin-name:'春节';
+  --dash-bg:#fff8f0; --dash-bg2:#fff2e5; --dash-panel:#fff2e5; --dash-line:#f0d8c0;
+  --dash-txt:#4a1a10; --dash-muted:#8a6050; --dash-faint:#b89080;
+  --dash-stripe:linear-gradient(90deg,#ff3b30,#ff6b5e 35%,#ffd700 75%,#ff9500 100%);
+  --dash-chart1:#ff3b30; --dash-chart2:#c82018;
+  --dash-ok:#9ddba4; --dash-warn:#ff9500; --dash-bad:#ff3b30;
+  --dash-levels:#ff3b30,#ff6648,#ff9500,#ffd700,#c8d88a,#9ddba4,#5aa878;
+  --dash-heat:#ff3b30;
+}
+html[data-skin="kaifa"]{
+  --bg:#06180f; --bg2:#0a2417; --panel:#0d2b1c; --panel2:#123a25;
+  --line:#1d4a31; --txt:#e0f5e9; --muted:#8fc0a5; --accent:#4fd199;
+  --en:#8ce0b8; --bm:#c8e6d0; --zh:#f0d9a8; --th:#b7d99a; --danger:#ff5252;
+  --ok:#4fd199; --glow:0 0 0 2px rgba(79,209,153,.35); --shadow:rgba(0,0,0,.4);
+  --btn-hover:#173a26; --grad-2:#6fd8a5;
+  --ex-en:#d0f0dd; --ex-bm:#e0f5e9; --ex-zh:#ffeec7; --ex-th:#d8f0c0;
+  --skin-primary:#0e7a4e; --skin-gold:#d4af37; --skin-name:'开斋节';
+  --dash-bg:#f2faf5; --dash-bg2:#e8f5ec; --dash-panel:#e8f5ec; --dash-line:#c0e0cc;
+  --dash-txt:#0a3a20; --dash-muted:#4a7a5c; --dash-faint:#80a890;
+  --dash-stripe:linear-gradient(90deg,#0e7a4e,#4fd199 35%,#d4af37 75%,#8a6a2a 100%);
+  --dash-chart1:#0e7a4e; --dash-chart2:#0a5a3a;
+  --dash-ok:#4fd199; --dash-warn:#d4952a; --dash-bad:#c8382e;
+  --dash-levels:#c8382e,#d4683a,#d4952a,#a8b05a,#4fd199,#2a9a78,#0a6a8a;
+  --dash-heat:#0e7a4e;
+}
+html[data-skin="zhongqiu"]{
+  --bg:#0e0a1c; --bg2:#141024; --panel:#181230; --panel2:#1f183e;
+  --line:#2c2450; --txt:#f0e8d8; --muted:#a898c0; --accent:#d4af37;
+  --en:#e8d5a8; --bm:#d8b0ff; --zh:#f0d9a8; --th:#c8a8e8; --danger:#ff5252;
+  --ok:#9ddba4; --glow:0 0 0 2px rgba(212,175,55,.35); --shadow:rgba(0,0,0,.4);
+  --btn-hover:#2c2450; --grad-2:#f0c860;
+  --ex-en:#f5e8c8; --ex-bm:#e8d0f8; --ex-zh:#ffe8c2; --ex-th:#e0d0f0;
+  --skin-primary:#d4af37; --skin-gold:#f5e8a0; --skin-name:'中秋';
+  --dash-bg:#faf8f2; --dash-bg2:#f5f0e8; --dash-panel:#f5f0e8; --dash-line:#e0d8c8;
+  --dash-txt:#2a2040; --dash-muted:#6a6080; --dash-faint:#9890a8;
+  --dash-stripe:linear-gradient(90deg,#d4af37,#f0c860 35%,#c8a8e8 75%,#8a78a8 100%);
+  --dash-chart1:#d4af37; --dash-chart2:#a8882a;
+  --dash-ok:#9ddba4; --dash-warn:#d4952a; --dash-bad:#c8382e;
+  --dash-levels:#c8382e,#d4683a,#d4952a,#d4af37,#a8c08a,#68b098,#4878a8;
+  --dash-heat:#d4af37;
+}
+
+/* =========================================================
+   通用装饰基础（所有皮肤共享）
+   ========================================================= */
+
+/* 按钮波纹 */
+@keyframes tril-ripple{
+  0%   { transform:scale(0);   opacity:.35; }
+  100% { transform:scale(2.6); opacity:0;   }
+}
+button{ position:relative; overflow:hidden; }
+button::after{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  background:radial-gradient(circle, rgba(255,255,255,.45) 0%, transparent 60%);
+  transform:scale(0); opacity:0; pointer-events:none;
+  transition:transform .5s ease-out, opacity .5s ease-out;
+}
+button:active::after{ animation:tril-ripple .55s ease-out; }
+
+@keyframes tril-sway{
+  0%,100%{ transform:rotate(-6deg); }
+  50%    { transform:rotate(6deg);  }
+}
+@keyframes tril-sway-slow{
+  0%,100%{ transform:rotate(-4deg); }
+  50%    { transform:rotate(4deg);  }
+}
+
+/* 卡片悬浮细化 */
+.qcard, .startpanel, .cc, .card, .ucard, .rcard, .bigcard, .flashcard, .derivcard, .expanel{
+  transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.qcard:hover, .startpanel:hover{ border-color:var(--accent); }
+
+/* 皮肤标识角标（右下角） */
+html[data-skin]:not([data-skin="default"]) body::after{
+  content:var(--skin-name, "皮肤");
+  position:fixed; right:10px; bottom:10px; padding:3px 9px;
+  font-size:11px; border-radius:99px;
+  background:var(--panel2); color:var(--muted);
+  border:1px solid var(--line); z-index:998; pointer-events:none; opacity:.75;
+}
+
+/* 文本选色 */
+html[data-skin="guofeng"]    ::selection{ background:#C8102E; color:#ffe9c8; }
+html[data-skin="malaysia"]   ::selection{ background:#FFCC00; color:#010066; }
+html[data-skin="default"]    ::selection{ background:#5b8cff; color:#fff; }
+
+/* 滚动条 */
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+html[data-skin="default"]    ::-webkit-scrollbar-thumb{ background:#2c3756; border-radius:6px; }
+html[data-skin="guofeng"]    ::-webkit-scrollbar-thumb{ background:#3a2424; border-radius:6px; border:2px solid #160d0d; }
+html[data-skin="malaysia"]   ::-webkit-scrollbar-thumb{ background:#26347a; border-radius:6px; border:2px solid #050a2e; }
+
+/* =========================================================
+   主题一 · 默认蓝「深海蓝调」— 精致几何 + 玻璃质感
+   ========================================================= */
+html[data-skin="default"] body{
+  background-image:
+    radial-gradient(1100px 520px at 88% -10%, rgba(91,140,255,.12), transparent 60%),
+    radial-gradient(900px 500px at -8% 110%, rgba(79,209,165,.07), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34'%3E%3Ccircle cx='17' cy='17' r='1' fill='%23ffffff' opacity='.03'/%3E%3Ccircle cx='0' cy='0' r='1' fill='%235b8cff' opacity='.05'/%3E%3Ccircle cx='34' cy='34' r='1' fill='%235b8cff' opacity='.05'/%3E%3C/svg%3E");
+}
+html[data-skin="default"] header{
+  background:linear-gradient(180deg, rgba(26,34,56,.96) 0%, rgba(21,28,46,.92) 100%);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 6px 22px rgba(0,0,0,.32);
+}
+html[data-skin="default"] header::after{
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg, transparent, rgba(91,140,255,.85) 30%, rgba(79,209,165,.55) 70%, transparent);
+}
+html[data-skin="default"] .primary,
+html[data-skin="default"] button.primary{
+  background:linear-gradient(135deg, #5b8cff, #2563eb);
+  box-shadow:0 4px 14px rgba(37,99,235,.35), inset 0 1px 0 rgba(255,255,255,.22);
+  border:1px solid rgba(122,162,255,.55);
+}
+html[data-skin="default"] .primary:hover{
+  box-shadow:0 6px 20px rgba(37,99,235,.5), inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+/* =========================================================
+   主题二 · 中国风「朱砂鎏金」— 祥云 · 龙鳞 · 灯笼 · 五角星
+   ========================================================= */
+
+/* 1) 页面背景：祥云团纹 + 朱红/鎏金辉光 */
+html[data-skin="guofeng"] body{
+  background-image:
+    radial-gradient(1100px 520px at 85% -8%, rgba(200,16,46,.12), transparent 60%),
+    radial-gradient(900px 480px at -10% 108%, rgba(212,175,55,.08), transparent 55%),
+    var(--pat-bg);
+}
+
+/* 2) 顶栏：漆器质感 + 鎏金双线 */
+html[data-skin="guofeng"] header{
+  background:linear-gradient(180deg, #331717 0%, #211010 100%);
+  border-bottom:1px solid rgba(212,175,55,.8);
+  box-shadow:0 6px 20px rgba(0,0,0,.5);
+  position:relative;
+}
+html[data-skin="guofeng"] header::after{
+  content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(212,175,55,.7) 15%, rgba(212,175,55,.7) 85%, transparent);
+}
+
+/* 3) 悬挂灯笼（视口左上 / 右上，摇曳动画） */
+html[data-skin="guofeng"]::before,
+html[data-skin="guofeng"]::after{
+  content:"🏮"; position:fixed; top:-4px; z-index:997;
+  pointer-events:none; transform-origin:50% -12px;
+  filter:drop-shadow(0 3px 7px rgba(200,16,46,.45));
+}
+html[data-skin="guofeng"]::before{
+  left:26px; font-size:30px;
+  animation:tril-sway 3.2s ease-in-out infinite;
+}
+html[data-skin="guofeng"]::after{
+  right:26px; font-size:22px; top:2px; opacity:.9;
+  animation:tril-sway-slow 3.8s ease-in-out infinite; animation-delay:.6s;
+}
+
+/* 4) 「龍」字水墨水印（左下） */
+html[data-skin="guofeng"] body::before{
+  content:"龍"; position:fixed; left:-14px; bottom:-30px;
+  font-family:"STKaiti","KaiTi","楷体",serif;
+  font-size:210px; font-weight:700; line-height:1;
+  color:rgba(212,175,55,.05); pointer-events:none; z-index:0;
+}
+
+/* 5) 卡片：金边 + 龙鳞暗纹 + 朱红顶线 */
+html[data-skin="guofeng"] .qcard,
+html[data-skin="guofeng"] .startpanel,
+html[data-skin="guofeng"] .ucard,
+html[data-skin="guofeng"] .rcard,
+html[data-skin="guofeng"] .bigcard,
+html[data-skin="guofeng"] .flashcard,
+html[data-skin="guofeng"] .derivcard,
+html[data-skin="guofeng"] .expanel,
+html[data-skin="guofeng"] .card{
+  border:1px solid rgba(212,175,55,.32);
+  border-top:2px solid rgba(200,16,46,.55);
+  background-image:var(--pat-card);
+  box-shadow:0 4px 16px rgba(0,0,0,.38), inset 0 1px 0 rgba(212,175,55,.12);
+}
+html[data-skin="guofeng"] .qcard:hover,
+html[data-skin="guofeng"] .startpanel:hover,
+html[data-skin="guofeng"] .ucard:hover,
+html[data-skin="guofeng"] .card:hover{
+  border-color:rgba(212,175,55,.6);
+  box-shadow:0 6px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(212,175,55,.15), inset 0 1px 0 rgba(212,175,55,.18);
+}
+
+/* 6) 操作栏（lessonbar / unitbar / quizbar）：漆条 + 金线 */
+html[data-skin="guofeng"] .lessonbar,
+html[data-skin="guofeng"] .unitbar,
+html[data-skin="guofeng"] .quizbar{
+  border:1px solid rgba(212,175,55,.28);
+  border-bottom:2px solid rgba(212,175,55,.45);
+  background:linear-gradient(180deg, #2c1616, #231111);
+}
+
+/* 7) 主按钮：朱红渐变 + 金边鎏光 */
+html[data-skin="guofeng"] .primary,
+html[data-skin="guofeng"] button.primary{
+  background:linear-gradient(135deg, #d42034, #96101f);
+  border:1px solid rgba(212,175,55,.6);
+  box-shadow:0 4px 14px rgba(200,16,46,.4), inset 0 1px 0 rgba(255,220,150,.25);
+}
+html[data-skin="guofeng"] .primary:hover{
+  background:linear-gradient(135deg, #e23b4e, #ab1425);
+  box-shadow:0 0 0 2px rgba(212,175,55,.28), 0 6px 18px rgba(200,16,46,.5), inset 0 1px 0 rgba(255,220,150,.3);
+}
+
+/* 8) 页脚：鎏金顶线 */
+html[data-skin="guofeng"] footer{
+  border-top:1px solid rgba(212,175,55,.4);
+}
+
+/* 9) 顶栏标题徽章（沿用 🏮，加金晕） */
+html[data-skin="guofeng"] h1::before{
+  content:"🏮"; margin-right:8px; font-size:.95em;
+  filter:drop-shadow(0 0 6px rgba(212,175,55,.6)) saturate(1.15);
+}
+
+/* 10) 看板（浅色区）：宣纸底 + 祥云角饰 */
+html[data-skin="guofeng"] .dashboard .cc,
+html[data-skin="guofeng"] .dashboard .sc{
+  background-image:var(--pat-card);
+}
+
+/* =========================================================
+   主题三 · 马来西亚「辉煌条纹」— songket 星格 · 新月十四角星
+   ========================================================= */
+
+/* 1) 页面背景：songket 星格纹 + 金辉 */
+html[data-skin="malaysia"] body{
+  background-image:
+    radial-gradient(1100px 520px at 88% -10%, rgba(255,204,0,.09), transparent 60%),
+    radial-gradient(900px 480px at -8% 108%, rgba(204,0,1,.08), transparent 55%),
+    var(--pat-bg);
+}
+
+/* 2) 顶栏：深蓝渐变 + 鎏金底线 + 国旗条纹 */
+html[data-skin="malaysia"] header{
+  background:linear-gradient(180deg, #0a1247 0%, #050a2e 100%);
+  border-bottom:1px solid rgba(255,204,0,.75);
+  box-shadow:0 6px 20px rgba(0,0,20,.5);
+  position:relative;
+}
+html[data-skin="malaysia"] header::after{
+  content:""; position:absolute; left:0; right:0; bottom:-4px; height:2px;
+  background:repeating-linear-gradient(90deg,
+    #FFCC00 0 5px, #CC0001 5px 10px, #010066 10px 15px, transparent 15px 18px);
+  opacity:.8;
+}
+
+/* 3) 新月十四角星水印（右上，国旗意象） */
+html[data-skin="malaysia"]::before{
+  content:""; position:fixed; top:34px; right:14px; width:170px; height:170px;
+  z-index:0; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 160 160'%3E%3Cg opacity='.06'%3E%3Cpath fill='%23FFCC00' d='M78 18a52 52 0 1 0 0 104 42 42 0 1 1 0-104z'/%3E%3Cpath fill='%23FFCC00' d='M124 45l4.1 11.3 12.1.5-9.5 7.4 3.3 11.6-10-6.8-10 6.8 3.3-11.6-9.5-7.4 12.1-.5z'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;
+}
+
+/* 4) 卡片：金边 + songket 暗纹 + 蓝顶线 */
+html[data-skin="malaysia"] .qcard,
+html[data-skin="malaysia"] .startpanel,
+html[data-skin="malaysia"] .ucard,
+html[data-skin="malaysia"] .rcard,
+html[data-skin="malaysia"] .bigcard,
+html[data-skin="malaysia"] .flashcard,
+html[data-skin="malaysia"] .derivcard,
+html[data-skin="malaysia"] .expanel,
+html[data-skin="malaysia"] .card{
+  border:1px solid rgba(255,204,0,.28);
+  border-top:2px solid rgba(1,0,102,.7);
+  background-image:var(--pat-card);
+  box-shadow:0 4px 16px rgba(0,0,30,.42), inset 0 1px 0 rgba(255,204,0,.1);
+}
+html[data-skin="malaysia"] .qcard:hover,
+html[data-skin="malaysia"] .startpanel:hover,
+html[data-skin="malaysia"] .ucard:hover,
+html[data-skin="malaysia"] .card:hover{
+  border-color:rgba(255,204,0,.55);
+  box-shadow:0 6px 22px rgba(0,0,40,.5), 0 0 0 1px rgba(255,204,0,.14), inset 0 1px 0 rgba(255,204,0,.16);
+}
+
+/* 5) 操作栏：蓝条 + 金底线 */
+html[data-skin="malaysia"] .lessonbar,
+html[data-skin="malaysia"] .unitbar,
+html[data-skin="malaysia"] .quizbar{
+  border:1px solid rgba(255,204,0,.24);
+  border-bottom:2px solid rgba(255,204,0,.42);
+  background:linear-gradient(180deg, #0d1740, #0a1247);
+}
+
+/* 6) 主按钮：旗帜红渐变 + 金边 */
+html[data-skin="malaysia"] .primary,
+html[data-skin="malaysia"] button.primary{
+  background:linear-gradient(135deg, #e01516, #9a0001);
+  border:1px solid rgba(255,204,0,.55);
+  box-shadow:0 4px 14px rgba(204,0,1,.42), inset 0 1px 0 rgba(255,220,120,.25);
+}
+html[data-skin="malaysia"] .primary:hover{
+  background:linear-gradient(135deg, #f02526, #ab0102);
+  box-shadow:0 0 0 2px rgba(255,204,0,.25), 0 6px 18px rgba(204,0,1,.55), inset 0 1px 0 rgba(255,220,120,.3);
+}
+
+/* 7) 页脚：红金条纹顶线 */
+html[data-skin="malaysia"] footer{
+  border-top:2px solid transparent;
+  border-image:repeating-linear-gradient(90deg, #FFCC00 0 6px, #CC0001 6px 12px, #010066 12px 18px) 2;
+}
+
+/* 8) 顶栏标题徽章 🇲🇾 */
+html[data-skin="malaysia"] h1::before{
+  content:"🇲🇾"; margin-right:8px; font-size:.95em;
+}
+
+/* 9) 看板（浅色区）：songket 暗纹 */
+html[data-skin="malaysia"] .dashboard .cc,
+html[data-skin="malaysia"] .dashboard .sc{
+  background-image:var(--pat-card);
+}
+
+/* =========================================================
+   可读性与动效保护
+   ========================================================= */
+/* 装饰不拦截交互 */
+html[data-skin="guofeng"]::before,
+html[data-skin="guofeng"]::after,
+html[data-skin="malaysia"]::before{ pointer-events:none; }
+
+/* 小屏隐藏悬垂装饰，保可读性 */
+@media (max-width:760px){
+  html[data-skin="guofeng"]::before,
+  html[data-skin="guofeng"]::after,
+  html[data-skin="malaysia"]::before{ display:none; }
+  html[data-skin="guofeng"] body::before{ font-size:130px; }
+}
+
+/* 动效敏感用户：停用摇曳/波纹 */
+@media (prefers-reduced-motion: reduce){
+  html[data-skin="guofeng"]::before,
+  html[data-skin="guofeng"]::after{ animation:none; }
+  button::after{ display:none; }
+}
+
+/* 节日皮肤沿用既有装饰 */
+html[data-skin="chunjie"] h1::before{
+  content:"🧧"; margin-right:8px; font-size:.95em;
+  animation:tril-sway 2.4s ease-in-out infinite;
+}
+html[data-skin="kaifa"] h1::before{ content:"🌙"; margin-right:8px; font-size:.95em; }
+html[data-skin="zhongqiu"] h1::before{
+  content:"🥮"; margin-right:8px; font-size:.95em;
+  animation:tril-sway 3s ease-in-out infinite;
+}
+html[data-skin="chunjie"] .qcard,
+html[data-skin="chunjie"] .startpanel{ border-top:2px solid var(--skin-gold, #ffd700); }
+html[data-skin="zhongqiu"] .qcard,
+html[data-skin="zhongqiu"] .startpanel{ border-top:2px solid rgba(212,175,55,.55); }

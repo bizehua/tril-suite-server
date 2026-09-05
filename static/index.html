@@ -3,6 +3,7 @@
 <head>
 <link rel="stylesheet" href="tril-skin.css">
 <script src="tril-skin.js"></script>
+<script src="tril-skin-widget.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>四语母语习得 · 学习看板</title>
@@ -62,56 +63,56 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .badge{font-size:11px;background:var(--panel2);color:var(--accent);padding:3px 9px;border-radius:99px}
 footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-height:1.8;max-width:920px}
 
-/* ============ 看板（B2-1 + B2-2 浅色底） ============ */
+/* ============ 看板（B2-1 + B2-2 浅色底 · 皮肤变量化，切换主题同步换色） ============ */
 .dashboard{
   width:100%;max-width:920px;margin:0 0 22px;
-  background:linear-gradient(180deg,#ffffff 0%,#f9fafb 100%);
-  border:1px solid #e5e7eb;border-radius:20px;
+  background:linear-gradient(180deg,var(--dash-bg) 0%,var(--dash-bg2) 100%);
+  border:1px solid var(--dash-line);border-radius:20px;
   padding:22px;box-shadow:0 8px 32px rgba(15,23,42,.06),0 1px 0 rgba(255,255,255,.8) inset;
-  color:#1f2937;position:relative;overflow:hidden;
+  color:var(--dash-txt);position:relative;overflow:hidden;
 }
-.dashboard::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#2563eb,#5b8cff 30%,#4fd1a5 60%,#D4AF37 90%,#C8102E)}
+.dashboard::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--dash-stripe)}
 .dash-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.dash-head .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2563eb,#4fd1a5);color:white;font-size:18px;box-shadow:0 4px 12px rgba(37,99,235,.25)}
-.dash-head h2{margin:0;font-size:16px;font-weight:700;color:#1f2937}
-.dash-head .meta{margin-left:auto;font-size:11px;color:#9ca3af;display:flex;gap:6px;align-items:center}
-.dash-head .meta a{color:#2563eb;text-decoration:none;font-weight:600}
+.dash-head .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--dash-chart2),var(--ok));color:white;font-size:18px;box-shadow:0 4px 12px rgba(37,99,235,.25)}
+.dash-head h2{margin:0;font-size:16px;font-weight:700;color:var(--dash-txt)}
+.dash-head .meta{margin-left:auto;font-size:11px;color:var(--dash-faint);display:flex;gap:6px;align-items:center}
+.dash-head .meta a{color:var(--dash-chart2);text-decoration:none;font-weight:600}
 
 .dash-hero{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
 .dash-hero .sc{
-  background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;
+  background:var(--dash-panel);border:1px solid var(--dash-line);border-radius:13px;
   padding:12px 14px 11px;position:relative;overflow:hidden;
 }
-.dash-hero .sc::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--sc-accent,#5b8cff);opacity:.6}
-.dash-hero .sc[data-color="ok"]::after{background:#10b981}.dash-hero .sc[data-color="warn"]::after{background:#f59e0b}
-.dash-hero .sc[data-color="bad"]::after{background:#ef4444}.dash-hero .sc[data-color="muted"]::after{background:#9ca3af}
-.dash-hero .sc .lbl{font-size:11px;color:#6b7280;letter-spacing:.3px}
-.dash-hero .sc .val{font-size:26px;font-weight:800;color:#1f2937;margin-top:2px;line-height:1.15}
-.dash-hero .sc .val.ok{color:#10b981}.dash-hero .sc .val.warn{color:#f59e0b}.dash-hero .sc .val.bad{color:#ef4444}
-.dash-hero .sc .sub{font-size:11px;color:#9ca3af;margin-top:2px}
+.dash-hero .sc::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--sc-accent,var(--dash-chart1));opacity:.6}
+.dash-hero .sc[data-color="ok"]::after{background:var(--dash-ok)}.dash-hero .sc[data-color="warn"]::after{background:var(--dash-warn)}
+.dash-hero .sc[data-color="bad"]::after{background:var(--dash-bad)}.dash-hero .sc[data-color="muted"]::after{background:var(--dash-faint)}
+.dash-hero .sc .lbl{font-size:11px;color:var(--dash-muted);letter-spacing:.3px}
+.dash-hero .sc .val{font-size:26px;font-weight:800;color:var(--dash-txt);margin-top:2px;line-height:1.15}
+.dash-hero .sc .val.ok{color:var(--dash-ok)}.dash-hero .sc .val.warn{color:var(--dash-warn)}.dash-hero .sc .val.bad{color:var(--dash-bad)}
+.dash-hero .sc .sub{font-size:11px;color:var(--dash-faint);margin-top:2px}
 
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-.dash-grid .cc{background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:12px 14px 8px}
-.dash-grid .cc h3{margin:0 0 6px;font-size:13px;color:#1f2937;font-weight:700;display:flex;align-items:center;gap:6px}
+.dash-grid .cc{background:var(--dash-panel);border:1px solid var(--dash-line);border-radius:13px;padding:12px 14px 8px}
+.dash-grid .cc h3{margin:0 0 6px;font-size:13px;color:var(--dash-txt);font-weight:700;display:flex;align-items:center;gap:6px}
 .dash-grid .cc .ct{height:180px;width:100%}
-.dash-grid .cc .loading{height:180px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px}
+.dash-grid .cc .loading{height:180px;display:flex;align-items:center;justify-content:center;color:var(--dash-faint);font-size:12px}
 
-.dash-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding-top:6px;border-top:1px dashed #e5e7eb}
+.dash-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding-top:6px;border-top:1px dashed var(--dash-line)}
 .dash-cta a{
   font-size:13px;color:#fff;
-  background:linear-gradient(135deg,#2563eb,#5b8cff);
+  background:linear-gradient(135deg,var(--dash-chart2),var(--dash-chart1));
   border-radius:99px;padding:8px 16px;text-decoration:none;font-weight:600;
   box-shadow:0 4px 10px rgba(37,99,235,.18);transition:.15s;
 }
 .dash-cta a:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,99,235,.28)}
-.dash-cta a.go-review{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
-.dash-cta a.go-test{background:linear-gradient(135deg,#10b981,#4fd1a5)}
-.dash-cta a.go-flash{background:linear-gradient(135deg,#c792ea,#a855f7)}
+.dash-cta a.go-review{background:linear-gradient(135deg,var(--dash-warn),#fbbf24)}
+.dash-cta a.go-test{background:linear-gradient(135deg,var(--dash-ok),var(--ok))}
+.dash-cta a.go-flash{background:linear-gradient(135deg,var(--th),#a855f7)}
 
-.dash-empty{padding:30px 16px;text-align:center;color:#6b7280}
-.dash-empty h4{margin:0 0 6px;font-size:14px;color:#1f2937}
+.dash-empty{padding:30px 16px;text-align:center;color:var(--dash-muted)}
+.dash-empty h4{margin:0 0 6px;font-size:14px;color:var(--dash-txt)}
 .dash-empty p{font-size:12px;line-height:1.7;margin:4px 0}
-.dash-empty .hint{font-size:11px;color:#9ca3af;margin-top:8px}
+.dash-empty .hint{font-size:11px;color:var(--dash-faint);margin-top:8px}
 
 @media (max-width:760px){
   .dash-hero{grid-template-columns:repeat(3,1fr)}
@@ -162,9 +163,9 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <div class="cc"><h3>🌐 各语言词条占比</h3><div class="ct" id="ctLang"><div class="loading">⏳ 计算中…</div></div></div>
   </div>
 
-  <div class="cc" style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:12px 14px 8px;margin-bottom:14px">
-    <h3 style="margin:0 0 6px;font-size:13px;color:#1f2937;font-weight:700">🕐 7 日学习热力图（行=日期 · 列=小时）</h3>
-    <div class="ct" id="ctHeatmap" style="height:180px"><div class="loading" style="height:180px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px">⏳ 计算中…</div></div>
+  <div class="cc" style="background:var(--dash-panel);border:1px solid var(--dash-line);border-radius:13px;padding:12px 14px 8px;margin-bottom:14px">
+    <h3 style="margin:0 0 6px;font-size:13px;color:var(--dash-txt);font-weight:700">🕐 7 日学习热力图（行=日期 · 列=小时）</h3>
+    <div class="ct" id="ctHeatmap" style="height:180px"><div class="loading" style="height:180px;display:flex;align-items:center;justify-content:center;color:var(--dash-faint);font-size:12px">⏳ 计算中…</div></div>
   </div>
 
   <div class="dash-cta" id="dashCta">
@@ -336,11 +337,62 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
   }
 
   whenEcharts(function(){
-    var axisCommon = {
-      axisLine:{lineStyle:{color:"#cbd5e1"}},
-      axisLabel:{color:"#6b7280",fontSize:11},
-      splitLine:{lineStyle:{color:"#e5e7eb"}},
-    };
+    /* ===== 皮肤感知调色板：从 CSS 变量读取，切换皮肤自动重绘 ===== */
+    function dashPalette(){
+      var cs = getComputedStyle(document.documentElement);
+      function v(name, fallback){
+        var x = cs.getPropertyValue(name);
+        x = (x||"").trim();
+        return x || fallback;
+      }
+      return {
+        txt:      v("--dash-txt","#1f2937"),
+        muted:    v("--dash-muted","#6b7280"),
+        faint:    v("--dash-faint","#9ca3af"),
+        line:     v("--dash-line","#e5e7eb"),
+        chart1:   v("--dash-chart1","#5b8cff"),
+        chart2:   v("--dash-chart2","#2563eb"),
+        ok:       v("--dash-ok","#10b981"),
+        warn:     v("--dash-warn","#f59e0b"),
+        bad:      v("--dash-bad","#ef4444"),
+        heat:     v("--dash-heat","#5b8cff"),
+        levels:   v("--dash-levels","#ff6b6b,#ff9a3c,#ffd166,#a3d977,#4fd1a5,#3da9c4,#5b8cff").split(","),
+        en:       v("--en","#5b8cff"),
+        bm:       v("--bm","#ffb454"),
+        zh:       v("--zh","#4fd1a5"),
+        th:       v("--th","#c792ea"),
+        panel:    v("--dash-panel","#f8fafc")
+      };
+    }
+    var P = dashPalette();
+    function rgba(hex, a){
+      var m = (hex || "").replace("#","");
+      if(m.length === 3) m = m[0]+m[0]+m[1]+m[1]+m[2]+m[2];
+      var r = parseInt(m.slice(0,2),16), g = parseInt(m.slice(2,4),16), b = parseInt(m.slice(4,6),16);
+      if(isNaN(r)||isNaN(g)||isNaN(b)) return "rgba(90,120,180," + a + ")";
+      return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+    }
+    function axisCommon(){
+      return {
+        axisLine:{lineStyle:{color:P.line}},
+        axisLabel:{color:P.muted,fontSize:11},
+        splitLine:{lineStyle:{color:P.line}},
+      };
+    }
+    function tooltipCommon(){
+      return {backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12}};
+    }
+    /* 重新初始化图表前先 dispose 旧实例 */
+    function freshChart(c){
+      if(!c) return null;
+      var old = echarts.getInstanceByDom(c);
+      if(old) old.dispose();
+      try{ c.innerHTML = ""; }catch(e){}
+      return echarts.init(c);
+    }
+
+    function renderAllCharts(){
+      P = dashPalette();
 
     /* 1) 7 日复习预测（line） */
     (function(){
@@ -360,18 +412,18 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
         days.push((d.getMonth()+1) + "/" + d.getDate());
         counts.push(cnt);
       }
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       chart.setOption({
-        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12}},
         grid:{top:18,left:36,right:14,bottom:24},
-        xAxis:{type:"category",data:days, ...axisCommon},
-        yAxis:{type:"value",minInterval:1, ...axisCommon},
+        xAxis:{type:"category",data:days, ...axisCommon()},
+        yAxis:{type:"value",minInterval:1, ...axisCommon()},
         series:[{
           type:"line",data:counts,smooth:true,
-          lineStyle:{color:"#2563eb",width:2.5},
-          itemStyle:{color:"#2563eb"},
-          areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"rgba(37,99,235,.25)"},{offset:1,color:"rgba(37,99,235,.02)"}]}},
-          label:{show:true,position:"top",color:"#2563eb",fontSize:11,fontWeight:600,formatter:function(p){ return p.value>0 ? p.value:""; }}
+          lineStyle:{color:P.chart1,width:2.5},
+          itemStyle:{color:P.chart1},
+          areaStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:rgba(P.chart1,.25)},{offset:1,color:rgba(P.chart1,.02)}]}},
+          label:{show:true,position:"top",color:P.chart1,fontSize:11,fontWeight:600,formatter:function(p){ return p.value>0 ? p.value:""; }}
         }]
       });
       window.addEventListener("resize", function(){ chart.resize(); });
@@ -386,23 +438,23 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
         var lv = Math.min(6, review[k].level||0);
         buckets[lv]++;
       });
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       chart.setOption({
-        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12},
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12},
           formatter:function(p){ return "L"+p[0].dataIndex+"："+p[0].value+" 条"; }},
         grid:{top:14,left:36,right:14,bottom:22},
-        xAxis:{type:"category",data:["L0","L1","L2","L3","L4","L5","L6"],...axisCommon},
-        yAxis:{type:"value",minInterval:1,...axisCommon},
+        xAxis:{type:"category",data:["L0","L1","L2","L3","L4","L5","L6"],...axisCommon()},
+        yAxis:{type:"value",minInterval:1,...axisCommon()},
         series:[{
           type:"bar",data:buckets,barWidth:"55%",
           itemStyle:{
             color:function(p){
-              var colors = ["#ff6b6b","#ff9a3c","#ffd166","#a3d977","#4fd1a5","#3da9c4","#5b8cff"];
+              var colors = P.levels;
               return colors[p.dataIndex];
             },
             borderRadius:[6,6,0,0]
           },
-          label:{show:true,position:"top",color:"#6b7280",fontSize:10,fontWeight:600}
+          label:{show:true,position:"top",color:P.muted,fontSize:10,fontWeight:600}
         }]
       });
       window.addEventListener("resize", function(){ chart.resize(); });
@@ -423,21 +475,21 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
         }
       });
       var has = k+f+u > 0;
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       if(!has){
-        c.innerHTML = '<div class="loading">30 天内还没有复习记录<br><span style="font-size:11px;color:#9ca3af">先去「复习」打个卡</span></div>';
+        c.innerHTML = '<div class="loading">30 天内还没有复习记录<br><span style="font-size:11px;color:var(--dash-faint)">先去「复习」打个卡</span></div>';
         return;
       }
       chart.setOption({
-        tooltip:{trigger:"item",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
-        legend:{bottom:0,textStyle:{color:"#6b7280",fontSize:11},itemWidth:10,itemHeight:10},
+        tooltip:{trigger:"item",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12}},
+        legend:{bottom:0,textStyle:{color:P.muted,fontSize:11},itemWidth:10,itemHeight:10},
         series:[{
           type:"pie",radius:["38%","68%"],center:["50%","45%"],
           label:{show:false},labelLine:{show:false},
           data:[
-            {value:k,name:"✓ 认识",itemStyle:{color:"#10b981"}},
-            {value:f,name:"? 模糊",itemStyle:{color:"#f59e0b"}},
-            {value:u,name:"✗ 不认识",itemStyle:{color:"#ef4444"}}
+            {value:k,name:"✓ 认识",itemStyle:{color:P.ok}},
+            {value:f,name:"? 模糊",itemStyle:{color:P.warn}},
+            {value:u,name:"✗ 不认识",itemStyle:{color:P.bad}}
           ]
         }]
       });
@@ -467,20 +519,20 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
         var idx = Math.min(7, parseInt(si,10));
         counts[idx] = perStage[si];
       });
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       if(counts.every(function(v){ return v===0; })){
-        c.innerHTML = '<div class="loading">暂无单元完成记录<br><span style="font-size:11px;color:#9ca3af">去「学习器」打开任意单元开始</span></div>';
+        c.innerHTML = '<div class="loading">暂无单元完成记录<br><span style="font-size:11px;color:var(--dash-faint)">去「学习器」打开任意单元开始</span></div>';
         return;
       }
       chart.setOption({
-        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12}},
         grid:{top:14,left:32,right:14,bottom:22},
-        xAxis:{type:"category",data:labels,...axisCommon},
-        yAxis:{type:"value",minInterval:1,...axisCommon},
+        xAxis:{type:"category",data:labels,...axisCommon()},
+        yAxis:{type:"value",minInterval:1,...axisCommon()},
         series:[{
           type:"bar",data:counts,barWidth:"55%",
-          itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"#5b8cff"},{offset:1,color:"#2563eb"}]},borderRadius:[6,6,0,0]},
-          label:{show:true,position:"top",color:"#6b7280",fontSize:10,fontWeight:600}
+          itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:P.chart1},{offset:1,color:P.chart2}]},borderRadius:[6,6,0,0]},
+          label:{show:true,position:"top",color:P.muted,fontSize:10,fontWeight:600}
         }]
       });
       window.addEventListener("resize", function(){ chart.resize(); });
@@ -516,29 +568,29 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
       });
       rows.sort(function(a,b){ return b.score - a.score; });
       rows = rows.slice(0, 10);
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       if(rows.length === 0){
-        c.innerHTML = '<div class="loading">暂无弱项数据<br><span style="font-size:11px;color:#9ca3af">去「复习」累计几次评级后会显示</span></div>';
+        c.innerHTML = '<div class="loading">暂无弱项数据<br><span style="font-size:11px;color:var(--dash-faint)">去「复习」累计几次评级后会显示</span></div>';
         return;
       }
       chart.setOption({
-        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12},
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12},
           formatter:function(p){
             var r = rows[p[0].dataIndex];
             return "词条 <b>" + r.label + "</b><br>" +
                    "等级 L" + r.lv + " · 间隔 " + r.iv + "d<br>" +
                    "复习 " + r.tot + " 次 · 忘记 " + r.forget + " 次<br>" +
-                   "<span style='color:#ef4444'>弱项分 " + r.score + "</span>";
+                   "<span style='color:var(--dash-bad)'>弱项分 " + r.score + "</span>";
           }},
         grid:{top:10,left:14,right:30,bottom:6,containLabel:true},
-        xAxis:{type:"value",minInterval:1,show:false,...axisCommon,splitLine:{show:false}},
+        xAxis:{type:"value",minInterval:1,show:false,...axisCommon(),splitLine:{show:false}},
         yAxis:{type:"category",data:rows.map(function(r){ return r.label; }).reverse(),
-          axisLine:{show:false},axisTick:{show:false},axisLabel:{color:"#1f2937",fontSize:11,fontWeight:500}},
+          axisLine:{show:false},axisTick:{show:false},axisLabel:{color:P.txt,fontSize:11,fontWeight:500}},
         series:[{
           type:"bar",data:rows.map(function(r){ return r.score; }).reverse(),
           barWidth:"55%",
-          itemStyle:{color:function(p){ var colors=["#fbbf24","#f59e0b","#ef4444","#dc2626","#b91c1c","#991b1b","#7f1d1d","#7f1d1d","#7f1d1d","#7f1d1d"]; return colors[Math.min(9, p.dataIndex)]; },borderRadius:[0,5,5,0]},
-          label:{show:true,position:"right",color:"#6b7280",fontSize:10}
+          itemStyle:{color:function(p){ var ramp=[P.warn,P.warn,P.warn,P.bad,P.bad,P.bad,P.bad,P.bad,P.bad,P.bad]; return ramp[Math.min(9, p.dataIndex)]; },borderRadius:[0,5,5,0]},
+          label:{show:true,position:"right",color:P.muted,fontSize:10}
         }]
       });
       window.addEventListener("resize", function(){ chart.resize(); });
@@ -549,10 +601,10 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
       var c = document.getElementById("ctLang");
       if(!c) return;
       var data = [
-        {name:"EN 英文",value:0,color:"#5b8cff"},
-        {name:"BM 马来",value:0,color:"#ffb454"},
-        {name:"ZH 中文",value:0,color:"#4fd1a5"},
-        {name:"TH 泰文",value:0,color:"#c792ea"}
+        {name:"EN 英文",value:0,color:P.en},
+        {name:"BM 马来",value:0,color:P.bm},
+        {name:"ZH 中文",value:0,color:P.zh},
+        {name:"TH 泰文",value:0,color:P.th}
       ];
       // 从 marks + wrongbook 全词条按 key 中值测含 lang 数
       var seen = new Set();
@@ -565,18 +617,18 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
         });
       });
       var has = data.reduce(function(s,d){return s+d.value;}, 0) > 0;
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       if(!has){
-        c.innerHTML = '<div class="loading">暂无词条数据<br><span style="font-size:11px;color:#9ca3af">先在学习器或收藏里点星标</span></div>';
+        c.innerHTML = '<div class="loading">暂无词条数据<br><span style="font-size:11px;color:var(--dash-faint)">先在学习器或收藏里点星标</span></div>';
         return;
       }
       chart.setOption({
-        tooltip:{trigger:"item",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
-        legend:{bottom:0,textStyle:{color:"#6b7280",fontSize:11},itemWidth:10,itemHeight:10},
+        tooltip:{trigger:"item",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12}},
+        legend:{bottom:0,textStyle:{color:P.muted,fontSize:11},itemWidth:10,itemHeight:10},
         series:[{
           type:"pie",radius:["38%","68%"],center:["50%","44%"],
-          label:{show:true,position:"outside",formatter:"{b}\n{d}%",color:"#1f2937",fontSize:11},
-          labelLine:{show:true,lineStyle:{color:"#9ca3af"}},
+          label:{show:true,position:"outside",formatter:"{b}\n{d}%",color:P.txt,fontSize:11},
+          labelLine:{show:true,lineStyle:{color:P.faint}},
           data:data.map(function(d){ return {value:d.value,name:d.name,itemStyle:{color:d.color}}; })
         }]
       });
@@ -606,20 +658,20 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
         });
       });
 
-      var chart = echarts.init(c);
+      var chart = freshChart(c);
       if(max === 0){
-        c.innerHTML = '<div class="loading">最近 7 天还没有学习会话<br><span style="font-size:11px;color:#9ca3af">打开「学习器」浏览单元时会自动计时</span></div>';
+        c.innerHTML = '<div class="loading">最近 7 天还没有学习会话<br><span style="font-size:11px;color:var(--dash-faint)">打开「学习器」浏览单元时会自动计时</span></div>';
         return;
       }
       chart.setOption({
-        tooltip:{position:"top",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12},
+        tooltip:{position:"top",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12},
           formatter:function(p){
             return dayLabels[p.value[1]] + " " + p.value[0] + ":00<br>事件数 <b>" + p.value[2] + "</b>";
           }},
         grid:{top:10,left:50,right:14,bottom:30},
-        xAxis:{type:"category",data:hourLabels,splitArea:{show:true},axisLabel:{color:"#9ca3af",fontSize:9,interval:3}},
-        yAxis:{type:"category",data:dayLabels,splitArea:{show:true},axisLabel:{color:"#6b7280",fontSize:11}},
-        visualMap:{min:0,max:max,calculable:false,orient:"horizontal",left:"center",bottom:0,textStyle:{color:"#6b7280",fontSize:10},inRange:{color:["#f3f4f6","#5b8cff","#2563eb","#1e3a8a"]}},
+        xAxis:{type:"category",data:hourLabels,splitArea:{show:true},axisLabel:{color:P.faint,fontSize:9,interval:3}},
+        yAxis:{type:"category",data:dayLabels,splitArea:{show:true},axisLabel:{color:P.muted,fontSize:11}},
+        visualMap:{min:0,max:max,calculable:false,orient:"horizontal",left:"center",bottom:0,textStyle:{color:P.muted,fontSize:10},inRange:{color:[P.panel,P.chart1,P.chart2]}},
         series:[{
           type:"heatmap",data:data,
           label:{show:false},
@@ -628,6 +680,20 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
       });
       window.addEventListener("resize", function(){ chart.resize(); });
     })();
+    } /* —— renderAllCharts 函数体结束 —— */
+
+    renderAllCharts();
+
+    /* 皮肤切换 → 全部图表即时重绘，颜色跟随主题 */
+    window.addEventListener("tril-skin-change", function(){
+      try{ renderAllCharts(); }catch(e){}
+    });
+    /* 窗口缩放 → 防抖整体重绘 */
+    var rzT = null;
+    window.addEventListener("resize", function(){
+      clearTimeout(rzT);
+      rzT = setTimeout(function(){ try{ renderAllCharts(); }catch(e){} }, 200);
+    });
   });
 })();
 </script>
