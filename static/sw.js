@@ -1,5 +1,5 @@
 // 四语母语习得套件 Service Worker：缓存应用外壳，支持离线使用
-const CACHE_NAME = 'tril-pwa-v6';
+const CACHE_NAME = 'tril-pwa-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -20,7 +20,9 @@ const ASSETS = [
   './auth-client.js',
   './tril-lib.js',
   './tril-tts.js',
-  './tril-ai.js'
+  './tril-ai.js',
+  './pinyin-pro.min.js',
+  './tril-pinyin.js'
 ];
 
 self.addEventListener('install', (event) => {

@@ -259,11 +259,7 @@
     if (el('trilTtsCss')) return;
     var c = document.createElement('style'); c.id = 'trilTtsCss';
     c.textContent =
-      '#trilTtsBtn{position:fixed;left:12px;bottom:62px;z-index:99993;padding:9px 13px;border:none;border-radius:20px;' +
-      'background:rgba(20,28,46,.9);color:#e8edf7;font:13px/1 system-ui;font-weight:600;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.4);backdrop-filter:blur(6px)}' +
-      '#trilTtsBtn:hover{background:#2563eb}' +
-      '#trilTtsRestore{position:fixed;left:12px;bottom:12px;z-index:99993;width:38px;height:38px;border:none;border-radius:50%;background:rgba(20,28,46,.9);color:#e8edf7;font:16px/1 system-ui;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.4)}' +
-      '#trilTts{position:fixed;left:12px;bottom:104px;z-index:99998;width:300px;max-width:92vw;background:#0f1729;color:#e8edf7;border:1px solid #2c3756;border-radius:16px;display:none;flex-direction:column;font:13px/1.5 system-ui;box-shadow:0 18px 54px rgba(0,0,0,.55);overflow:hidden}' +
+      '#trilTts{position:fixed;right:12px;top:64px;z-index:99998;width:300px;max-width:92vw;background:#0f1729;color:#e8edf7;border:1px solid #2c3756;border-radius:16px;display:none;flex-direction:column;font:13px/1.5 system-ui;box-shadow:0 18px 54px rgba(0,0,0,.55);overflow:hidden}' +
       '#trilTts.show{display:flex}' +
       '#trilTts .hd{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid #2c3756;background:#15203a;cursor:move;touch-action:none;user-select:none}' +
       '#trilTts .hd b{font-size:14px;color:#7aa2ff;flex:1}' +
@@ -306,16 +302,7 @@
 
   function buildUI() {
     injectCSS();
-    if (cfg.hidden) {
-      var r = document.createElement('button'); r.id = 'trilTtsRestore'; r.textContent = '🎚'; r.title = '显示朗读语音按钮';
-      r.onclick = function () { cfg.hidden = false; save(cfg); location.reload(); };
-      document.body.appendChild(r);
-      return;
-    }
-    var btn = document.createElement('button'); btn.id = 'trilTtsBtn'; btn.textContent = '🎚 朗读语音'; btn.title = '朗读语音版本设置';
-    btn.onclick = function () { openPanel(); };
-    document.body.appendChild(btn);
-
+    // 不再注入左下角悬浮按钮；改由顶栏「🎚 朗读」按钮调用 TrilTTS.toggle() 展开/收起
     var panel = document.createElement('div'); panel.id = 'trilTts';
     panel.innerHTML =
       '<div class="hd"><b>🎚 朗读语音版本</b><span class="x" id="trilTtsClose">✕</span></div>' +
@@ -326,7 +313,6 @@
       '<div class="row"><label>语速</label><input id="ttsRate" type="range" min="0.5" max="1.6" step="0.1" value="' + cfg.rate + '"><span id="ttsRateV" style="width:30px;color:#93a0bd;font-size:11px;text-align:right">' + cfg.rate + '</span></div>' +
       '<div class="row"><label>音量</label><input id="ttsVol" type="range" min="0" max="1" step="0.1" value="' + cfg.volume + '"><span id="ttsVolV" style="width:30px;color:#93a0bd;font-size:11px;text-align:right">' + cfg.volume + '</span></div>' +
       '<button class="speak" id="ttsSpeak">🔊 朗读当前词</button>' +
-      '<button class="hide" id="ttsHide">🙈 隐藏此按钮</button>' +
       '<div class="hint">每个语言下拉框：📱 本机嗓音（电脑/苹果可挑男/女声，点击即时朗读、语速可调）；☁ 云端男/女声（需联网，用于手机缺本机嗓音的语言如马来/泰）。默认用本机声最自然；选了☁声或本机没有该语言声时才会走云端，联网不畅自动回退本机。</div>' +
       '</div>';
     document.body.appendChild(panel);
@@ -339,7 +325,6 @@
       if (!c) { toast('没有可朗读的当前词'); return; }
       speak(c.text, c.lang);
     };
-    el('ttsHide').onclick = function () { cfg.hidden = true; save(cfg); panel.classList.remove('show'); location.reload(); };
     el('trilTtsClose').onclick = function () { panel.classList.remove('show'); };
 
     // 拖拽（不遮挡底层）
@@ -359,6 +344,8 @@
   }
 
   function openPanel() { var p = el('trilTts'); if (p) p.classList.add('show'); }
+  function closePanel() { var p = el('trilTts'); if (p) p.classList.remove('show'); }
+  function togglePanel() { var p = el('trilTts'); if (!p) return; if (p.classList.contains('show')) p.classList.remove('show'); else p.classList.add('show'); }
 
   function init() { buildUI(); }
 
@@ -367,6 +354,6 @@
 
   // 关键：接管全局 speak，让四器（学习器/测试器/快速播放器/闪记）的全部逐词朗读、自动连读
   // 都统一走本模块引擎，使"朗读语音"面板里的选择对所有朗读生效。
-  window.TrilTTS = { speak: speak, open: openPanel, init: init, config: cfg };
+  window.TrilTTS = { speak: speak, open: openPanel, close: closePanel, toggle: togglePanel, init: init, config: cfg };
   try { window.speak = speak; } catch (e) {}
 })();

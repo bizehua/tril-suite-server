@@ -235,8 +235,6 @@
     if (el('trilAiCss')) return;
     var c = document.createElement('style'); c.id = 'trilAiCss';
     c.textContent =
-      '#trilAiBtn{position:fixed;left:12px;bottom:12px;z-index:99994;padding:10px 14px;border:none;border-radius:22px;' +
-      'background:linear-gradient(90deg,#5b8cff,#7aa2ff);color:#fff;font:13px/1 system-ui;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.4)}' +
       '#trilAi{position:fixed;right:12px;bottom:12px;z-index:99995;width:360px;max-width:94vw;height:70vh;max-height:560px;' +
       'background:#0f1729;color:#e8edf7;border:1px solid #2c3756;border-radius:16px;display:none;flex-direction:column;' +
       'font:13px/1.5 system-ui;box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden}' +
@@ -371,11 +369,7 @@
 
   function buildUI() {
     injectCSS();
-    var btn = document.createElement('button');
-    btn.id = 'trilAiBtn'; btn.textContent = '🤖 问 AI';
-    btn.onclick = function () { openPanel(false); };
-    document.body.appendChild(btn);
-
+    // 不再注入左下角浮动按钮；改由顶栏「🤖 问 AI」按钮调用 TrilAI.toggle() 展开/收起
     var panel = document.createElement('div');
     panel.id = 'trilAi';
     panel.innerHTML =
@@ -507,6 +501,7 @@
     ask: ask,
     generateSentence: generateSentence,
     open: function () { openPanel(false); },
+    toggle: function () { var box = el('trilAi'); if (!box) return; if (box.classList.contains('show')) box.classList.remove('show'); else openPanel(false); },
     openWithWord: function (word) { if (word) window.TRIL_CURRENT = word; openPanel(true); },
     setCurrent: function (ctx) { window.TRIL_CURRENT = ctx || {}; refreshCtx(); },
     config: function () { openConfig(); },

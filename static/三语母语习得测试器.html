@@ -170,11 +170,15 @@ body.hide-examples .example-block{display:none}
   <button class="laybtn iconbtn" data-layout="examples" title="显示 / 隐藏 例句区域">💬 例句</button>
   <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶部栏">▭ 顶栏</button>
   <button class="laybtn iconbtn" id="editLibBtn" title="我的自定义词库">✎ 词库</button>
+  <button class="laybtn iconbtn" onclick="TrilAI.toggle()" title="展开 / 收起 AI 答疑">🤖 问 AI</button>
+  <button class="laybtn iconbtn" onclick="TrilTTS.toggle()" title="展开 / 收起 朗读语音设置">🎚 朗读</button>
 </header>
 <div id="layoutDock">
   <button data-layout="sidebar" title="目录栏">☰ 目录</button>
   <button data-layout="examples" title="例句区域">💬 例句</button>
   <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>
+  <button onclick="TrilAI.toggle()" title="AI 答疑">🤖 问 AI</button>
+  <button onclick="TrilTTS.toggle()" title="朗读语音">🎚 朗读</button>
 </div>
 
 <div class="layout">
@@ -268,6 +272,7 @@ function phonOf(t,lang){
 function wordSpan(text,lang,ipa){
   const cls = lang==="en"?"en":lang==="bm"?"bm":lang==="zh"?"zh":"th";
   let h='<span class="w '+cls+'" data-lang="'+lang+'" data-text="'+escapeHtml(text||"")+'">'+escapeHtml(text||"—")+'</span>';
+  if(lang==="zh") h+=TrilPinyin.html(text);
   if(ipa) h+=' <span class="ipa">'+escapeHtml(ipa)+(lang==="en"?"":"")+'</span>';
   return h;
 }
@@ -817,6 +822,8 @@ window.TrilAppBack = function(){
 };
 </script>
 <script src="auth-client.js"></script>
+<script src="pinyin-pro.min.js"></script>
+<script src="tril-pinyin.js"></script>
 <script src="tril-ai.js"></script>
 <script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
 <script src="tril-tts.js"></script>
