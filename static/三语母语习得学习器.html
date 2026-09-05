@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<link rel="stylesheet" href="tril-skin.css">
+<script src="tril-skin.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>四语母语习得 · 可朗读解说学习器</title>
@@ -26,8 +28,8 @@ header .spacer{flex:1}
 .progbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--en),var(--zh));transition:width .3s}
 button{font-family:inherit;cursor:pointer;border:none;border-radius:9px;padding:8px 13px;font-size:13px;
   background:var(--panel2);color:var(--txt);transition:.15s;border:1px solid var(--line)}
-button:hover{background:#2b3a5e}
-button.primary{background:linear-gradient(90deg,var(--en),#7aa2ff);border:none;font-weight:600}
+button:hover{background:var(--btn-hover)}
+button.primary{background:linear-gradient(90deg,var(--en),var(--grad-2));border:none;font-weight:600}
 button.primary:hover{filter:brightness(1.08)}
 button:disabled{opacity:.4;cursor:not-allowed}
 .iconbtn{padding:7px 10px}
@@ -155,9 +157,9 @@ body.hide-examples .dexample{display:none}
 #layoutDock{position:fixed;right:12px;bottom:14px;z-index:45;display:flex;gap:6px;background:rgba(26,34,56,.88);
   backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 6px 22px rgba(0,0,0,.4)}
 #layoutDock button{font-size:12px;padding:7px 10px;border-radius:9px;white-space:nowrap;display:flex;align-items:center;gap:5px}
-#layoutDock button.on{background:linear-gradient(90deg,var(--en),#7aa2ff);border-color:transparent;color:#fff}
+#layoutDock button.on{background:linear-gradient(90deg,var(--en),var(--grad-2));border-color:transparent;color:#fff}
 .laybtn{font-size:12px;padding:7px 10px}
-.laybtn.on{background:linear-gradient(90deg,var(--en),#7aa2ff);border-color:transparent;color:#fff}
+.laybtn.on{background:linear-gradient(90deg,var(--en),var(--grad-2));border-color:transparent;color:#fff}
 @media(max-width:820px){#layoutDock{right:8px;bottom:10px;padding:5px}#layoutDock button{padding:6px 8px;font-size:11px}}
 </style>
 <meta name="theme-color" content="#2563eb">
@@ -230,19 +232,38 @@ body.hide-examples .dexample{display:none}
 
 <script>
 </script>
-<script src="三语母语习得学习器.data.js"></script>
+<script src="tril-db.js"></script>
+<script src="tril-core.js"></script>
+<script src="三语母语习得核心词库.index.js"></script>
 <script src="tril-lib.js"></script>
 <div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
-<script>const DATA = window.__LEARNER_DATA__;
+<script>
+const IDX = window.__TRIL_INDEX__;
 const LS_KEY = "tril_root_progress_v1";
 const LS_SET = "tril_root_settings_v1";
+const LS_MARK = "tril_marks_v1";
+const CUSTOM_SI = 1000; /* 自定义词库学段 sentinel（在 IDX 17 个学段之外） */
 
 let flat = [];
-if(window.TrilLib) TrilLib.mergeStages(DATA);
-DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
-  flat.push({stage:st.name,file:f.name,si,fi,ui,title:u.title,type:u.type||"table",
-    langs:u.langs||["en","zh","bm"],entries:u.entries,summary:u.summary||"",notes:u.notes||""});
-})));
+function rebuildFlat(){
+  flat = [];
+  IDX.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
+    flat.push({stage:st.name, file:f.name, si, fi, ui,
+      title:u.t, type:u.type||"table",
+      langs:u.langs||["en","zh","bm"], entryCount:u.n||0,
+      part:st.part, entries:null, isCustom:false});
+  })));
+  if(window.TrilLib){
+    const cs = TrilLib.loadStage();
+    cs.files.forEach((f,fi)=>(f.units||[]).forEach((u,ui)=>{
+      flat.push({stage:cs.name, file:f.name, si:CUSTOM_SI, fi, ui,
+        title:u.title||"", type:u.type||"table", langs:u.langs||["en","zh","bm"],
+        entryCount:(u.entries||[]).length, part:-1,
+        entries:u.entries||[], isCustom:true});
+    }));
+  }
+}
+rebuildFlat();
 const uid = u => u.si+"_"+u.fi+"_"+u.ui;
 
 let progress = {};
@@ -252,7 +273,6 @@ function isDone(u){ return !!(progress[uid(u)] && progress[uid(u)].done); }
 function setDone(u,done){ progress[uid(u)] = Object.assign(progress[uid(u)]||{},{done:done}); saveProgress(); refreshProgress(); }
 
 /* ===== 收藏标记（跨文件共享到测试器「我的收藏」） ===== */
-const LS_MARK = "tril_marks_v1";
 let marks = {};
 try{ marks = JSON.parse(localStorage.getItem(LS_MARK)||"{}")||{}; }catch(e){ marks={}; }
 function saveMarks(){ try{ localStorage.setItem(LS_MARK, JSON.stringify(marks)); }catch(e){} }
@@ -349,7 +369,7 @@ function pickVoice(lang){
 const nav=document.getElementById("nav");
 function renderNav(){
   nav.innerHTML="";
-  DATA.stages.forEach(st=>{
+  IDX.stages.forEach((st,si)=>{
     const sc=document.createElement("div"); sc.className="navstage";
     const total=st.files.reduce((a,f)=>a+f.units.length,0);
     const h=document.createElement("h3");
@@ -361,12 +381,34 @@ function renderNav(){
       const fc=f.units.length;
       const isRoot = f.units.length>0 && f.units[0].type==="root";
       b.innerHTML=escapeHtml(f.name)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+fc+'</span>';
-      b.dataset.si=DATA.stages.indexOf(st); b.dataset.fi=fi;
+      b.dataset.si=si; b.dataset.fi=fi;
       b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
       sc.appendChild(b);
     });
     nav.appendChild(sc);
   });
+  /* 自定义词库学段（TrilLib 本地存储） */
+  if(window.TrilLib){
+    const cs = TrilLib.loadStage();
+    if(cs.files.some(f=>f.units && f.units.length)){
+      const sc=document.createElement("div"); sc.className="navstage";
+      const total=cs.files.reduce((a,f)=>a+(f.units||[]).length,0);
+      const h=document.createElement("h3");
+      h.innerHTML="▾ "+escapeHtml(cs.name)+' <span class="cnt">('+total+'单元)</span>';
+      h.onclick=()=>{ const col=sc.classList.toggle("collapsed"); h.firstChild.textContent = col?"▸ ":"▾ "; };
+      sc.appendChild(h);
+      cs.files.forEach((f,fi)=>{
+        const b=document.createElement("button"); b.className="navfile";
+        const fc=(f.units||[]).length;
+        const isRoot = (f.units||[]).length>0 && f.units[0].type==="root";
+        b.innerHTML=escapeHtml(f.name)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+fc+'</span>';
+        b.dataset.si=CUSTOM_SI; b.dataset.fi=fi;
+        b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
+        sc.appendChild(b);
+      });
+      nav.appendChild(sc);
+    }
+  }
 }
 function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 
@@ -377,16 +419,19 @@ function openFile(si,fi){
   document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
   const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"]');
   if(nb) nb.classList.add("active");
-  const st=DATA.stages[si], f=st.files[fi];
+  const isCustom = (si === CUSTOM_SI);
+  const st = isCustom ? TrilLib.loadStage() : IDX.stages[si];
+  const f = st.files[fi];
   let inner='<div class="breadcrumb"><b>'+st.name+'</b> &nbsp;/&nbsp; '+f.name+' &nbsp;·&nbsp; 共 '+f.units.length+' 个单元</div>';
   inner+='<div class="unitgrid">';
   f.units.forEach((u,ui)=>{
     const uu={si,fi,ui}; const d=isDone(uu);
     const isRoot = u.type==="root";
-    const cnt = (u.entries?u.entries.length:0)+(isRoot?" 派生词":" 条");
+    const cnt = (isCustom ? (u.entries?u.entries.length:0) : (u.n||0))+(isRoot?" 派生词":" 条");
+    const utitle = isCustom ? u.title : u.t;
     inner+='<div class="ucard'+(d?" done":"")+'" data-ui="'+ui+'">'+
       '<span class="badge">'+(d?"✓ 已学":"未学")+'</span>'+
-      '<div class="ut">'+(isRoot?"🌱 ":"")+escapeHtml(u.title)+'</div>'+
+      '<div class="ut">'+(isRoot?"🌱 ":"")+escapeHtml(utitle)+'</div>'+
       '<div class="umeta">'+cnt+'</div>'+
       '<div class="mini"><i style="width:'+(d?100:0)+'%"></i></div></div>';
   });
@@ -402,9 +447,27 @@ let cur=null;
 let playing=false, queue=[], qpos=0, paused=false, curRow=-1, curCol="";
 const main=document.getElementById("main");
 
-function openLesson(si,fi,ui){
-  cur={si,fi,ui, ...flat.find(u=>u.si===si&&u.fi===fi&&u.ui===ui)};
+async function openLesson(si,fi,ui){
   stopPlaySilent();
+  /* 自定义词库学段：从 TrilLib 本地存储直接取（无需加载分片） */
+  if(si === CUSTOM_SI){
+    const u = TrilLib.loadStage().files[fi].units[ui];
+    cur = {si,fi,ui, stage:"📁 我的自定义词库", file:u.file||"自定义单元", title:u.title||"",
+      type:u.type||"table", langs:u.langs||["en","zh","bm"], entries:u.entries||[],
+      summary:u.summary||"", notes:u.notes||""};
+    if(cur.type==="root") renderRoot(cur); else renderTable(cur);
+    return;
+  }
+  /* 按需懒加载所属分片，然后从已加载的分片中取真实单元（含 entries） */
+  const meta = flat.find(x=>x.si===si && x.fi===fi && x.ui===ui);
+  const k = meta ? meta.part : IDX.stages[si].part;
+  if(k >= 0) await TrilCore.loadPart(k);
+  const st = TrilCore.getStageByGlobal(si);
+  const u = st.files[fi].units[ui];
+  cur = {si,fi,ui, stage:meta.stage, file:meta.file,
+    title:u.title||meta.title, type:u.type||meta.type,
+    langs:u.langs||meta.langs, entries:u.entries,
+    summary:u.summary||"", notes:u.notes||""};
   if(cur.type==="root") renderRoot(cur); else renderTable(cur);
 }
 function lessonBar(extraBtnLabel){
@@ -683,10 +746,7 @@ document.getElementById("gap").value=settings.gap;
 document.getElementById("vol").value=(settings.volume!=null?settings.volume:1); document.getElementById("volTxt").textContent=Math.round((settings.volume!=null?settings.volume:1)*100);
 
 /* ===== 自定义词库（共享 tril-lib.js） ===== */
-function rebuildFlat(){ flat=[]; DATA.stages.forEach((st,si)=>st.files.forEach((f,fi)=>f.units.forEach((u,ui)=>{
-  flat.push({stage:st.name,file:f.name,si,fi,ui,title:u.title,type:u.type||"table",langs:u.langs||["en","zh","bm"],entries:u.entries,summary:u.summary||"",notes:u.notes||""});
-}))); }
-(function(btn){ if(btn) btn.onclick=function(){ if(!window.TrilLib){ toast("自定义词库模块未加载"); return; } TrilLib.openEditor({onSaved:function(){ TrilLib.mergeStages(DATA); rebuildFlat(); renderNav(); toast("✓ 自定义词库已更新"); }}); }; })(document.getElementById("editLibBtn"));
+(function(btn){ if(btn) btn.onclick=function(){ if(!window.TrilLib){ toast("自定义词库模块未加载"); return; } TrilLib.openEditor({onSaved:function(){ rebuildFlat(); renderNav(); toast("✓ 自定义词库已更新"); }}); }; })(document.getElementById("editLibBtn"));
 
 document.addEventListener("keydown",e=>{
   if(overlay.classList.contains("show")) return;

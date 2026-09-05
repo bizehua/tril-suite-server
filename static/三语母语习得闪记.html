@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<link rel="stylesheet" href="tril-skin.css">
+<script src="tril-skin.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>四语母语习得 · 闪记（闪卡）学习器</title>
@@ -24,8 +26,8 @@ header .sub{font-size:12px;color:var(--muted)}
 header .spacer{flex:1}
 button{font-family:inherit;cursor:pointer;border:none;border-radius:9px;padding:8px 13px;font-size:13px;
   background:var(--panel2);color:var(--txt);transition:.15s;border:1px solid var(--line)}
-button:hover{background:#2b3a5e}
-button.primary{background:linear-gradient(90deg,var(--en),#7aa2ff);border:none;font-weight:600}
+button:hover{background:var(--btn-hover)}
+button.primary{background:linear-gradient(90deg,var(--en),var(--grad-2));border:none;font-weight:600}
 button.primary:hover{filter:brightness(1.08)}
 button:disabled{opacity:.4;cursor:not-allowed}
 .iconbtn{padding:7px 10px}
@@ -124,7 +126,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 .rate .r-fz{background:rgba(255,180,84,.16);border-color:rgba(255,180,84,.4);color:#ffce8f}
 .rate .r-ok{background:rgba(79,209,165,.16);border-color:rgba(79,209,165,.4);color:#8fe9c9}
 .rate button:hover{filter:brightness(1.12)}
-.flipbtn{font-size:15px;padding:12px 24px;background:linear-gradient(90deg,var(--en),#7aa2ff);border:none;font-weight:700;font-size:15px}
+.flipbtn{font-size:15px;padding:12px 24px;background:linear-gradient(90deg,var(--en),var(--grad-2));border:none;font-weight:700;font-size:15px}
 
 /* 完成总结 */
 .summary{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
@@ -141,7 +143,7 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 .field>label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg button{flex:1;min-width:64px;padding:9px 8px;font-size:13px}
-.seg button.on{background:linear-gradient(90deg,var(--en),#7aa2ff);border-color:transparent;color:#fff;font-weight:600}
+.seg button.on{background:linear-gradient(90deg,var(--en),var(--grad-2));border-color:transparent;color:#fff;font-weight:600}
 .row{display:flex;gap:10px;align-items:center}
 .switch{position:relative;width:44px;height:24px;background:var(--panel2);border-radius:99px;cursor:pointer;transition:.2s;flex:0 0 auto}
 .switch.on{background:var(--en)}
@@ -167,7 +169,7 @@ select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);bo
 #layoutDock{position:fixed;right:12px;bottom:14px;z-index:45;display:flex;gap:6px;background:rgba(26,34,56,.88);
   backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 6px 22px rgba(0,0,0,.4)}
 #layoutDock button{font-size:12px;padding:7px 10px;border-radius:9px;white-space:nowrap;display:flex;align-items:center;gap:5px}
-#layoutDock button.on{background:linear-gradient(90deg,var(--en),#7aa2ff);border-color:transparent;color:#fff}
+#layoutDock button.on{background:linear-gradient(90deg,var(--en),var(--grad-2));border-color:transparent;color:#fff}
 @media(max-width:820px){nav{flex-basis:170px}.unitgrid{grid-template-columns:1fr}.flipwrap{height:min(64vh,460px)}}
 header{transition:max-height .3s ease,padding .3s ease,opacity .25s ease,border-width .3s ease;max-height:160px;overflow:hidden}
 body.hide-topbar header{max-height:0;padding-top:0;padding-bottom:0;opacity:0;border-bottom-width:0;pointer-events:none}
@@ -269,11 +271,15 @@ body.hide-sidebar nav{width:0;flex-basis:0;min-width:0;padding-left:0;padding-ri
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="三语母语习得学习器.data.js"></script>
+<script src="三语母语习得核心词库.part1.js"></script>
+<script src="三语母语习得核心词库.part2.js"></script>
+<script src="三语母语习得核心词库.part3.js"></script>
+<script src="三语母语习得核心词库.part4.js"></script>
+<script>window.__TRIL_DATA__=[].concat.apply([], window.__TRIL_PARTS__);</script>
 <script src="tril-lib.js"></script>
 <div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
 <script>
-const DATA = window.__LEARNER_DATA__;
+const DATA = window.__TRIL_DATA__;
 const LS_KEY = "tril_flash_mastery_v1";
 const LS_SET = "tril_flash_settings_v1";
 
@@ -316,7 +322,7 @@ function picFor(e){
   for(var i=0;i<keys.length;i++){ if(PIC[keys[i]]) return {type:'emoji',ch:PIC[keys[i]]}; }
   return null;
 }
-function picHtmlBig(e){ var p=picFor(e); if(!p) return ''; return p.type==='img' ? '<div class="pic-front"><img src="'+escapeHtml(p.src)+'" alt=""></div>' : '<div class="pic-front">'+p.ch+'</div>'; }
+function picHtmlBig(e){ var p=picFor(e); if(!p) return ''; if(p.type==='img'){ var png=p.src; var webp=p.src.replace(/\.png$/,'.webp'); return '<div class="pic-front"><picture><source srcset="'+escapeHtml(webp)+'" type="image/webp"><img src="'+escapeHtml(png)+'" alt=""></picture></div>'; } return '<div class="pic-front">'+p.ch+'</div>'; }
 
 /* ===== 设置（持久化） ===== */
 let settings = {frontLang:"en", backMode:"all", backLang:"zh", backTwo:["en","zh"], showIpa:true, showExample:true,

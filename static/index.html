@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<link rel="stylesheet" href="tril-skin.css">
+<script src="tril-skin.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>四语母语习得 · 学习器与测试器</title>
@@ -102,6 +104,16 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
   </div>
 </section>
 
+<section class="section">
+  <h2>🌏 套件皮肤</h2>
+  <p class="sub">选择整体配色皮肤（含中国风 / 马来西亚国旗配色），保存 30 天，全页面同步</p>
+  <div class="theme-chips" id="skinChips">
+    <button data-skin="default" title="默认蓝" style="background:linear-gradient(135deg,#5b8cff,#7aa2ff)"></button>
+    <button data-skin="guofeng" title="中国风" style="background:linear-gradient(135deg,#C8102E,#D4AF37)"></button>
+    <button data-skin="malaysia" title="马来西亚" style="background:linear-gradient(135deg,#010066,#FFCC00)"></button>
+  </div>
+</section>
+
 <div class="cards">
   <a class="card" href="三语母语习得学习器.html">
     <div class="emoji">🎧</div>
@@ -159,6 +171,7 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
     return (parseInt(m[1],16)*0.299+parseInt(m[2],16)*0.587+parseInt(m[3],16)*0.114)/255;
   }
   function setTheme(bg,font){
+    try{ if(window.TrilSkin) TrilSkin.set('default'); }catch(e){} // 选背景即退出皮肤模式
     root.style.setProperty('--bg',bg); root.style.setProperty('--bg2',bg); root.style.setProperty('--txt',font);
     var chips=document.getElementById('themeChips').querySelectorAll('button');
     chips.forEach(function(b){ b.classList.toggle('on', b.dataset.bg===bg); });
@@ -172,14 +185,30 @@ footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center;line-
     try{ localStorage.setItem('tril_theme', JSON.stringify({bg:bg,font:font})); }catch(e){}
   }
   try{
-    var t=JSON.parse(localStorage.getItem('tril_theme')||'{}');
-    if(t.bg) setTheme(t.bg,t.font||'#e8edf7');
-    else setTheme('#0e1320','#e8edf7');
-  }catch(e){ setTheme('#0e1320','#e8edf7'); }
+    if(window.TrilSkin && TrilSkin.get()==='default'){
+      var t=JSON.parse(localStorage.getItem('tril_theme')||'{}');
+      if(t.bg) setTheme(t.bg,t.font||'#e8edf7');
+      else setTheme('#0e1320','#e8edf7');
+    }else if(!(window.TrilSkin)){
+      var t2=JSON.parse(localStorage.getItem('tril_theme')||'{}');
+      if(t2.bg) setTheme(t2.bg,t2.font||'#e8edf7');
+      else setTheme('#0e1320','#e8edf7');
+    }
+  }catch(e){ if(!window.TrilSkin||TrilSkin.get()==='default') setTheme('#0e1320','#e8edf7'); }
   document.getElementById('themeChips').addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b) return;
     setTheme(b.dataset.bg, b.dataset.font);
   });
+  // 皮肤切换
+  try{
+    var skinChips=document.getElementById('skinChips');
+    function markSkin(s){ skinChips.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.dataset.skin===s); }); }
+    markSkin(TrilSkin.get());
+    skinChips.addEventListener('click',function(e){
+      var b=e.target.closest('button'); if(!b) return;
+      TrilSkin.set(b.dataset.skin); markSkin(b.dataset.skin);
+    });
+  }catch(e){}
 })();
 </script>
 <script>

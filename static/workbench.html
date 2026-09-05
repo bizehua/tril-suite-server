@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<link rel="stylesheet" href="tril-skin.css">
+<script src="tril-skin.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>英语学习工作台</title>
@@ -85,6 +87,15 @@ function sync(){
 // 轮询登录态
 var t=setInterval(function(){ if(token() && document.getElementById('wb').style.display==='none') sync(); },800);
 window.addEventListener('load',function(){ setTimeout(sync,500); });
+</script>
+<script>
+(function(){
+  if(!window.TrilSkin) return;
+  var bar=document.querySelector('.skinbar'); if(!bar) return;
+  function mark(s){ bar.querySelectorAll('.skinbtn').forEach(function(b){ b.classList.toggle('on', b.dataset.skin===s); }); }
+  mark(TrilSkin.get());
+  bar.addEventListener('click',function(e){ var b=e.target.closest('.skinbtn'); if(!b) return; TrilSkin.set(b.dataset.skin); mark(b.dataset.skin); });
+})();
 </script>
 </body>
 </html>

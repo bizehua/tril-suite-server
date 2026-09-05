@@ -1,0 +1,56 @@
+/* =========================================================
+   tril-skin.css — 四语母语习得套件 · 统一主题/皮肤系统
+   ---------------------------------------------------------
+   阶段0.4 (CSS 变量化) + 0.6 (tril_skin 主题键接入)
+   - :root        默认蓝（原各页 :root 调色板，集中在此单源）
+   - html[data-skin="default"]   显式默认（等同 :root）
+   - html[data-skin="guofeng"]   中国风（朱红 #C8102E / 描金 #D4AF37）
+   - html[data-skin="malaysia"]  马来西亚（深蓝 #010066 / 红 #CC0001 / 金黄 #FFCC00）
+   切换键：localStorage.tril_skin（保留 30 天），由 tril-skin.js 写入 html[data-skin]
+   ========================================================= */
+
+/* ---------- 默认调色板（单源，集中所有页面共用的语义变量） ---------- */
+:root{
+  --bg:#0e1320; --bg2:#151c2e; --panel:#1a2238; --panel2:#212c47;
+  --line:#2c3756; --txt:#e8edf7; --muted:#93a0bd; --accent:#5b8cff;
+  --en:#5b8cff; --bm:#ffb454; --zh:#4fd1a5; --th:#c792ea; --danger:#ff6b6b;
+  --ok:#4fd1a5; --glow:0 0 0 2px rgba(91,140,255,.35); --shadow:rgba(0,0,0,.35);
+  /* 0.4 提取：原散落的派生色，改为命名变量，皮肤可整体重着色 */
+  --btn-hover:#2b3a5e;            /* 原 button:hover{background:#2b3a5e} */
+  --grad-2:#7aa2ff;               /* 原 primary 渐变第二停 #7aa2ff */
+  --ex-en:#cfe0ff; --ex-bm:#ffe2bb; --ex-zh:#bff3df; --ex-th:#e9cdf7; /* 例句语种色 */
+  /* 语义皮肤标识（供后续皮肤页/看板读取） */
+  --skin-primary:#5b8cff; --skin-gold:#ffd166; --skin-name:'默认';
+}
+
+html[data-skin="default"]{
+  --bg:#0e1320; --bg2:#151c2e; --panel:#1a2238; --panel2:#212c47;
+  --line:#2c3756; --txt:#e8edf7; --muted:#93a0bd; --accent:#5b8cff;
+  --en:#5b8cff; --bm:#ffb454; --zh:#4fd1a5; --th:#c792ea; --danger:#ff6b6b;
+  --ok:#4fd1a5; --glow:0 0 0 2px rgba(91,140,255,.35); --shadow:rgba(0,0,0,.35);
+  --btn-hover:#2b3a5e; --grad-2:#7aa2ff;
+  --ex-en:#cfe0ff; --ex-bm:#ffe2bb; --ex-zh:#bff3df; --ex-th:#e9cdf7;
+  --skin-primary:#5b8cff; --skin-gold:#ffd166; --skin-name:'默认';
+}
+
+/* ---------- 中国风：墨底 + 朱红 + 描金 ---------- */
+html[data-skin="guofeng"]{
+  --bg:#160d0d; --bg2:#1f1212; --panel:#211414; --panel2:#2c1a1a;
+  --line:#3a2424; --txt:#f6ead6; --muted:#b89a78; --accent:#C8102E;
+  --en:#ff7a6b; --bm:#ffcf6b; --zh:#e7c489; --th:#d4af37; --danger:#ff5252;
+  --ok:#7bbf8a; --glow:0 0 0 2px rgba(200,16,46,.38); --shadow:rgba(0,0,0,.45);
+  --btn-hover:#3a2424; --grad-2:#e23b4e;
+  --ex-en:#ffd0c8; --ex-bm:#ffe7bf; --ex-zh:#f0d9b0; --ex-th:#f0d98a;
+  --skin-primary:#C8102E; --skin-gold:#D4AF37; --skin-name:'中国风';
+}
+
+/* ---------- 马来西亚：深蓝 + 红 + 金黄（国旗配色） ---------- */
+html[data-skin="malaysia"]{
+  --bg:#050a2e; --bg2:#0a1247; --panel:#0d1740; --panel2:#152261;
+  --line:#26347a; --txt:#eaf0ff; --muted:#9aa6d6; --accent:#CC0001;
+  --en:#ffd24d; --bm:#ff6b6b; --zh:#7ec8ff; --th:#FFCC00; --danger:#ff5252;
+  --ok:#5fd0a0; --glow:0 0 0 2px rgba(204,0,1,.38); --shadow:rgba(0,0,0,.45);
+  --btn-hover:#1a2a66; --grad-2:#ff5b5b;
+  --ex-en:#fff0c2; --ex-bm:#ffd6d6; --ex-zh:#cfe6ff; --ex-th:#fff0b0;
+  --skin-primary:#010066; --skin-gold:#FFCC00; --skin-name:'马来西亚';
+}
