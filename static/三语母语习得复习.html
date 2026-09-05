@@ -123,6 +123,7 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <div class="progress"><i id="progFill" style="width:0%"></i></div>
   <span class="chip" id="footChip">开始</span>
   <button class="ghost" onclick="exportSRS()" title="导出复习进度（JSON）">⤴</button>
+  <button class="ghost" onclick="exportSRS_TSV()" title="导出当前词条为 TSV">⤓ TSV</button>
   <button class="ghost" onclick="document.getElementById('impInput').click()" title="导入复习进度">⤵</button>
   <input type="file" id="impInput" accept=".json" style="display:none" onchange="importSRS(event)">
 </div>
@@ -131,6 +132,7 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
 
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
+<script src="tril-csv.js"></script>
 <script src="三语母语习得核心词库.part1.js"></script>
 <script src="三语母语习得核心词库.part2.js"></script>
 <script src="三语母语习得核心词库.part3.js"></script>
@@ -584,6 +586,13 @@ function exportSRS(){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
   toast("已导出 SRS 进度");
+}
+function exportSRS_TSV(){
+  // 把当前队列（candidates）的全四语条目导出成 TSV，方便 Excel 复习
+  if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+  const rows = candidates.map(c => c.entry).filter(e => e && (e.en||e.bm||e.zh||e.th));
+  const x = trilCSV.exportEntries(rows, "tril_review_words_" + new Date().toISOString().slice(0,10) + ".tsv");
+  toast("已导出 " + x + " 条 → TSV");
 }
 function importSRS(ev){
   const f = ev.target.files[0];

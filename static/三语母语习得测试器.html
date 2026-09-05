@@ -5,6 +5,7 @@
 <script src="tril-skin.js"></script>
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
+<script src="tril-csv.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>四语母语习得 · 测试器</title>
@@ -545,12 +546,33 @@ function openMarksHome(){
     '<h2>⭐ 我的收藏</h2>'+
     '<div class="desc">你在学习器中点击词条前的 ☆ 标记的词汇，会自动汇总到这里，用于强化自测。共 '+n+' 个。</div>'+
     (n? '<div style="display:flex;gap:10px;margin-top:6px"><button class="primary" id="startMarks" style="flex:1;padding:12px">▶ 开始练习（'+n+' 词）</button>'+
+         '<button id="expMarksCSV">⤓ CSV</button>'+
+         '<button id="impMarksCSV">⤒ CSV</button>'+
          '<button id="clearMarks">🗑 清空收藏</button></div>'
        : '<div class="desc" style="margin-top:14px">暂无收藏。请回到学习器，点击任意词条前的 ☆ 即可收藏。</div>')+
     '</div></div></div>';
   if(n){
     document.getElementById("startMarks").onclick=()=>{ showStart(makePracticeUnit(entries,"我的收藏","marks")); };
     document.getElementById("clearMarks").onclick=()=>{ marks={}; saveMarks(); updatePracticeBadges(); openMarksHome(); toast("已清空收藏"); };
+    const exp=document.getElementById("expMarksCSV");
+    if(exp) exp.onclick=()=>{
+      if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+      const x = trilCSV.exportEntries(entries, "tril_marks_" + new Date().toISOString().slice(0,10) + ".tsv");
+      toast("已导出 " + x + " 条");
+    };
+    const imp=document.getElementById("impMarksCSV");
+    if(imp) imp.onclick=()=>{
+      if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+      trilCSV.importEntries(function(rows){
+        if(!rows || !rows.length){ toast("空文件"); return; }
+        rows.forEach(function(e){
+          const k = mkKey(e.en||"", e.bm||"", e.zh||"", e.th||"");
+          if(!marks[k]) marks[k] = e;
+        });
+        saveMarks(); updatePracticeBadges(); openMarksHome();
+        toast("已导入 " + rows.length + " 条 → 收藏");
+      });
+    };
   }
 }
 function openWrongHome(){
@@ -569,6 +591,8 @@ function openWrongHome(){
     '<h2>📕 错题本</h2>'+
     '<div class="desc">你答错的词汇会自动收录到此。每答对 1 次「连对 +1」，连续答对 10 次后自动移出错题本。当前共 '+n+' 个。</div>'+
     (n? '<div style="display:flex;gap:10px;margin-top:6px"><button class="primary" id="startWrong" style="flex:1;padding:12px">▶ 开始练习（'+n+' 词）</button>'+
+         '<button id="expWrongCSV">⤓ CSV</button>'+
+         '<button id="impWrongCSV">⤒ CSV</button>'+
          '<button id="clearWrong">🗑 清空错题本</button></div>'+list
        : '<div class="desc" style="margin-top:14px">错题本为空，继续刷题来积累吧！</div>')+
     '</div></div></div>';
@@ -576,6 +600,27 @@ function openWrongHome(){
     const entries=keys.map(k=>wrongbook[k]);
     document.getElementById("startWrong").onclick=()=>{ showStart(makePracticeUnit(entries,"错题本","wrong")); };
     document.getElementById("clearWrong").onclick=()=>{ wrongbook={}; saveWrongbook(); updatePracticeBadges(); openWrongHome(); toast("已清空错题本"); };
+    const expW=document.getElementById("expWrongCSV");
+    if(expW) expW.onclick=()=>{
+      if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+      const x = trilCSV.exportEntries(entries, "tril_wrongbook_" + new Date().toISOString().slice(0,10) + ".tsv");
+      toast("已导出 " + x + " 条");
+    };
+    const impW=document.getElementById("impWrongCSV");
+    if(impW) impW.onclick=()=>{
+      if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+      trilCSV.importEntries(function(rows){
+        if(!rows || !rows.length){ toast("空文件"); return; }
+        rows.forEach(function(e){
+          const k = mkKey(e.en||"", e.bm||"", e.zh||"", e.th||"");
+          if(!wrongbook[k]){
+            wrongbook[k] = Object.assign({}, e, {wrong:1, streak:0});
+          }
+        });
+        saveWrongbook(); updatePracticeBadges(); openWrongHome();
+        toast("已导入 " + rows.length + " 条 → 错题本");
+      });
+    };
   }
 }
 

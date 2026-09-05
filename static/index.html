@@ -77,18 +77,18 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
 .dash-head .meta{margin-left:auto;font-size:11px;color:#9ca3af;display:flex;gap:6px;align-items:center}
 .dash-head .meta a{color:#2563eb;text-decoration:none;font-weight:600}
 
-.dash-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.dash-hero{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
 .dash-hero .sc{
   background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;
-  padding:14px 14px 12px;position:relative;overflow:hidden;
+  padding:12px 14px 11px;position:relative;overflow:hidden;
 }
 .dash-hero .sc::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--sc-accent,#5b8cff);opacity:.6}
 .dash-hero .sc[data-color="ok"]::after{background:#10b981}.dash-hero .sc[data-color="warn"]::after{background:#f59e0b}
 .dash-hero .sc[data-color="bad"]::after{background:#ef4444}.dash-hero .sc[data-color="muted"]::after{background:#9ca3af}
 .dash-hero .sc .lbl{font-size:11px;color:#6b7280;letter-spacing:.3px}
-.dash-hero .sc .val{font-size:28px;font-weight:800;color:#1f2937;margin-top:3px;line-height:1.15}
+.dash-hero .sc .val{font-size:26px;font-weight:800;color:#1f2937;margin-top:2px;line-height:1.15}
 .dash-hero .sc .val.ok{color:#10b981}.dash-hero .sc .val.warn{color:#f59e0b}.dash-hero .sc .val.bad{color:#ef4444}
-.dash-hero .sc .sub{font-size:11px;color:#9ca3af;margin-top:3px}
+.dash-hero .sc .sub{font-size:11px;color:#9ca3af;margin-top:2px}
 
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .dash-grid .cc{background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:12px 14px 8px}
@@ -114,8 +114,11 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
 .dash-empty .hint{font-size:11px;color:#9ca3af;margin-top:8px}
 
 @media (max-width:760px){
-  .dash-hero{grid-template-columns:repeat(2,1fr)}
+  .dash-hero{grid-template-columns:repeat(3,1fr)}
   .dash-grid{grid-template-columns:1fr}
+}
+@media (max-width:480px){
+  .dash-hero{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:560px){.hero{padding-top:50px}.cards{grid-template-columns:1fr}.install .qrwrap{flex-direction:column}}
 </style>
@@ -146,6 +149,8 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <div class="sc" data-color="muted"><div class="lbl">本周到期</div><div class="val" id="mWeek">—</div><div class="sub">含今日 · 7 日内</div></div>
     <div class="sc" data-color="ok"><div class="lbl">已掌握 (L≥5)</div><div class="val ok" id="mMaster">—</div><div class="sub" id="mTotal">总词条 —</div></div>
     <div class="sc" data-color="muted"><div class="lbl">学习进度</div><div class="val" id="mProg">—</div><div class="sub" id="mProgSub">📕 — · ★ —</div></div>
+    <div class="sc" data-color="ok"><div class="lbl">⏱ 今日学习</div><div class="val" id="mTodayMin">—</div><div class="sub" id="mTodayCount">— 次 · — 词</div></div>
+    <div class="sc" data-color="bad"><div class="lbl">📕 错题本</div><div class="val bad" id="mWrong">—</div><div class="sub" id="mWrongSub">— 顽固 · — 接近毕业</div></div>
   </div>
 
   <div class="dash-grid">
@@ -153,6 +158,13 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <div class="cc"><h3>📊 SRS 等级分布</h3><div class="ct" id="ctLevel"><div class="loading">⏳ 计算中…</div></div></div>
     <div class="cc"><h3>🥧 30 日评分</h3><div class="ct" id="ctRating"><div class="loading">⏳ 计算中…</div></div></div>
     <div class="cc"><h3>📚 单元完成度</h3><div class="ct" id="ctStage"><div class="loading">⏳ 计算中…</div></div></div>
+    <div class="cc"><h3>🔥 弱项词条 TOP 10</h3><div class="ct" id="ctWeak"><div class="loading">⏳ 计算中…</div></div></div>
+    <div class="cc"><h3>🌐 各语言词条占比</h3><div class="ct" id="ctLang"><div class="loading">⏳ 计算中…</div></div></div>
+  </div>
+
+  <div class="cc" style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:13px;padding:12px 14px 8px;margin-bottom:14px">
+    <h3 style="margin:0 0 6px;font-size:13px;color:#1f2937;font-weight:700">🕐 7 日学习热力图（行=日期 · 列=小时）</h3>
+    <div class="ct" id="ctHeatmap" style="height:180px"><div class="loading" style="height:180px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px">⏳ 计算中…</div></div>
   </div>
 
   <div class="dash-cta" id="dashCta">
@@ -160,6 +172,7 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <a class="go-test" href="三语母语习得测试器.html">📝 做单元自测</a>
     <a class="go-flash" href="三语母语习得闪记.html">⚡ 闪记练词卡</a>
     <a href="三语母语习得学习器.html">🎧 进入学习器</a>
+    <a href="三语母语习得错题复习.html">📕 错题专练</a>
     <a href="三语母语习得快速播放器.html">🔊 单词播放器</a>
   </div>
 </section>
@@ -219,6 +232,12 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <div class="desc">跨学习器/闪记/错题本/收藏，按 SRS 算法自动排期到今日复习队列。✗ 不认识重置回 1d，? 模糊间隔 ×1.2，✓ 认识按 1d→2d→4d→…→60d 升级。支持 JSON 导入导出。</div>
     <span class="tag" style="background:rgba(79,209,165,.18);color:var(--ok);border:1px solid var(--ok);">NEW → 打开复习</span>
   </a>
+  <a class="card" href="三语母语习得错题复习.html">
+    <div class="emoji">📕</div>
+    <h2>错题专练</h2>
+    <div class="desc">从错题本独立出来专门复习。按「错得越多 → 队首」排序，连对 10 自动毕业。学习时长累计、热力图统计、TSV 导入导出全支持。</div>
+    <span class="tag" style="background:rgba(255,107,107,.18);color:#ff6b6b;border:1px solid #ff6b6b;">HOT → 打开错题</span>
+  </a>
 </div>
 
 <section class="install">
@@ -228,7 +247,7 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <img src="扫码安装.png" alt="扫码打开">
     <ol>
       <li>用 iPhone/iPad 的 <strong>Safari</strong>，或安卓的 <strong>Chrome</strong> 扫描二维码，打开本页。</li>
-      <li>点击下方卡片进入「学习器」「测试器」「快速播放器」「闪记」或「复习」。</li>
+      <li>点击下方卡片进入「学习器」「测试器」「快速播放器」「闪记」「复习」或「错题专练」。</li>
       <li><strong>添加到主屏幕</strong>：iOS 点底部分享按钮 →「添加到主屏幕」；安卓 Chrome 点菜单 →「安装应用」。</li>
       <li>之后主屏幕就会出现 App 图标，点开即全屏使用，就像原生 App 一样。</li>
     </ol>
@@ -243,6 +262,7 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
 
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
+<script src="tril-study.js"></script>
 <script>
 "use strict";
 
@@ -287,6 +307,22 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
   el("mTotal").textContent = "总词条 " + totalReview;
   el("mProg").textContent = doneUnits;
   el("mProgSub").textContent = "📕 " + Object.keys(wrongbook).length + " · ★ " + Object.keys(marks).length;
+
+  /* 今日学习时长 / 错题本 */
+  if(window.trilStudy){
+    var tmin = trilStudy.todayMinutes();
+    var tcount = trilStudy.todaySessionCount();
+    el("mTodayMin").textContent = tmin + " 分";
+    el("mTodayCount").textContent = tcount + " 次会话";
+  } else {
+    el("mTodayMin").textContent = "—";
+    el("mTodayCount").textContent = "学习时长模块未加载";
+  }
+  var wkKeys = Object.keys(wrongbook);
+  var wkHeavy = wkKeys.filter(function(k){ return (wrongbook[k].wrong||0) >= 3; }).length;
+  var wkAlmost = wkKeys.filter(function(k){ return (wrongbook[k].streak||0) >= 5; }).length;
+  el("mWrong").textContent = wkKeys.length;
+  el("mWrongSub").textContent = wkHeavy + " 顽固 · " + wkAlmost + " 接近毕业";
 
   /* ==== ECharts 渲染 ==== */
   function whenEcharts(cb){
@@ -445,6 +481,149 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
           type:"bar",data:counts,barWidth:"55%",
           itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:"#5b8cff"},{offset:1,color:"#2563eb"}]},borderRadius:[6,6,0,0]},
           label:{show:true,position:"top",color:"#6b7280",fontSize:10,fontWeight:600}
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+
+    /* 5) 弱项词条 TOP 10（按 fuzzy+unknown 数） */
+    (function(){
+      var c = document.getElementById("ctWeak");
+      if(!c) return;
+      var rows = [];
+      Object.keys(review).forEach(function(k){
+        var s = review[k];
+        var score = (s.forgotten||0)*3 + (function(){
+          // fuzzy 推测：用 last_interval < 4 但未掌握表示「常被评模糊」
+          var iv = s.last_interval || 1;
+          var lv = s.level || 0;
+          if(lv > 0 && lv < 5 && iv <= 4) return 2;
+          if(lv === 0 && (s.reviews_total||0) >= 2) return 1;
+          return 0;
+        })();
+        if(score > 0){
+          // 还原词条以显示
+          var ent = wrongbook[k] || marks[k] || null;
+          var label;
+          if(ent && ent.en){ label = ent.en; }
+          else {
+            // 拆解 key "en|bm|zh|th"
+            var parts = (k+"").split("|");
+            label = parts[0] || "(?)";
+          }
+          rows.push({k:k, label:label, score:score, lv:s.level||0, iv:s.last_interval||1, tot:s.reviews_total||0, forget:s.forgotten||0});
+        }
+      });
+      rows.sort(function(a,b){ return b.score - a.score; });
+      rows = rows.slice(0, 10);
+      var chart = echarts.init(c);
+      if(rows.length === 0){
+        c.innerHTML = '<div class="loading">暂无弱项数据<br><span style="font-size:11px;color:#9ca3af">去「复习」累计几次评级后会显示</span></div>';
+        return;
+      }
+      chart.setOption({
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12},
+          formatter:function(p){
+            var r = rows[p[0].dataIndex];
+            return "词条 <b>" + r.label + "</b><br>" +
+                   "等级 L" + r.lv + " · 间隔 " + r.iv + "d<br>" +
+                   "复习 " + r.tot + " 次 · 忘记 " + r.forget + " 次<br>" +
+                   "<span style='color:#ef4444'>弱项分 " + r.score + "</span>";
+          }},
+        grid:{top:10,left:14,right:30,bottom:6,containLabel:true},
+        xAxis:{type:"value",minInterval:1,show:false,...axisCommon,splitLine:{show:false}},
+        yAxis:{type:"category",data:rows.map(function(r){ return r.label; }).reverse(),
+          axisLine:{show:false},axisTick:{show:false},axisLabel:{color:"#1f2937",fontSize:11,fontWeight:500}},
+        series:[{
+          type:"bar",data:rows.map(function(r){ return r.score; }).reverse(),
+          barWidth:"55%",
+          itemStyle:{color:function(p){ var colors=["#fbbf24","#f59e0b","#ef4444","#dc2626","#b91c1c","#991b1b","#7f1d1d","#7f1d1d","#7f1d1d","#7f1d1d"]; return colors[Math.min(9, p.dataIndex)]; },borderRadius:[0,5,5,0]},
+          label:{show:true,position:"right",color:"#6b7280",fontSize:10}
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+
+    /* 6) 各语言词条占比（donut） */
+    (function(){
+      var c = document.getElementById("ctLang");
+      if(!c) return;
+      var data = [
+        {name:"EN 英文",value:0,color:"#5b8cff"},
+        {name:"BM 马来",value:0,color:"#ffb454"},
+        {name:"ZH 中文",value:0,color:"#4fd1a5"},
+        {name:"TH 泰文",value:0,color:"#c792ea"}
+      ];
+      // 从 marks + wrongbook 全词条按 key 中值测含 lang 数
+      var seen = new Set();
+      [wrongbook, marks].forEach(function(store){
+        Object.keys(store).forEach(function(k){
+          if(seen.has(k)) return;
+          seen.add(k);
+          var parts = (k+"").split("|");
+          data.forEach(function(d, i){ if((parts[i]||"").length > 0) d.value++; });
+        });
+      });
+      var has = data.reduce(function(s,d){return s+d.value;}, 0) > 0;
+      var chart = echarts.init(c);
+      if(!has){
+        c.innerHTML = '<div class="loading">暂无词条数据<br><span style="font-size:11px;color:#9ca3af">先在学习器或收藏里点星标</span></div>';
+        return;
+      }
+      chart.setOption({
+        tooltip:{trigger:"item",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12}},
+        legend:{bottom:0,textStyle:{color:"#6b7280",fontSize:11},itemWidth:10,itemHeight:10},
+        series:[{
+          type:"pie",radius:["38%","68%"],center:["50%","44%"],
+          label:{show:true,position:"outside",formatter:"{b}\n{d}%",color:"#1f2937",fontSize:11},
+          labelLine:{show:true,lineStyle:{color:"#9ca3af"}},
+          data:data.map(function(d){ return {value:d.value,name:d.name,itemStyle:{color:d.color}}; })
+        }]
+      });
+      window.addEventListener("resize", function(){ chart.resize(); });
+    })();
+
+    /* 7) 7 日学习热力图（24h × 7d） */
+    (function(){
+      var c = document.getElementById("ctHeatmap");
+      if(!c) return;
+      if(!window.trilStudy){
+        c.innerHTML = '<div class="loading">tril-study.js 未加载</div>';
+        return;
+      }
+      var cells = trilStudy.heatmap7x24();   // 7×24 matrix
+      var max = 0;
+      cells.forEach(function(row){ row.forEach(function(v){ if(v > max) max = v; }); });
+
+      var dayLabels = ["6天前","5天前","4天前","3天前","2天前","昨天","今天"];
+      var hourLabels = [];
+      for(var h=0;h<24;h++) hourLabels.push((h<10?"0":"")+h);
+
+      var data = [];
+      cells.forEach(function(row, ri){
+        row.forEach(function(v, hi){
+          data.push([hi, ri, v]);
+        });
+      });
+
+      var chart = echarts.init(c);
+      if(max === 0){
+        c.innerHTML = '<div class="loading">最近 7 天还没有学习会话<br><span style="font-size:11px;color:#9ca3af">打开「学习器」浏览单元时会自动计时</span></div>';
+        return;
+      }
+      chart.setOption({
+        tooltip:{position:"top",backgroundColor:"rgba(255,255,255,.95)",borderColor:"#e5e7eb",textStyle:{color:"#1f2937",fontSize:12},
+          formatter:function(p){
+            return dayLabels[p.value[1]] + " " + p.value[0] + ":00<br>事件数 <b>" + p.value[2] + "</b>";
+          }},
+        grid:{top:10,left:50,right:14,bottom:30},
+        xAxis:{type:"category",data:hourLabels,splitArea:{show:true},axisLabel:{color:"#9ca3af",fontSize:9,interval:3}},
+        yAxis:{type:"category",data:dayLabels,splitArea:{show:true},axisLabel:{color:"#6b7280",fontSize:11}},
+        visualMap:{min:0,max:max,calculable:false,orient:"horizontal",left:"center",bottom:0,textStyle:{color:"#6b7280",fontSize:10},inRange:{color:["#f3f4f6","#5b8cff","#2563eb","#1e3a8a"]}},
+        series:[{
+          type:"heatmap",data:data,
+          label:{show:false},
+          emphasis:{itemStyle:{shadowBlur:8,shadowColor:"rgba(0,0,0,.2)"}}
         }]
       });
       window.addEventListener("resize", function(){ chart.resize(); });

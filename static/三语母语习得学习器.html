@@ -184,8 +184,10 @@ body.hide-examples .dexample{display:none}
   <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶部栏">▭ 顶栏</button>
   <button class="laybtn iconbtn" id="editLibBtn" title="我的自定义词库">✎ 词库</button>
   <a class="laybtn iconbtn" href="三语母语习得复习.html" title="艾宾浩斯复习（SRS 间隔重复）" style="text-decoration:none">🔁 复习</a>
+  <a class="laybtn iconbtn" href="三语母语习得错题复习.html" title="错题专门复习页（错多 → 队首）" style="text-decoration:none">📕 错题</a>
   <button class="laybtn iconbtn" onclick="TrilAI.toggle()" title="展开 / 收起 AI 答疑">🤖 问 AI</button>
   <button class="laybtn iconbtn" onclick="TrilTTS.toggle()" title="展开 / 收起 朗读语音设置">🎚 朗读</button>
+  <span class="studyChip" id="studyChip" title="今日学习时长（可在看板查看详情）" style="font-size:11px;color:var(--muted);padding:3px 8px;background:var(--panel);border-radius:99px;border:1px solid var(--line);cursor:default">⏱ 0分</span>
 </header>
 <div id="layoutDock">
   <button data-layout="sidebar" title="目录栏">☰ 目录</button>
@@ -235,6 +237,8 @@ body.hide-examples .dexample{display:none}
 </script>
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
+<script src="tril-csv.js"></script>
+<script src="tril-study.js"></script>
 <script src="tril-core.js"></script>
 <script src="三语母语习得核心词库.index.js"></script>
 <script src="tril-lib.js"></script>
@@ -417,6 +421,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt
 let curSi=-1,curFi=-1;
 function getUnitlist(){ return document.getElementById("unitlist"); }
 function openFile(si,fi){
+  if(window.trilStudy) trilStudy.stop({reason:"openFile"});
   curSi=si;curFi=fi;
   document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
   const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"]');
@@ -458,6 +463,8 @@ async function openLesson(si,fi,ui){
       type:u.type||"table", langs:u.langs||["en","zh","bm"], entries:u.entries||[],
       summary:u.summary||"", notes:u.notes||""};
     if(cur.type==="root") renderRoot(cur); else renderTable(cur);
+    if(window.trilStudy) trilStudy.start({stage:cur.stage,file:cur.file,unit:cur.title,si:si,fi:fi,ui:ui});
+    updateStudyChip();
     return;
   }
   /* 按需懒加载所属分片，然后从已加载的分片中取真实单元（含 entries） */
@@ -471,6 +478,8 @@ async function openLesson(si,fi,ui){
     langs:u.langs||meta.langs, entries:u.entries,
     summary:u.summary||"", notes:u.notes||""};
   if(cur.type==="root") renderRoot(cur); else renderTable(cur);
+  if(window.trilStudy) trilStudy.start({stage:cur.stage,file:cur.file,unit:cur.title,si:si,fi:fi,ui:ui});
+  updateStudyChip();
 }
 function lessonBar(extraBtnLabel){
   return '<div class="lessonbar">'+
@@ -482,6 +491,8 @@ function lessonBar(extraBtnLabel){
     '<button id="testBtn" title="测试本设备/浏览器能否发出声音">🔈 测试</button>'+
     '<button id="sumBtn">'+(extraBtnLabel||'🔊 朗读汇总')+'</button>'+
     '<button class="primary" id="playBtn">▶ 播放解说</button>'+
+    '<button id="csvExpBtn" title="导出本单元为 TSV（Excel/Numbers 可直接打开）" style="margin-left:6px">⤓ CSV</button>'+
+    '<button id="csvImpBtn" title="从 TSV 导入到【自定义词库】" style="margin-left:4px">⤒ CSV</button>'+
   '</div>';
 }
 
@@ -521,6 +532,24 @@ function renderTable(u){
   main.querySelectorAll("tbody tr").forEach(tr=>{ tr.onclick=()=>{ window.TRIL_CURRENT=entries[+tr.dataset.i]; gotoRow(+tr.dataset.i); }; });
   main.querySelectorAll(".ex").forEach(sp=>{ sp.onclick=(ev)=>{ ev.stopPropagation(); speak(sp.dataset.text, sp.dataset.lang); }; });
   main.querySelectorAll(".mark").forEach(m=>{ m.onclick=(ev)=>{ ev.stopPropagation(); const e=entries[+m.dataset.i]; toggleMark(e); const on=isMarked(e); m.textContent=on?"★":"☆"; m.classList.toggle("on",on); }; });
+  // CSV/TSV 导入导出
+  const csvExp = document.getElementById("csvExpBtn");
+  const csvImp = document.getElementById("csvImpBtn");
+  if(csvExp) csvExp.onclick = (ev)=>{
+    ev.stopPropagation();
+    if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+    const safeName = (cur.stage||'export').replace(/[\\/:*?"<>|\s]+/g,"_") + "_" + (cur.file||'').replace(/[\\/:*?"<>|\s]+/g,"_") + "_" + (cur.title||'unit').replace(/[\\/:*?"<>|\s]+/g,"_");
+    const n = trilCSV.exportEntries(entries, "tril_" + safeName + "_" + new Date().toISOString().slice(0,10) + ".tsv");
+    toast("已导出 " + n + " 条 → TSV");
+  };
+  if(csvImp) csvImp.onclick = (ev)=>{
+    ev.stopPropagation();
+    if(!window.trilCSV){ toast("CSV 模块未加载"); return; }
+    trilCSV.importAsCustomUnit("导入 from " + (cur.title||"") + " @ " + new Date().toISOString().slice(0,16).replace("T"," "), function(u, n){
+      if(u){ toast("已导入 " + n + " 条 → 自定义词库，请回到主页刷新生效"); }
+      else { toast("导入失败或空文件"); }
+    });
+  };
   updateTimeline();
 }
 
@@ -813,6 +842,21 @@ window.TrilAppBack = function(){
 <script src="tril-pinyin.js"></script>
 <script src="tril-ai.js"></script>
 <script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
+<script>
+/* 学习时长同步与 chip 更新 */
+function updateStudyChip(){
+  var c = document.getElementById("studyChip");
+  if(!c || !window.trilStudy) return;
+  var m = trilStudy.todayMinutes();
+  c.textContent = "⏱ 今日 " + m + " 分";
+}
+setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 30000);   // 每 30s 刷一次
+window.addEventListener('beforeunload', function(){ try{ if(window.trilStudy) trilStudy.stop({reason:"unload"}); }catch(_){} });
+window.addEventListener('pagehide',      function(){ try{ if(window.trilStudy) trilStudy.stop({reason:"pagehide"}); }catch(_){} });
+if(window.trilStudy) trilStudy.start({stage:"主页",file:"",unit:"目录浏览"});
+setTimeout(updateStudyChip, 500);
+setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 10000);
+</script>
 <script src="tril-tts.js"></script>
 </body>
 </html>

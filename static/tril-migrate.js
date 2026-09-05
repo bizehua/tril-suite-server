@@ -31,7 +31,9 @@
     "tril_flash_settings_v1":  "flashSettings",
     /* 复习 */
     "tril_review_v1":          "review",
-    "tril_review_meta_v1":     "reviewMeta"
+    "tril_review_meta_v1":     "reviewMeta",
+    /* 学习时长 (stage 2-C) */
+    "tril_study_sessions_v1":  "studySessions"
   };
 
   function boot(){
