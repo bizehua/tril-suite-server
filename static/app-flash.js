@@ -457,8 +457,12 @@ document.querySelectorAll('[data-layout]').forEach(b=>{ b.onclick=()=>toggleLayo
 applyLayout();
 
 /* ===== 启动 ===== */
-renderNav();
-refreshProgress();
+window.__TRIL_FLASH_LOADED__ = true;
+try{ renderNav(); refreshProgress(); }
+catch(e){
+  _flashShowErr("renderNav 失败：" + (e.message || e));
+  console.error("[闪记 renderNav 失败]", e);
+}
 /* 主页链接来的定位：location.hash 含 si / fi 自动 goLevel */
 (function applyHash(){
   try{

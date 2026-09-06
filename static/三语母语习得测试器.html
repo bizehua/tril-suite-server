@@ -175,11 +175,10 @@ main{flex:1;display:flex;flex-direction:column;min-width:0}
 .rvitem .rva{margin-top:4px;color:var(--muted)}
 .rvitem .ok{color:var(--ok);font-weight:600}.rvitem .bad{color:var(--danger);font-weight:600}
 @media(max-width:820px){nav{flex-basis:160px}.unitgrid{grid-template-columns:1fr}.qprompt{font-size:24px}}
-/* ===== 可折叠面板：左侧目录 / 例句区域 / 顶部栏 ===== */
+/* ===== 可折叠面板：左侧目录 / 例句区域 / 顶部栏 =====
+   hide-sidebar / hide-topbar / nav transition 已统一到 tril-skin.css */
 header{transition:max-height .3s ease,padding .3s ease,opacity .25s ease,border-width .3s ease;max-height:160px;overflow:hidden}
 body.hide-topbar header{max-height:0;padding-top:0;padding-bottom:0;opacity:0;border-bottom-width:0;pointer-events:none}
-nav{transition:width .3s ease,flex-basis .3s ease,opacity .25s ease,padding .3s ease;overflow-x:hidden}
-body.hide-sidebar nav{width:0;flex-basis:0;min-width:0;padding-left:0;padding-right:0;opacity:0;border-right-width:0;pointer-events:none}
 body.hide-examples .example-block{display:none}
 #layoutDock{position:fixed;right:12px;bottom:14px;z-index:45;display:flex;gap:6px;background:rgba(26,34,56,.88);
   backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 6px 22px rgba(0,0,0,.4)}

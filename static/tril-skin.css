@@ -589,3 +589,56 @@ html[data-skin="zhongqiu"] .startpanel{ border-top:2px solid rgba(212,175,55,.55
   .layout{flex-direction:column}
   .layout > nav,#nav{flex:0 0 auto;max-height:38vh;border-right:none;border-bottom:1px solid var(--line)}
 }
+
+/* =========================================================
+   通用可折叠面板：所有 6 个 app 共享
+   - 学习器 / 测试器 / 闪记 / 播放器 4 个 app 共用 sidebar + topbar
+   - 复习 / 错题复习使用 3 级侧栏 unitFilter 模式，无 sidebar 切换
+   作用：把 hide-sidebar / hide-topbar 集中到一处，
+   各 app HTML 内嵌样式不再重复定义，避免优先级冲突
+   ========================================================= */
+header{
+  transition:max-height .3s ease,padding .3s ease,opacity .25s ease,border-width .3s ease;
+  max-height:160px;
+  overflow:hidden;
+}
+.layout > nav,
+#nav{
+  transition:width .3s ease,flex-basis .3s ease,opacity .25s ease,padding .3s ease;
+  overflow-x:hidden;
+}
+body.hide-topbar header{
+  max-height:0;
+  padding-top:0;
+  padding-bottom:0;
+  opacity:0;
+  border-bottom-width:0;
+  pointer-events:none;
+}
+body.hide-sidebar .layout > nav,
+body.hide-sidebar #nav{
+  width:0;
+  flex-basis:0;
+  min-width:0;
+  padding-left:0;
+  padding-right:0;
+  opacity:0;
+  border-right-width:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+/* sidebar 隐藏时 main 占满剩余空间 */
+body.hide-sidebar .layout > main,
+body.hide-sidebar #main{
+  flex:1 1 auto;
+  min-width:0;
+}
+/* 播放器小屏下 nav 变抽屉，hide-sidebar 时直接关闭抽屉 */
+@media (max-width:820px){
+  body.hide-sidebar .layout > nav,
+  body.hide-sidebar #nav{
+    transform:translateX(-105%);
+    width:84%;
+    flex-basis:auto;
+  }
+}

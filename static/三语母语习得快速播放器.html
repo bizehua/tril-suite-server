@@ -53,9 +53,7 @@ body.hide-examples .expanel{max-height:0;padding-top:0;padding-bottom:0;opacity:
 .layout{flex:1;display:flex;min-height:0;position:relative}
 nav{flex:0 0 250px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:10px;
   transition:transform .3s ease,opacity .25s ease}
-@media(min-width:821px){
-  body.hide-sidebar nav{width:0;flex-basis:0;min-width:0;padding-left:0;padding-right:0;opacity:0;border-right-width:0;pointer-events:none;overflow:hidden}
-}
+/* hide-sidebar 通用规则已在 tril-skin.css 定义（所有 6 app 共享），此处不再重复 */
 .navstage{margin-bottom:6px}
 .navstage>h3{font-size:13px;margin:8px 6px 4px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
 .navstage .cnt{font-size:11px;color:var(--muted);font-weight:400}
