@@ -31,7 +31,7 @@ const ASSETS = [
   './tril-skin-widget.js',
   './app-tester.js',
   './app-player.js',
-  './app-flash.js',
+  './app-flash.js?v=11',
   './app-review.js',
   './pinyin-pro.min.js',
   './tril-pinyin.js',

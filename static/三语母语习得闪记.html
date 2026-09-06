@@ -329,7 +329,7 @@ select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);bo
 /* ⏳ 渐进式词库加载：外壳立即渲染，词库（约 30MB）后台下载并缓存到 IndexedDB，
    完成后动态注入应用脚本。第二次打开走本地缓存，秒开。 */
 (function(){
-  var APP = "app-flash.js";
+  var APP = "app-flash.js?v=11"; /* 加版本号，强制浏览器绕过旧 JS 缓存 */
   function done(){ var s = document.getElementById("trilSpinner"); if(s) s.remove(); }
   function fail(msg){
     var txt = document.getElementById("trilSpinnerTxt");

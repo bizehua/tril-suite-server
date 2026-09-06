@@ -139,25 +139,59 @@ function navBack(){
 }
 function sortedStages(){
   /* 东钢岗位词汇 永远在第一位 */
-  const a=DATA.stages.slice();
-  const i=a.findIndex(s=>/东钢岗位词汇/.test(s.name||""));
-  if(i>0){ const x=a.splice(i,1)[0]; a.unshift(x); }
-  return a;
+  try{
+    const a=(DATA.stages||[]).slice();
+    const i=a.findIndex(s=>/东钢岗位词汇/.test(s.name||""));
+    if(i>0){ const x=a.splice(i,1)[0]; a.unshift(x); }
+    return a;
+  }catch(e){
+    console.error("[sortedStages 异常]", e);
+    return (DATA.stages||[]).slice();
+  }
+}
+function _setDiag(msg){
+  try{
+    var d = document.getElementById('trilDiag');
+    if(d) d.textContent = msg;
+  }catch(e){}
 }
 function renderNav(){
   nav.innerHTML="";
+  try{
   if(navState.level===1){
     const close=document.createElement("button"); close.className="navback"; close.textContent="✕ 关闭目录";
     close.onclick=()=>document.body.classList.remove("show-sidebar-m");
     nav.appendChild(close);
-    sortedStages().forEach(st=>{
-      const si=DATA.stages.indexOf(st);
-      const total=st.files.reduce((a,f)=>a+f.units.length,0);
-      const b=document.createElement("button"); b.className="navfile";
-      b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
-      b.onclick=()=>goLevel(2,si,-1);
-      nav.appendChild(b);
+    let stages = sortedStages();
+    if(!stages || !stages.length){
+      /* 三重 fallback：sortedStages → DATA.stages → 从 IDX 拼装 */
+      stages = (DATA && DATA.stages) || [];
+      if(!stages.length && window.__TRIL_INDEX__ && window.__TRIL_INDEX__.stages){
+        stages = window.__TRIL_INDEX__.stages.map(function(s){return {name:s.name||"未命名",files:[]};});
+      }
+    }
+    let added = 0;
+    stages.forEach(function(st){
+      try{
+        const si=DATA.stages.indexOf(st);
+        const total=(st.files||[]).reduce(function(a,f){return a+(f.units?f.units.length:0);},0);
+        const b=document.createElement("button"); b.className="navfile";
+        b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
+        b.onclick=()=>goLevel(2,si,-1);
+        nav.appendChild(b);
+        added++;
+      }catch(innerE){
+        console.error("[renderNav 项失败]", st&&st.name, innerE);
+      }
     });
+    _setDiag("🔧 闪记诊断 · DATA: "+(DATA.stages?DATA.stages.length:0)+" 学段 · nav 已加 "+added+" 项");
+    if(added === 0){
+      /* 兜底：手动重建 ul */
+      const hint = document.createElement("div");
+      hint.style.cssText="padding:14px;font-size:12px;color:#ff9b6b;line-height:1.6";
+      hint.innerHTML = "⚠ 目录为空。<br>DATA.stages.length = "+(DATA.stages?DATA.stages.length:0)+"<br>请刷新或点诊断清缓存";
+      nav.appendChild(hint);
+    }
   } else if(navState.level===2){
     const st=DATA.stages[navState.si];
     nav.appendChild(mkBack("◀ 返回学段"));
@@ -180,6 +214,46 @@ function renderNav(){
       b.onclick=()=>startStudy(navState.si,navState.fi,ui);
       nav.appendChild(b);
     });
+  }
+  }catch(e){
+    console.error("[renderNav 总异常]", e);
+    _setDiag("❌ renderNav 失败："+(e.message||e)+" · DATA:"+(DATA.stages?DATA.stages.length:0));
+    /* 强制 fallback：level 1 直接渲染 DATA.stages */
+    try{
+      if(nav.children.length <= 1 && DATA.stages && DATA.stages.length){
+        DATA.stages.forEach(function(st,si){
+          const b=document.createElement("button"); b.className="navfile";
+          b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">0</span>';
+          b.onclick=function(){
+            /* 直接渲染该学段的 files */
+            nav.innerHTML="";
+            const back=document.createElement("button"); back.className="navback"; back.textContent="◀ 返回学段";
+            back.onclick=function(){ renderNav(); };
+            nav.appendChild(back);
+            (st.files||[]).forEach(function(f,fi){
+              const fb=document.createElement("button"); fb.className="navfile";
+              fb.innerHTML='▸ '+escapeHtml(f.name)+' <span class="fc">'+(f.units?f.units.length:0)+'</span>';
+              fb.onclick=function(){
+                nav.innerHTML="";
+                const b2=document.createElement("button"); b2.className="navback"; b2.textContent="◀ 返回文件";
+                b2.onclick=function(){ renderNav(); };
+                nav.appendChild(b2);
+                (f.units||[]).forEach(function(u,ui){
+                  const ub=document.createElement("button"); ub.className="navunit";
+                  ub.innerHTML='· '+escapeHtml(u.title||"")+' <span class="fc">'+(u.entries?u.entries.length:0)+' 张卡片</span>';
+                  ub.onclick=function(){ if(window.startStudy) startStudy(si,fi,ui); };
+                  nav.appendChild(ub);
+                });
+              };
+              nav.appendChild(fb);
+            });
+          };
+          nav.appendChild(b);
+        });
+      }
+    }catch(fbE){
+      console.error("[renderNav fallback 失败]", fbE);
+    }
   }
 }
 function getUnitlist(){ return document.getElementById("unitlist"); }
