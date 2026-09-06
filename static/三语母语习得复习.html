@@ -148,6 +148,10 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
       <label class="lang-toggle"><input type="checkbox" data-backlang="zh" checked> 🇨🇳 ZH</label>
       <label class="lang-toggle"><input type="checkbox" data-backlang="th" checked> 🇹🇭 TH</label>
     </div>
+    <div class="display-section">
+      <span class="sec-label">📝 例句：</span>
+      <label class="lang-toggle"><input type="checkbox" data-showexamples checked> 显示例句</label>
+    </div>
   </div>
 </div>
 
@@ -178,6 +182,8 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
 <script src="三语母语习得核心词库.index.js"></script>
 <script src="tril-core.js"></script>
 <script src="tril-lib.js"></script>
+<script src="pinyin-pro.min.js"></script>
+<script src="tril-pinyin.js"></script>
 <script>
 /* ⏳ 渐进式词库加载：外壳立即渲染，词库（约 30MB）后台下载并缓存到 IndexedDB，
    完成后动态注入应用脚本。第二次打开走本地缓存，秒开。 */

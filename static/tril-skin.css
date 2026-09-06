@@ -653,6 +653,7 @@ body.hide-sidebar #main .stage{
 .lang-toggle,.lang-radio{display:flex;align-items:center;gap:4px;padding:4px 9px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;cursor:pointer;margin:0}
 .lang-toggle input,.lang-radio input{margin:0}
 body.hide-lang-en .lang-en, body.hide-lang-bm .lang-bm, body.hide-lang-zh .lang-zh, body.hide-lang-th .lang-th{display:none !important}
+body.hide-examples .examples-row{display:none !important}
 /* 播放器小屏下 nav 变抽屉，hide-sidebar 时直接关闭抽屉 */
 @media (max-width:820px){
   body.hide-sidebar .layout > nav,

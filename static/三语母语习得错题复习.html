@@ -139,6 +139,10 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
       <label class="lang-toggle"><input type="checkbox" data-backlang="zh" checked> 🇨🇳 ZH</label>
       <label class="lang-toggle"><input type="checkbox" data-backlang="th" checked> 🇹🇭 TH</label>
     </div>
+    <div class="display-section">
+      <span class="sec-label">📝 例句：</span>
+      <label class="lang-toggle"><input type="checkbox" data-showexamples checked> 显示例句</label>
+    </div>
   </div>
 </div>
 
@@ -170,6 +174,8 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
 <script src="三语母语习得核心词库.index.js"></script>
 <script src="tril-core.js"></script>
 <script src="tril-lib.js"></script>
+<script src="pinyin-pro.min.js"></script>
+<script src="tril-pinyin.js"></script>
 <script>
 "use strict";
 
@@ -413,7 +419,7 @@ function renderCard(){
 
   const ex = (typeof e.example === "object" && e.example) ? e.example : {};
   const exHtml = (ex.en || ex.bm || ex.zh || ex.th) ? (
-    '<div class="row" style="margin-top:4px"><span class="lbl">例句</span>' +
+    '<div class="row examples-row" style="margin-top:4px"><span class="lbl">例句</span>' +
     '<div class="val" style="font-weight:400;font-size:13px;display:flex;flex-direction:column;gap:3px">' +
       exLine("EN", ex.en, "en") +
       exLine("BM", ex.bm, "bm") +
@@ -469,7 +475,11 @@ function renderCard(){
 function rowHtml(label, val, phonetic, lang){
   if(!val) return '';
   var valEsc = escapeHtml(val);
+  /* 中文 fallback：若 e.zh_pinyin 缺失，用 TrilPinyin 运行时生成 */
   var valPron = phonetic ? '<span class="py"> · ' + escapeHtml(phonetic) + '</span>' : '';
+  if(lang === "zh" && !phonetic && window.TrilPinyin){
+    valPron = '<span class="py"> · ' + window.TrilPinyin.get(val) + '</span>';
+  }
   var py = (lang === "zh" && window.TrilPinyin) ? TrilPinyin.html(val) : '';
   var safeVal = String(val).replace(/'/g, "\\'");
   var btn = '<button class="ghost row-spk" onclick="event.stopPropagation();speak(\'' + safeVal + '\',\'' + (lang||"en") + '\')" title="朗读 ' + label + '">🔊</button>';
@@ -874,6 +884,7 @@ let displaySettings = {
   hiddenLangs: [],
   frontLang: "en",
   backLangs: ["bm","zh","th"],
+  showExamples: true,
   panelOpen: false
 };
 try{
@@ -883,6 +894,7 @@ try{
 if(!Array.isArray(displaySettings.hiddenLangs)) displaySettings.hiddenLangs = [];
 if(!Array.isArray(displaySettings.backLangs)) displaySettings.backLangs = ["bm","zh","th"];
 if(typeof displaySettings.frontLang !== "string") displaySettings.frontLang = "en";
+if(typeof displaySettings.showExamples !== "boolean") displaySettings.showExamples = true;
 
 function saveDisplaySettings(){
   try{ localStorage.setItem(DISPLAY_KEY, JSON.stringify(displaySettings)); }catch(e){}
@@ -900,9 +912,12 @@ function applyDisplayPanel(){
   body.hidden = !displaySettings.panelOpen;
   if(arrow) arrow.textContent = displaySettings.panelOpen ? "▲" : "▼";
   ['en','bm','zh','th'].forEach(k => document.body.classList.toggle('hide-lang-'+k, !isLangVisible(k)));
+  document.body.classList.toggle('hide-examples', !displaySettings.showExamples);
   document.querySelectorAll('[data-hidelang]').forEach(cb => { cb.checked = isLangVisible(cb.dataset.hidelang); });
   document.querySelectorAll('input[name="frontLang"]').forEach(r => { r.checked = (r.value === displaySettings.frontLang); });
   document.querySelectorAll('[data-backlang]').forEach(cb => { cb.checked = displaySettings.backLangs.includes(cb.dataset.backlang); });
+  const exCb = document.querySelector('[data-showexamples]');
+  if(exCb) exCb.checked = displaySettings.showExamples;
 }
 function bindDisplayPanel(){
   document.querySelectorAll('[data-hidelang]').forEach(cb => {
@@ -932,6 +947,13 @@ function bindDisplayPanel(){
       saveDisplaySettings();
       applyDisplayPanel();
       renderCard();
+    };
+  });
+  document.querySelectorAll('[data-showexamples]').forEach(cb => {
+    cb.onchange = () => {
+      displaySettings.showExamples = cb.checked;
+      saveDisplaySettings();
+      applyDisplayPanel();
     };
   });
 }

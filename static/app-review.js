@@ -201,6 +201,7 @@ let displaySettings = {
   hiddenLangs: [],          // [] = 全部可见；['en','bm'] = 隐藏这 2 种
   frontLang: "en",          // 正面显示哪种语言（单选）
   backLangs: ["bm","zh","th"], // 背面显示哪些语言（多选）
+  showExamples: true,       // 是否显示例句行
   panelOpen: false          // 显示设置面板是否展开
 };
 try{
@@ -211,6 +212,7 @@ try{
 if(!Array.isArray(displaySettings.hiddenLangs)) displaySettings.hiddenLangs = [];
 if(!Array.isArray(displaySettings.backLangs)) displaySettings.backLangs = ["bm","zh","th"];
 if(typeof displaySettings.frontLang !== "string") displaySettings.frontLang = "en";
+if(typeof displaySettings.showExamples !== "boolean") displaySettings.showExamples = true;
 
 function saveDisplaySettings(){
   try{ localStorage.setItem(DISPLAY_KEY, JSON.stringify(displaySettings)); }catch(e){}
@@ -230,10 +232,12 @@ function applyDisplayPanel(){
   if(arrow) arrow.textContent = displaySettings.panelOpen ? "▲" : "▼";
   /* body class 控制 hide-lang-* */
   ['en','bm','zh','th'].forEach(k => document.body.classList.toggle('hide-lang-'+k, !isLangVisible(k)));
+  document.body.classList.toggle('hide-examples', !displaySettings.showExamples);
   /* 同步控件 checked 状态 */
   document.querySelectorAll('[data-hidelang]').forEach(cb => { cb.checked = isLangVisible(cb.dataset.hidelang); });
   document.querySelectorAll('input[name="frontLang"]').forEach(r => { r.checked = (r.value === displaySettings.frontLang); });
   document.querySelectorAll('[data-backlang]').forEach(cb => { cb.checked = displaySettings.backLangs.includes(cb.dataset.backlang); });
+  document.querySelectorAll('[data-showexamples]').forEach(cb => { cb.checked = displaySettings.showExamples; });
 }
 function bindDisplayPanel(){
   document.querySelectorAll('[data-hidelang]').forEach(cb => {
@@ -261,6 +265,14 @@ function bindDisplayPanel(){
       const i = displaySettings.backLangs.indexOf(k);
       if(cb.checked){ if(i<0) displaySettings.backLangs.push(k); }
       else { if(i>=0) displaySettings.backLangs.splice(i,1); }
+      saveDisplaySettings();
+      applyDisplayPanel();
+      renderCard();
+    };
+  });
+  document.querySelectorAll('[data-showexamples]').forEach(cb => {
+    cb.onchange = () => {
+      displaySettings.showExamples = cb.checked;
       saveDisplaySettings();
       applyDisplayPanel();
       renderCard();
@@ -428,7 +440,7 @@ function renderCard(){
       backRowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
       backRowHtml("中文", e.zh, e.zh_pinyin, "zh") +
       backRowHtml("泰文", e.th, e.th_pron, "th") +
-      (e.example_zh || e.example_en ? '<div class="row" style="margin-top:4px"><span class="lbl">例句</span><div class="val" style="font-weight:400;font-size:14px">' + escapeHtml(e.example_en || "") + (e.example_zh ? '<br><span style="color:var(--muted);font-size:13px">' + escapeHtml(e.example_zh) + '</span>' : '') + '</div></div>' : '') +
+      (e.example_zh || e.example_en ? '<div class="row examples-row" style="margin-top:4px"><span class="lbl">例句</span><div class="val" style="font-weight:400;font-size:14px">' + escapeHtml(e.example_en || "") + (e.example_zh ? '<br><span style="color:var(--muted);font-size:13px">' + escapeHtml(e.example_zh) + '</span>' : '') + '</div></div>' : '') +
     '</div>' +
     '<div class="rate ' + (flipped ? '' : 'hidden') + '">' +
       '<button class="r-no" onclick="event.stopPropagation();rate(\'unknown\')">✗ 不认识</button>' +
@@ -457,7 +469,11 @@ function renderCard(){
 function rowHtml(label, val, phonetic, lang){
   if(!val) return '';
   var valEsc = escapeHtml(val);
+  /* 中文 fallback：若 e.zh_pinyin 缺失，用 TrilPinyin 运行时生成 */
   var valPron = phonetic ? '<span class="py"> · ' + escapeHtml(phonetic) + '</span>' : '';
+  if(lang === "zh" && !phonetic && window.TrilPinyin){
+    valPron = '<span class="py"> · ' + window.TrilPinyin.get(val) + '</span>';
+  }
   var py = (lang === "zh" && window.TrilPinyin) ? TrilPinyin.html(val) : '';
   var safeVal = String(val).replace(/'/g, "\\'");
   var btn = '<button class="ghost row-spk" onclick="event.stopPropagation();speak(\'' + safeVal + '\',\'' + (lang||"en") + '\')" title="朗读 ' + label + '">🔊</button>';
