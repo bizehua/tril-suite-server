@@ -971,8 +971,21 @@ function rebuildIndexes(){
 
 renderNav();
 refreshProgress();
+/* 主页链接来的定位：location.hash 含 si / fi 自动 goLevel */
+(function applyHash(){
+  try{
+    const h = location.hash.replace(/^#/,"");
+    if(!h) return;
+    const p = {};
+    h.split("&").forEach(kv => { const [k,v] = kv.split("="); if(k) p[k] = v; });
+    const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
+    if(isNaN(si) || si < 0) return;
+    if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); return; }
+    if(!isNaN(si)){ goLevel(2, si, -1); return; }
+  }catch(e){}
+})();
 /* 自动展开到第一个学段（不开单元），用户从侧栏直接选单元开始 */
-if(flat.length && DATA.stages.length){ goLevel(2,0,-1); }
+if(navState.level === 1 && flat.length && DATA.stages.length){ goLevel(2,0,-1); }
 
 /* ===== 可折叠面板控制（目录 / 例句 / 顶栏），状态持久化 ===== */
 function toggleLayout(kind){

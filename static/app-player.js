@@ -607,5 +607,21 @@ window.TrilAppBack = function(){
   return false;
 };
 
-requestAnimationFrame(()=>{ renderNav(); showWelcome(); });
+requestAnimationFrame(()=>{
+  renderNav();
+  /* 主页链接来的定位 */
+  try{
+    const h = location.hash.replace(/^#/,"");
+    if(h){
+      const p = {};
+      h.split("&").forEach(kv => { const [k,v] = kv.split("="); if(k) p[k] = v; });
+      const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
+      if(!isNaN(si) && si >= 0){
+        if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); }
+        else { goLevel(2, si, -1); }
+      }
+    }
+  }catch(e){}
+  showWelcome();
+});
 }

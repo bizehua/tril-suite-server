@@ -110,7 +110,10 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <button onclick="TrilTTS && TrilTTS.toggle()" title="朗读">🎚 朗读</button>
 </header>
 
-<main id="main"></main>
+<div class="layout">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
 
 <div class="foot">
   <div class="progress"><i id="progFill" style="width:0%"></i></div>
@@ -244,8 +247,8 @@ let libStages = null;     // [{name, files:[{name, units:[...]]}]（选择器用
       });
     });
     srcMap = map;
-    // 若单元选择器已打开，刷新其内容
-    if(document.getElementById("unitPicker")) renderUnitPickerBody();
+    // 词库就绪 → 刷新侧栏目录
+    renderNav();
     // 若当前处于「按单元」过滤但之前词库未就绪，重建队列
     if(filterMode === "unit" && unitFilter) buildQueueAndRender();
   }).catch(function(){});
@@ -494,7 +497,8 @@ function renderFilters(){
     b.textContent = o.t;
     if((o.k === "high" ? "high" : o.k === "new" ? "new" : o.k === "almost" ? "almost" : o.k) === filterMode) b.classList.add("active");
     if(o.k === "unit"){
-      b.onclick = () => { openUnitPicker(); };
+      /* 单元筛选从左侧目录选择 — 此按钮仅用作「清除回 all」 */
+      b.onclick = () => { clearUnitFilter(); };
     } else {
       b.onclick = () => { filterMode = (o.k === "heavy" ? "high" : o.k); buildQueueAndRender(); };
     }
@@ -541,95 +545,147 @@ function unitFilterLabel(){
   return name;
 }
 
-function openUnitPicker(){
-  let ov = document.getElementById("unitPicker");
-  if(ov) ov.remove();
-  ov = document.createElement("div");
-  ov.id = "unitPicker";
-  ov.style.cssText = "position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
-  ov.onclick = (ev) => { if(ev.target === ov) closeUnitPicker(); };
-  const box = document.createElement("div");
-  box.style.cssText = "background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-width:600px;width:100%;max-height:80vh;overflow:auto;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.5)";
-  const head = document.createElement("div");
-  head.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:12px;position:sticky;top:-16px;background:var(--bg2);padding:6px 0;z-index:2";
-  head.innerHTML = '<b style="font-size:15px">📖 选择错词所在单元</b><span style="flex:1"></span>' +
-    '<button class="ghost" onclick="closeUnitPicker()" style="min-height:34px">✕ 关闭</button>';
-  const body = document.createElement("div");
-  body.id = "unitPickerBody";
-  ov.appendChild(box);
-  box.appendChild(head);
-  box.appendChild(body);
-  document.body.appendChild(ov);
-  renderUnitPickerBody();
+/* ============ 📚 3 级钻取式目录（学段 → 文件 → 单元，仅显示有错词的范围） ============ */
+const nav = document.getElementById("nav");
+const navState = {level:1, si:-1, fi:-1, hist:[]};
+function mkBack(txt){
+  const b = document.createElement("button");
+  b.className = "navback";
+  b.textContent = txt;
+  b.onclick = navBack;
+  return b;
 }
+function goLevel(level, si, fi){
+  navState.hist.push({level:navState.level, si:navState.si, fi:navState.fi});
+  navState.level = level; navState.si = si; navState.fi = fi;
+  renderNav();
+}
+function navBack(){
+  if(!navState.hist.length) return;
+  const p = navState.hist.pop();
+  navState.level = p.level; navState.si = p.si; navState.fi = p.fi;
+  renderNav();
+}
+function sortedStages(){
+  /* 东钢岗位词汇 永远在第一位 */
+  if(!libStages) return [];
+  const a = libStages.slice();
+  const i = a.findIndex(s => /东钢岗位词汇/.test(s.name || ""));
+  if(i > 0){ const x = a.splice(i, 1)[0]; a.unshift(x); }
+  return a;
+}
+function renderNav(){
+  if(!nav) return;
+  nav.innerHTML = "";
+  /* 顶部：当前范围 */
+  const top = document.createElement("div");
+  top.style.cssText = "padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px";
+  const curLabel = unitFilter ? ("📍 " + unitFilterLabel()) : "📍 全部错词";
+  top.innerHTML = '<div style="font-size:11.5px;color:var(--muted);margin-bottom:5px">' + escapeHtml(curLabel) + '</div>' +
+    '<button class="navfile" onclick="clearUnitFilter()" style="font-size:11.5px;padding:4px 8px">🔄 回到全部错词</button>';
+  nav.appendChild(top);
 
-function renderUnitPickerBody(){
-  const body = document.getElementById("unitPickerBody");
-  if(!body) return;
   if(!libStages){
-    body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:26px 10px;font-size:13px">⏳ 词库后台加载中…<br>' +
-      '<span style="font-size:11px">首次约 30MB，之后走本地缓存。稍等片刻再点开即可按单元过滤错词。</span></div>';
+    const ph = document.createElement("div");
+    ph.style.cssText = "padding:14px 6px;font-size:12px;color:var(--muted);text-align:center";
+    ph.innerHTML = "⏳ 词库后台加载中…<br><span style='font-size:11px'>首次约 30MB，之后走本地缓存。</span>";
+    nav.appendChild(ph);
     return;
   }
-  const cnt = unitWrongCounts();
-  let h = '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">只列出含错词的范围；点「专练」开始该范围内错词复习。</div>';
-  let any = false;
-  libStages.forEach(function(st, si){
-    const sc = cnt.perStage[si] || 0;
-    if(!sc) return;
-    any = true;
-    h += '<details style="margin-bottom:8px">' +
-      '<summary style="cursor:pointer;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:13px;display:flex;align-items:center;gap:6px;list-style:none">' +
-      '<span style="flex:1">' + escapeHtml(st.name) + ' <span style="color:var(--danger);font-size:11px">' + sc + ' 错词</span></span>' +
-      '<button class="primary" style="min-height:30px;padding:4px 12px;font-size:12px" onclick="event.preventDefault();event.stopPropagation();pickUnit(' + si + ',null,null)">专练整个学段</button>' +
-      '</summary>';
-    (st.files||[]).forEach(function(f, fi){
-      const fc = cnt.perFile[si+"|"+fi] || 0;
-      if(!fc) return;
-      h += '<details style="margin:6px 0 6px 12px">' +
-        '<summary style="cursor:pointer;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;display:flex;align-items:center;gap:6px;list-style:none">' +
-        '<span style="flex:1">' + escapeHtml(f.name) + ' <span style="color:var(--danger);font-size:11px">' + fc + ' 错词</span></span>' +
-        '<button style="min-height:28px;padding:3px 10px;font-size:12px" onclick="event.preventDefault();event.stopPropagation();pickUnit(' + si + ',' + fi + ',null)">专练整个文件</button>' +
-        '</summary>';
-      (f.units||[]).forEach(function(u, ui){
-        const uc = cnt.perUnit[si+"|"+fi+"|"+ui] || 0;
-        if(!uc) return;
-        h += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px 6px 24px">' +
-          '<span style="flex:1;font-size:12.5px">' + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span style="color:var(--danger);font-size:11px">' + uc + ' 错词</span></span>' +
-          '<button style="min-height:28px;padding:3px 12px;font-size:12px" onclick="pickUnit(' + si + ',' + fi + ',' + ui + ')">专练</button>' +
-          '</div>';
-      });
-      h += '</details>';
-    });
-    h += '</details>';
-  });
-  if(cnt.unmatched){
-    any = true;
-    h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--panel);border:1px dashed var(--line);border-radius:9px;margin-top:6px">' +
-      '<span style="flex:1;font-size:13px">❓ 未匹配词库的错词 <span style="color:var(--danger);font-size:11px">' + cnt.unmatched + ' 词</span></span>' +
-      '<button style="min-height:30px;padding:4px 12px;font-size:12px" onclick="pickUnit(-1,null,null)">专练</button></div>';
-  }
-  if(!any){
-    h = '<div style="text-align:center;color:var(--muted);padding:26px 10px;font-size:13px">📭 词库中未找到任何错词的归属单元。<br>（错词可能来自自定义词库或导入）</div>';
-  }
-  body.innerHTML = h;
-}
 
-function closeUnitPicker(){
-  const ov = document.getElementById("unitPicker");
-  if(ov) ov.remove();
+  if(navState.level === 1){
+    const cnt = unitWrongCounts();
+    let any = false;
+    sortedStages().forEach(st => {
+      const si = libStages.indexOf(st);
+      const sc = cnt.perStage[si] || 0;
+      if(!sc) return;
+      any = true;
+      const b = document.createElement("button");
+      b.className = "navfile";
+      b.innerHTML = "▸ " + escapeHtml(st.name) + ' <span class="fc" style="color:var(--danger)">' + sc + ' 错词</span>';
+      b.onclick = () => goLevel(2, si, -1);
+      nav.appendChild(b);
+    });
+    /* 未匹配词库的错词 */
+    if(cnt.unmatched){
+      any = true;
+      const b = document.createElement("button");
+      b.className = "navfile";
+      b.innerHTML = '❓ 未匹配词库的错词 <span class="fc" style="color:var(--danger)">' + cnt.unmatched + ' 词</span>';
+      b.onclick = () => pickUnit(-1, null, null);
+      nav.appendChild(b);
+    }
+    if(!any){
+      const ph = document.createElement("div");
+      ph.style.cssText = "padding:14px 6px;font-size:12px;color:var(--muted);text-align:center";
+      ph.innerHTML = "📭 词库中未找到任何错词的归属单元。<br><span style='font-size:11px'>（错词可能来自自定义词库或导入）</span>";
+      nav.appendChild(ph);
+    }
+  } else if(navState.level === 2){
+    const st = libStages[navState.si];
+    if(!st){ navBack(); return; }
+    nav.appendChild(mkBack("◀ 返回学段"));
+    const cnt = unitWrongCounts();
+    const sc = cnt.perStage[navState.si] || 0;
+    /* 整个学段专练 */
+    const allBtn = document.createElement("button");
+    allBtn.className = "navunit";
+    allBtn.innerHTML = "🔁 专练整个学段 <span class='fc' style='color:var(--danger)'>" + sc + " 错词</span>";
+    allBtn.onclick = () => pickUnit(navState.si, null, null);
+    nav.appendChild(allBtn);
+    /* 文件列表 */
+    (st.files || []).forEach((f, fi) => {
+      const fc = cnt.perFile[navState.si + "|" + fi] || 0;
+      if(!fc) return;
+      const b = document.createElement("button");
+      b.className = "navfile";
+      b.innerHTML = "▸ " + escapeHtml(f.name) + ' <span class="fc" style="color:var(--danger)">' + fc + ' 错词</span>';
+      b.onclick = () => goLevel(3, navState.si, fi);
+      nav.appendChild(b);
+    });
+  } else {
+    /* level===3：单元列表 */
+    const st = libStages[navState.si];
+    if(!st){ navBack(); return; }
+    const f = st.files[navState.fi];
+    if(!f){ navBack(); return; }
+    nav.appendChild(mkBack("◀ 返回文件"));
+    const cnt = unitWrongCounts();
+    const fc = cnt.perFile[navState.si + "|" + navState.fi] || 0;
+    /* 整个文件专练 */
+    const allBtn = document.createElement("button");
+    allBtn.className = "navunit";
+    allBtn.innerHTML = "🔁 专练整个文件 <span class='fc' style='color:var(--danger)'>" + fc + " 错词</span>";
+    allBtn.onclick = () => pickUnit(navState.si, navState.fi, null);
+    nav.appendChild(allBtn);
+    /* 单元列表 */
+    (f.units || []).forEach((u, ui) => {
+      const uc = cnt.perUnit[navState.si + "|" + navState.fi + "|" + ui] || 0;
+      if(!uc) return;
+      const b = document.createElement("button");
+      b.className = "navunit";
+      b.innerHTML = "📕 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc" style="color:var(--danger)">' + uc + ' 错词</span>';
+      b.onclick = () => pickUnit(navState.si, navState.fi, ui);
+      nav.appendChild(b);
+    });
+  }
 }
 function pickUnit(si, fi, ui){
   unitFilter = {si: si, fi: fi, ui: ui};
   filterMode = "unit";
-  closeUnitPicker();
   buildQueueAndRender();
+  /* 选完回 level 1（顶栏显示「📍 当前范围」） */
+  while(navState.hist.length) navState.hist.pop();
+  navState.level = 1; navState.si = -1; navState.fi = -1;
+  renderNav();
   toast("📖 已选择：" + unitFilterLabel());
 }
 function clearUnitFilter(){
   unitFilter = null;
   filterMode = "all";
   buildQueueAndRender();
+  renderNav();
 }
 
 function rate(action){
@@ -728,6 +784,23 @@ window.addEventListener("load", function(){
     const s = document.getElementById("trilSpinner");
     if(s) s.remove();
   }, 200);
+
+  /* 立即渲染侧栏（词库未就绪时显示 loading 占位） */
+  renderNav();
+
+  /* 主页链接来的定位 */
+  try{
+    const h = location.hash.replace(/^#/,"");
+    if(h){
+      const p = {};
+      h.split("&").forEach(kv => { const [k,v] = kv.split("="); if(k) p[k] = v; });
+      const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
+      if(!isNaN(si) && si >= 0 && libStages && libStages[si]){
+        if(!isNaN(fi) && fi >= 0 && libStages[si].files[fi]){ goLevel(3, si, fi); }
+        else { goLevel(2, si, -1); }
+      }
+    }
+  }catch(e){}
 
   loadWrongbookAsync().then(function(){
     buildQueueAndRender();

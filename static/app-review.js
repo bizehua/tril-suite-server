@@ -417,14 +417,15 @@ function renderFilters(){
     {k:"fuzzy", t:"? 模糊"},
     {k:"wrong", t:"📕 错题本"},
     {k:"marked", t:"★ 收藏"},
-    {k:"unit", t:"📚 按单元"}
+    {k:"unit", t:"📚 单元（侧栏选）"}
   ];
   opts.forEach(o => {
     const b = document.createElement("button");
     b.textContent = o.t;
     if(o.k === filterMode) b.classList.add("active");
     if(o.k === "unit"){
-      b.onclick = () => { openUnitPicker(); };
+      /* 单元筛选从左侧目录选择 — 此按钮仅用作「清除回 due」 */
+      b.onclick = () => { clearUnitFilter(); };
     } else {
       b.onclick = () => { filterMode = o.k; buildQueueAndRender(); };
     }
@@ -444,69 +445,118 @@ function renderFilters(){
   }
 }
 
-/* ============ 📚 按单元选择复习范围 ============ */
+/* ============ 📚 3 级钻取式目录（学段 → 文件 → 单元，与学习器一致） ============ */
 function unitWordCount(st){
   let n = 0;
   (st.files||[]).forEach(f => (f.units||[]).forEach(u => { n += (u.entries||[]).length; }));
   return n;
 }
-function openUnitPicker(){
-  let ov = document.getElementById("unitPicker");
-  if(ov) ov.remove();
-  ov = document.createElement("div");
-  ov.id = "unitPicker";
-  ov.style.cssText = "position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
-  ov.onclick = (ev) => { if(ev.target === ov) closeUnitPicker(); };
-
-  const box = document.createElement("div");
-  box.style.cssText = "background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-width:600px;width:100%;max-height:80vh;overflow:auto;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.5)";
-
-  let h = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;position:sticky;top:-16px;background:var(--bg2);padding:6px 0;z-index:2">' +
-    '<b style="font-size:15px">📚 选择复习范围</b>' +
-    '<span style="flex:1"></span>' +
-    '<button class="ghost" onclick="closeUnitPicker()" style="min-height:34px">✕ 关闭</button></div>' +
-    '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">点 ▸ 展开学段 → 文件 → 单元；点「复习」按钮开始该范围内全部词条的复习。</div>';
-
-  DATA.stages.forEach((st, si) => {
-    const cnt = unitWordCount(st);
-    h += '<details style="margin-bottom:8px">' +
-      '<summary style="cursor:pointer;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:13px;display:flex;align-items:center;gap:6px;list-style:none">' +
-      '<span style="flex:1">' + escapeHtml(st.name) + ' <span style="color:var(--muted);font-size:11px">' + cnt + ' 词</span></span>' +
-      '<button class="primary" style="min-height:30px;padding:4px 12px;font-size:12px" onclick="event.preventDefault();event.stopPropagation();pickUnit(' + si + ',null,null)">复习整个学段</button>' +
-      '</summary>';
-    (st.files||[]).forEach((f, fi) => {
-      let fcnt = 0;
-      (f.units||[]).forEach(u => { fcnt += (u.entries||[]).length; });
-      h += '<details style="margin:6px 0 6px 12px">' +
-        '<summary style="cursor:pointer;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;display:flex;align-items:center;gap:6px;list-style:none">' +
-        '<span style="flex:1">' + escapeHtml(f.name) + ' <span style="color:var(--muted);font-size:11px">' + fcnt + ' 词</span></span>' +
-        '<button style="min-height:28px;padding:3px 10px;font-size:12px" onclick="event.preventDefault();event.stopPropagation();pickUnit(' + si + ',' + fi + ',null)">复习整个文件</button>' +
-        '</summary>';
-      (f.units||[]).forEach((u, ui) => {
-        const n = (u.entries||[]).length;
-        h += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px 6px 24px">' +
-          '<span style="flex:1;font-size:12.5px">' + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span style="color:var(--muted);font-size:11px">' + n + ' 词</span></span>' +
-          '<button style="min-height:28px;padding:3px 12px;font-size:12px" onclick="pickUnit(' + si + ',' + fi + ',' + ui + ')">复习</button>' +
-          '</div>';
-      });
-      h += '</details>';
-    });
-    h += '</details>';
-  });
-
-  box.innerHTML = h;
-  ov.appendChild(box);
-  document.body.appendChild(ov);
+function fileWordCount(f){
+  let n = 0;
+  (f.units||[]).forEach(u => { n += (u.entries||[]).length; });
+  return n;
 }
-function closeUnitPicker(){
-  const ov = document.getElementById("unitPicker");
-  if(ov) ov.remove();
+function sortedStages(){
+  /* 东钢岗位词汇 永远在第一位 */
+  const a = DATA.stages.slice();
+  const i = a.findIndex(s => /东钢岗位词汇/.test(s.name || ""));
+  if(i > 0){ const x = a.splice(i, 1)[0]; a.unshift(x); }
+  return a;
+}
+const nav = document.getElementById("nav");
+const navState = {level:1, si:-1, fi:-1, hist:[]};
+function mkBack(txt){
+  const b = document.createElement("button");
+  b.className = "navback";
+  b.textContent = txt;
+  b.onclick = navBack;
+  return b;
+}
+function goLevel(level, si, fi){
+  navState.hist.push({level:navState.level, si:navState.si, fi:navState.fi});
+  navState.level = level; navState.si = si; navState.fi = fi;
+  renderNav();
+}
+function navBack(){
+  if(!navState.hist.length) return;
+  const p = navState.hist.pop();
+  navState.level = p.level; navState.si = p.si; navState.fi = p.fi;
+  renderNav();
+}
+function renderNav(){
+  if(!nav) return;
+  nav.innerHTML = "";
+  if(navState.level === 1){
+    /* 顶部一行：当前范围筛选 + 清空 */
+    const filters = document.createElement("div");
+    filters.style.cssText = "padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap";
+    const cur = unitFilter ? ("📍 " + (DATA.stages[unitFilter.si] ? DATA.stages[unitFilter.si].name : "") +
+      (unitFilter.fi != null ? (" › " + (DATA.stages[unitFilter.si].files[unitFilter.fi] ? DATA.stages[unitFilter.si].files[unitFilter.fi].name : "")) : "") +
+      (unitFilter.ui != null ? (" › " + (DATA.stages[unitFilter.si].files[unitFilter.fi].units[unitFilter.ui] ? DATA.stages[unitFilter.si].files[unitFilter.fi].units[unitFilter.ui].title : "")) : "")) : "📍 全部到期";
+    filters.innerHTML = '<div style="font-size:11.5px;color:var(--muted);margin-bottom:5px">' + cur + '</div>' +
+      '<button class="navfile" onclick="clearUnitFilter()" style="font-size:11.5px;padding:4px 8px">🔄 回到全部到期</button>';
+    nav.appendChild(filters);
+
+    /* 学段列表（东钢置顶） */
+    sortedStages().forEach(st => {
+      const si = DATA.stages.indexOf(st);
+      const total = unitWordCount(st);
+      const b = document.createElement("button");
+      b.className = "navfile";
+      b.innerHTML = "▸ " + escapeHtml(st.name) + ' <span class="fc">' + total + ' 词</span>';
+      b.onclick = () => goLevel(2, si, -1);
+      nav.appendChild(b);
+    });
+  } else if(navState.level === 2){
+    const st = DATA.stages[navState.si];
+    if(!st){ navBack(); return; }
+    nav.appendChild(mkBack("◀ 返回学段"));
+    /* 整个学段复习按钮 */
+    const allBtn = document.createElement("button");
+    allBtn.className = "navunit";
+    allBtn.innerHTML = "🔁 复习整个学段 <span class='fc'>" + unitWordCount(st) + " 词</span>";
+    allBtn.onclick = () => pickUnit(navState.si, null, null);
+    nav.appendChild(allBtn);
+    /* 文件列表 */
+    (st.files || []).forEach((f, fi) => {
+      const b = document.createElement("button");
+      b.className = "navfile";
+      b.innerHTML = "▸ " + escapeHtml(f.name) + ' <span class="fc">' + (f.units || []).length + ' 单元</span>';
+      b.onclick = () => goLevel(3, navState.si, fi);
+      nav.appendChild(b);
+    });
+  } else {
+    /* level===3：单元列表 */
+    const st = DATA.stages[navState.si];
+    if(!st){ navBack(); return; }
+    const f = st.files[navState.fi];
+    if(!f){ navBack(); return; }
+    nav.appendChild(mkBack("◀ 返回文件"));
+    /* 整个文件复习按钮 */
+    const allBtn = document.createElement("button");
+    allBtn.className = "navunit";
+    allBtn.innerHTML = "🔁 复习整个文件 <span class='fc'>" + fileWordCount(f) + " 词</span>";
+    allBtn.onclick = () => pickUnit(navState.si, navState.fi, null);
+    nav.appendChild(allBtn);
+    /* 单元列表 */
+    (f.units || []).forEach((u, ui) => {
+      const n = (u.entries || []).length;
+      const b = document.createElement("button");
+      b.className = "navunit";
+      b.innerHTML = "📚 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc">' + n + ' 词</span>';
+      b.onclick = () => pickUnit(navState.si, navState.fi, ui);
+      nav.appendChild(b);
+    });
+  }
 }
 function pickUnit(si, fi, ui){
   unitFilter = {si, fi, ui};
   filterMode = "unit";
-  closeUnitPicker();
   buildQueueAndRender();
+  /* 让目录回到 level 1，便于切换其他范围 */
+  while(navState.hist.length) navState.hist.pop();
+  navState.level = 1; navState.si = -1; navState.fi = -1;
+  renderNav();
   const st = DATA.stages[si];
   toast("📚 已选择：" + (st ? st.name : "") + (fi != null ? " › " + (st.files[fi] ? st.files[fi].name : "") : "") + (ui != null ? " › " + (st.files[fi].units[ui] ? st.files[fi].units[ui].title : "") : ""));
 }
@@ -514,6 +564,8 @@ function clearUnitFilter(){
   unitFilter = null;
   filterMode = "due";
   buildQueueAndRender();
+  renderNav();
+  toast("📚 已切回「全部到期」复习模式");
 }
 
 function rate(rating){
@@ -592,6 +644,25 @@ function bootReview(){
     const s = document.getElementById("trilSpinner");
     if(s) s.remove();
   }, 300);
+  if(typeof DATA === "undefined" || !DATA || !DATA.stages){
+    /* 词库未就绪，1 秒后再试一次 */
+    setTimeout(bootReview, 800);
+    return;
+  }
+  renderNav();
+  /* 主页链接来的定位 */
+  try{
+    const h = location.hash.replace(/^#/,"");
+    if(h){
+      const p = {};
+      h.split("&").forEach(kv => { const [k,v] = kv.split("="); if(k) p[k] = v; });
+      const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
+      if(!isNaN(si) && si >= 0){
+        if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); }
+        else { goLevel(2, si, -1); }
+      }
+    }
+  }catch(e){}
   buildQueueAndRender();
 }
 if(document.readyState === "complete" || document.readyState === "interactive"){

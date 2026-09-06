@@ -63,6 +63,54 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .badge{font-size:11px;background:var(--panel2);color:var(--accent);padding:3px 9px;border-radius:99px}
 footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-height:1.8;max-width:920px}
 
+/* ============ 全部学段目录（与各 app 的 3 级 drill-down 一致：可折叠） ============ */
+.stage-catalog{
+  width:100%;max-width:920px;margin:0 0 22px;
+  background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  padding:18px 20px;backdrop-filter:blur(4px);text-align:left;
+}
+.stage-catalog h2{margin:0 0 12px;font-size:15px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
+.stage-catalog .sc-sub{text-align:center;font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6}
+.stage-row{
+  background:var(--bg2);border:1px solid var(--line);border-radius:12px;
+  margin-bottom:8px;overflow:hidden;
+}
+.stage-row .sr-head{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;
+  user-select:none;
+}
+.stage-row .sr-head:hover{background:var(--panel2)}
+.stage-row .sr-arrow{color:var(--muted);font-size:13px;transition:transform .2s;display:inline-block;width:14px}
+.stage-row.open .sr-arrow{transform:rotate(90deg);color:var(--accent)}
+.stage-row .sr-name{flex:1;font-size:14px;font-weight:600}
+.stage-row .sr-cnt{font-size:11px;color:var(--muted);background:var(--panel2);padding:2px 9px;border-radius:99px}
+.stage-row .sr-donggang{background:rgba(255,180,84,.15);color:var(--warn);padding:1px 6px;border-radius:6px;font-size:10px;margin-left:6px}
+.stage-row .sr-files{padding:0 14px 12px;display:none}
+.stage-row.open .sr-files{display:block}
+.file-row{
+  background:var(--panel);border:1px solid var(--line);border-radius:9px;
+  margin:6px 0;padding:9px 12px;
+}
+.file-row .fr-name{font-size:13px;font-weight:600;margin-bottom:6px}
+.file-row .fr-units{display:flex;flex-wrap:wrap;gap:5px}
+.unit-pill{
+  font-size:11px;background:var(--panel2);color:var(--txt);
+  padding:4px 10px;border-radius:99px;cursor:pointer;border:1px solid var(--line);
+  display:inline-flex;align-items:center;gap:4px;
+  transition:.15s;
+}
+.unit-pill:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.unit-pill .up-n{font-size:10px;opacity:.65}
+.stage-catalog .sr-actions{
+  display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px 0;font-size:11px;
+}
+.stage-catalog .sr-actions a{
+  color:var(--accent);text-decoration:none;padding:2px 8px;border-radius:6px;
+  background:var(--panel2);font-size:11px;font-weight:600;
+  transition:.15s;
+}
+.stage-catalog .sr-actions a:hover{background:var(--accent);color:#fff}
+
 /* ============ 看板（B2-1 + B2-2 浅色底 · 皮肤变量化，切换主题同步换色） ============ */
 .dashboard{
   width:100%;max-width:920px;margin:0 0 22px;
@@ -236,6 +284,12 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
   </a>
 </div>
 
+<section class="stage-catalog" id="stageCatalog">
+  <h2>📚 全部学段目录<span class="i18n-bm">Semua Tahap</span></h2>
+  <p class="sc-sub">点 ▸ 展开学段 → 文件 → 单元列表。点单元名直达学习器/测试器/闪记/播放器中的该单元开始学习。<span class="i18n-bm">Klik ▸ untuk kembangkan tahap → fail → unit. Klik nama unit untuk terus ke aplikasi.</span></p>
+  <div id="stageCatalogList"></div>
+</section>
+
 <section class="section" data-page-node-id="p50c0jNZE8MQD6Zw9bnfT1">
   <h2 data-page-node-id="zUOg9IUMYuIPLSed3VXAB3">🌏 套件皮肤<span class="i18n-bm">Kulit Suite</span></h2>
   <p class="sub" data-page-node-id="iwoFNSAKJlyzpW2LUGp5tE">选择整体配色皮肤（含中国风 / 马来西亚国旗配色 · 含节日皮肤🧧春节/🌙开斋/🥮中秋），保存 30 天，全页面同步<span class="i18n-bm">Pilih tema warna keseluruhan (termada tema China / Malaysia · tema节日🧧CNY/🌙Hari Raya/🥮中秋), simpan 30 hari, segerak seluruh halaman</span></p>
@@ -272,6 +326,108 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
 <script src="tril-study.js"></script>
+<script src="三语母语习得核心词库.index.js"></script>
+<script>
+/* ============ 📚 全部学段目录（默认折叠；东钢岗位词汇置顶） ============ */
+(function(){
+  const list = document.getElementById("stageCatalogList");
+  if(!list || !window.__TRIL_INDEX__ || !Array.isArray(window.__TRIL_INDEX__.stages)) return;
+  const stages = window.__TRIL_INDEX__.stages.slice();
+  /* 东钢岗位词汇 永远在第一位 */
+  const dgIdx = stages.findIndex(s => /东钢岗位词汇/.test(s.name || ""));
+  if(dgIdx > 0){ const dg = stages.splice(dgIdx, 1)[0]; stages.unshift(dg); }
+
+  function escapeHtml(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+  function unitWordCnt(f){ return (f.units || []).reduce((a, u) => a + ((u.n != null) ? u.n : 0), 0); }
+  function stageTotalUnits(st){ return (st.files || []).reduce((a, f) => a + (f.units || []).length, 0); }
+  function stageTotalWords(st){ return (st.files || []).reduce((a, f) => a + unitWordCnt(f), 0); }
+
+  const APPS = [
+    {k:"learner",  name:"学习器",   file:"三语母语习得学习器.html",     ico:"🎧"},
+    {k:"tester",   name:"测试器",   file:"三语母语习得测试器.html",     ico:"📝"},
+    {k:"player",   name:"播放器",   file:"三语母语习得快速播放器.html", ico:"🔊"},
+    {k:"flash",    name:"闪记",     file:"三语母语习得闪记.html",       ico:"⚡"}
+  ];
+
+  function buildStageRow(st, si){
+    const totalUnits = stageTotalUnits(st);
+    const totalWords = stageTotalWords(st);
+    const isDG = /东钢岗位词汇/.test(st.name || "");
+    const row = document.createElement("div");
+    row.className = "stage-row";
+    row.dataset.si = si;
+
+    const head = document.createElement("div");
+    head.className = "sr-head";
+    head.innerHTML =
+      '<span class="sr-arrow">▸</span>' +
+      '<span class="sr-name">' + escapeHtml(st.name) +
+      (isDG ? ' <span class="sr-donggang">东钢</span>' : '') +
+      '</span>' +
+      '<span class="sr-cnt">' + totalUnits + ' 单元 · ' + totalWords + ' 词</span>';
+    head.onclick = () => row.classList.toggle("open");
+    row.appendChild(head);
+
+    const filesBox = document.createElement("div");
+    filesBox.className = "sr-files";
+    (st.files || []).forEach((f, fi) => {
+      const fr = document.createElement("div");
+      fr.className = "file-row";
+      const fn = document.createElement("div");
+      fn.className = "fr-name";
+      const words = unitWordCnt(f);
+      fn.innerHTML = '📁 ' + escapeHtml(f.name) +
+        ' <span style="font-size:11px;color:var(--muted);font-weight:400">· ' +
+        (f.units || []).length + ' 单元 · ' + words + ' 词</span>';
+      fr.appendChild(fn);
+
+      const actions = document.createElement("div");
+      actions.className = "sr-actions";
+      APPS.forEach(app => {
+        const a = document.createElement("a");
+        a.href = app.file + "#si=" + si + "&fi=" + fi;
+        a.textContent = app.ico + " " + app.name + "（此文件）";
+        actions.appendChild(a);
+      });
+      fr.appendChild(actions);
+
+      const unitsBox = document.createElement("div");
+      unitsBox.className = "fr-units";
+      (f.units || []).forEach((u, ui) => {
+        const pill = document.createElement("a");
+        pill.className = "unit-pill";
+        pill.href = "三语母语习得学习器.html#si=" + si + "&fi=" + fi + "&ui=" + ui;
+        pill.title = "学习器 · 第 " + (ui+1) + " 单元";
+        pill.innerHTML = '🎧 ' + escapeHtml(u.t || ("Unit " + (ui+1))) + ' <span class="up-n">' + (u.n || 0) + '</span>';
+        unitsBox.appendChild(pill);
+      });
+      fr.appendChild(unitsBox);
+      filesBox.appendChild(fr);
+    });
+
+    /* 文件列表下方的整学段快捷链接 */
+    const sa = document.createElement("div");
+    sa.className = "sr-actions";
+    sa.style.borderTop = "1px dashed var(--line)";
+    sa.style.paddingTop = "8px";
+    sa.style.marginTop = "4px";
+    APPS.forEach(app => {
+      const a = document.createElement("a");
+      a.href = app.file + "#si=" + si;
+      a.textContent = app.ico + " " + app.name + "（整个学段）";
+      sa.appendChild(a);
+    });
+    filesBox.appendChild(sa);
+
+    row.appendChild(filesBox);
+    return row;
+  }
+
+  stages.forEach((st, i) => {
+    list.appendChild(buildStageRow(st, i));
+  });
+})();
+</script>
 <script>
 "use strict";
 

@@ -534,3 +534,84 @@ html[data-skin="chunjie"] .qcard,
 html[data-skin="chunjie"] .startpanel{ border-top:2px solid var(--skin-gold, #ffd700); }
 html[data-skin="zhongqiu"] .qcard,
 html[data-skin="zhongqiu"] .startpanel{ border-top:2px solid rgba(212,175,55,.55); }
+
+/* =========================================================
+   统一侧栏目录（学习器/测试器/闪记/复习/错题专练 · 共用）
+   ========================================================= */
+.layout{flex:1;display:flex;min-height:0}
+.layout > nav,
+#nav{
+  flex:0 0 250px;
+  background:var(--panel);
+  border-right:1px solid var(--line);
+  overflow-y:auto;
+  padding:10px;
+  min-height:0;
+}
+.layout > main,
+#main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  overflow:auto;
+}
+.navstage{margin-bottom:6px}
+.navstage>h3{
+  font-size:13px;
+  margin:8px 6px 4px;
+  color:var(--accent);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.navstage .cnt{font-size:11px;color:var(--muted);font-weight:400}
+.navfile{
+  display:block;width:100%;text-align:left;
+  margin:2px 0;padding:7px 10px;font-size:13px;
+  background:transparent;border:1px solid transparent;border-radius:8px;
+  color:var(--txt);cursor:pointer;font-family:inherit;
+}
+.navfile:hover{background:var(--panel2)}
+.navfile.active{background:var(--panel2);border-color:var(--accent)}
+.navfile .fc{float:right;color:var(--muted);font-size:11px}
+.navfile .rt{float:right;color:var(--zh);font-size:10px;margin-right:6px}
+.navunit{
+  display:block;width:100%;text-align:left;
+  margin:1px 0;padding:6px 12px;font-size:13px;
+  background:transparent;border:1px solid transparent;
+  border-left:3px solid var(--line);
+  border-radius:0 8px 8px 0;
+  color:var(--txt);cursor:pointer;font-family:inherit;
+}
+.navunit:hover{background:var(--panel2)}
+.navunit.active{background:var(--panel2);border-left-color:var(--accent)}
+.navunit .fc{float:right;color:var(--muted);font-size:11px}
+.navback{
+  display:block;width:100%;text-align:left;
+  margin:2px 0 6px;padding:5px 8px;font-size:12px;
+  background:var(--panel2);border:1px solid var(--line);
+  border-radius:6px;color:var(--muted);cursor:pointer;font-family:inherit;
+}
+.navback:hover{color:var(--txt)}
+
+.unitlist{flex:1;overflow-y:auto;padding:18px}
+.breadcrumb{font-size:13px;color:var(--muted);margin-bottom:12px}
+.breadcrumb b{color:var(--txt)}
+.unitgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ucard{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;cursor:pointer;
+  transition:.15s;position:relative;overflow:hidden}
+.ucard:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.ucard .ut{font-size:14px;font-weight:600;line-height:1.4}
+.ucard .umeta{font-size:11px;color:var(--muted);margin-top:6px}
+.ucard .badge{position:absolute;top:10px;right:10px;font-size:10px;padding:2px 7px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+.ucard.done .badge{background:rgba(79,209,165,.18);color:var(--zh)}
+.ucard .mini{height:4px;background:var(--panel2);border-radius:99px;margin-top:10px;overflow:hidden}
+.ucard .mini>i{display:block;height:100%;background:var(--zh)}
+
+@media (max-width:560px){
+  .layout{flex-direction:column}
+  .layout > nav,#nav{flex:0 0 auto;max-height:38vh;border-right:none;border-bottom:1px solid var(--line)}
+}

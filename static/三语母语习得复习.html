@@ -119,7 +119,10 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <button class="ghost" onclick="if(confirm('确定清空所有 SRS 复习进度？（不可恢复）')){localStorage.removeItem('tril_review_v1');localStorage.removeItem('tril_review_meta_v1');location.reload();}">🗑 重置</button>
 </header>
 
-<main id="main"></main>
+<div class="layout">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
 
 <div class="foot">
   <div class="progress"><i id="progFill" style="width:0%"></i></div>
