@@ -1,4 +1,5 @@
 const DATA = window.__TRIL_DATA__;
+function escapeHtml(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 const LS_KEY = "tril_flash_mastery_v1";
 const LS_SET = "tril_flash_settings_v1";
 
