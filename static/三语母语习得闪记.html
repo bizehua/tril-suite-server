@@ -329,46 +329,61 @@ body.hide-sidebar nav{width:0;flex-basis:0;min-width:0;padding-left:0;padding-ri
    完成后动态注入应用脚本。第二次打开走本地缓存，秒开。 */
 (function(){
   var APP = "app-flash.js";
-  var pill = document.createElement("div");
-  pill.id = "trilLoadPill";
-  pill.style.cssText = "position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99990;"+
-    "background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:99px;"+
-    "padding:9px 20px;font-size:13px;box-shadow:0 6px 18px var(--shadow);white-space:nowrap;"+
-    "display:flex;align-items:center;gap:8px";
-  pill.innerHTML = "⏳ <span>正在加载词库</span> <b id='trilLoadPct' style='color:var(--accent)'>0/4</b>"+
-    "<span style='color:var(--muted);font-size:11px'>首次约 30MB · 之后走本地缓存</span>";
-  function mount(){
-    if(document.body){ document.body.appendChild(pill); }
-    else { document.addEventListener("DOMContentLoaded", function(){ document.body.appendChild(pill); }, {once:true}); }
+  function done(){ var s = document.getElementById("trilSpinner"); if(s) s.remove(); }
+  function fail(msg){
+    var txt = document.getElementById("trilSpinnerTxt");
+    if(txt){ txt.textContent = "⚠ 词库加载失败"; txt.style.color = "#ff6b6b"; }
+    var pct = document.getElementById("trilSpinnerPct");
+    if(pct && msg) pct.textContent = msg;
+    var btn = document.getElementById("trilSpinnerRetry");
+    if(btn){
+      btn.style.display = "inline-block";
+      btn.onclick = function(){ location.reload(); };
+    }
   }
-  mount();
-  var timer = setInterval(function(){
-    try{
-      var n = 0;
-      for(var k = 0; k < 4; k++){ if(TrilCore.isLoaded(k)) n++; }
-      var el = document.getElementById("trilLoadPct");
-      if(el) el.textContent = n + "/4";
-    }catch(e){}
-  }, 400);
-  function done(){ clearInterval(timer); if(pill.parentNode) pill.remove(); }
-  function fail(){
-    clearInterval(timer);
-    pill.innerHTML = "⚠ 词库加载失败 — 请检查网络后刷新重试（离线包请确认 part 文件与本页同目录）";
-    pill.style.borderColor = "var(--danger)";
+  if(!window.TrilCore){
+    return fail("TrilCore 未加载");
   }
   TrilCore.loadAll().then(function(data){
-    if(!data || !data.length) return fail();
+    if(!data || !data.length) return fail("loadAll() 返回空");
     /* 组装为 {stages:[...]} — 三个 app 脚本期望的对象结构 */
     window.__TRIL_DATA__ = {stages: data};
     var s = document.createElement("script");
     s.src = APP;
     s.onload = done;
-    s.onerror = fail;
+    s.onerror = function(){ fail("app-flash.js 注入失败"); };
     document.head.appendChild(s);
-  }).catch(fail);
+  }).catch(function(e){ fail("异常: " + (e && e.message || e)); });
 })();
 </script>
-<div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
+<div id="trilSpinner" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#0e1320,#151c2e);color:#e8edf7;z-index:99999;font:14px system-ui;gap:18px">
+  <div style="font-size:48px">⚡</div>
+  <div style="font-size:18px;font-weight:600">四语母语习得 · 闪记</div>
+  <div id="trilSpinnerTxt" style="font-size:14px;color:#93a0bd">⏳ 正在加载词库（首次约 30MB）…</div>
+  <div id="trilSpinnerBar" style="width:280px;height:6px;background:#1a2238;border-radius:99px;overflow:hidden">
+    <div id="trilSpinnerFill" style="width:0%;height:100%;background:linear-gradient(90deg,#5b8cff,#4fd1a5);transition:width .3s"></div>
+  </div>
+  <div id="trilSpinnerPct" style="font-size:12px;color:#93a0bd;font-family:monospace">0/4</div>
+  <button id="trilSpinnerRetry" style="display:none;margin-top:8px;padding:8px 18px;background:#ff6b6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">🔁 重试加载</button>
+</div>
+<script>
+// 进度条同步更新：每 200ms 检查 TrilCore.isLoaded(k)
+(function(){
+  function update(){
+    try{
+      var n = 0, total = 0;
+      for(var k = 0; k < 4; k++){
+        if(window.TrilCore && TrilCore.isLoaded(k)) n++;
+        total++;
+      }
+      var pct = Math.round(n/total*100);
+      var fill = document.getElementById('trilSpinnerFill'); if(fill) fill.style.width = pct + '%';
+      var txt = document.getElementById('trilSpinnerPct'); if(txt) txt.textContent = n + '/' + total + ' (' + pct + '%)';
+    }catch(e){}
+  }
+  setInterval(update, 200);
+})();
+</script>
 
 <script>
 if ('serviceWorker' in navigator) {
@@ -380,7 +395,6 @@ if ('serviceWorker' in navigator) {
 <script src="auth-client.js"></script>
 <script src="pinyin-pro.min.js"></script>
 <script src="tril-pinyin.js"></script>
-<script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
 <script src="tril-tts.js"></script>
 <script src="tril-ai.js"></script>
 </body>
