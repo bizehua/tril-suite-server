@@ -106,9 +106,16 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <span class="spacer"></span>
   <span class="chip" id="queueChip">队列 —</span>
   <button class="ghost" onclick="goHome()" title="返回上一页 / 首页">← 返回</button>
+  <button class="laybtn iconbtn" data-layout="sidebar" title="显示 / 隐藏 左侧目录栏">☰ 目录</button>
+  <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶部栏">▭ 顶栏</button>
   <button onclick="TrilAI && TrilAI.toggle()" title="问 AI">🤖 问 AI</button>
   <button onclick="TrilTTS && TrilTTS.toggle()" title="朗读">🎚 朗读</button>
 </header>
+
+<div id="layoutDock">
+  <button data-layout="sidebar" title="目录栏">☰ 目录</button>
+  <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>
+</div>
 
 <div class="layout">
   <nav id="nav"></nav>
@@ -322,7 +329,8 @@ function sortAndFilter(){
 function buildQueueAndRender(){
   queue = sortAndFilter();
   pos = -1;
-  render();
+  renderCard();   // 先渲染第一张卡片/空态/总结
+  render();       // 再挂过滤器条 + 顶栏统计（filter 是 main.firstChild，不被 renderCard 覆盖）
 }
 
 /* ============ UI 渲染 ============ */
@@ -778,8 +786,33 @@ function importWrong(ev){
   ev.target.value = "";
 }
 
+/* ============ 顶栏 / 目录 显示切换（与学习器 / 测试器统一） ============ */
+function toggleLayout(kind){
+  const cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
+  if(!cls) return;
+  document.body.classList.toggle(cls);
+  const on=!document.body.classList.contains(cls);
+  document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on',on));
+  try{
+    var s=JSON.parse(localStorage.getItem('tril_layout_v1')||'{}');
+    s[kind]=on; localStorage.setItem('tril_layout_v1', JSON.stringify(s));
+  }catch(e){}
+}
+function applyLayout(){
+  var s={};
+  try{ s=JSON.parse(localStorage.getItem('tril_layout_v1')||'{}'); }catch(e){}
+  ['sidebar','topbar'].forEach(kind=>{
+    var cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
+    var on = s[kind] !== false;   // 默认显示
+    document.body.classList.toggle(cls, !on);
+    document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on', on));
+  });
+}
+
 /* ============ 启动 ============ */
 window.addEventListener("load", function(){
+  applyLayout();
+  document.querySelectorAll('[data-layout]').forEach(b => { b.onclick = ()=>toggleLayout(b.dataset.layout); });
   setTimeout(function(){
     const s = document.getElementById("trilSpinner");
     if(s) s.remove();

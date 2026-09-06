@@ -637,9 +637,34 @@ function importSRS(ev){
   ev.target.value = "";
 }
 
+/* ============ 顶栏 / 目录 显示切换（与学习器 / 测试器统一） ============ */
+function toggleLayout(kind){
+  const cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
+  if(!cls) return;
+  document.body.classList.toggle(cls);
+  const on=!document.body.classList.contains(cls);
+  document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on',on));
+  try{
+    var s=JSON.parse(localStorage.getItem('tril_layout_v1')||'{}');
+    s[kind]=on; localStorage.setItem('tril_layout_v1', JSON.stringify(s));
+  }catch(e){}
+}
+function applyLayout(){
+  var s={};
+  try{ s=JSON.parse(localStorage.getItem('tril_layout_v1')||'{}'); }catch(e){}
+  ['sidebar','topbar'].forEach(kind=>{
+    var cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
+    var on = s[kind] !== false;   // 默认显示
+    document.body.classList.toggle(cls, !on);
+    document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on', on));
+  });
+}
+
 /* ============ 启动 ============ */
 /* 本脚本是词库加载完后动态注入的，window load 可能已触发 — 双保险初始化 */
 function bootReview(){
+  applyLayout();
+  document.querySelectorAll('[data-layout]').forEach(b => { b.onclick = ()=>toggleLayout(b.dataset.layout); });
   setTimeout(function(){
     const s = document.getElementById("trilSpinner");
     if(s) s.remove();

@@ -114,10 +114,17 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <span class="sub">间隔重复 · 模糊答案 ×1.2</span>
   <span class="spacer"></span>
   <span class="chip" id="queueChip">队列 —</span>
+  <button class="laybtn iconbtn" data-layout="sidebar" title="显示 / 隐藏 左侧目录栏">☰ 目录</button>
+  <button class="laybtn iconbtn" data-layout="topbar" title="显示 / 隐藏 顶部栏">▭ 顶栏</button>
   <button onclick="TrilAI && TrilAI.toggle()" title="问 AI">🤖 问 AI</button>
   <button onclick="TrilTTS && TrilTTS.toggle()" title="朗读">🎚 朗读</button>
   <button class="ghost" onclick="if(confirm('确定清空所有 SRS 复习进度？（不可恢复）')){localStorage.removeItem('tril_review_v1');localStorage.removeItem('tril_review_meta_v1');location.reload();}">🗑 重置</button>
 </header>
+
+<div id="layoutDock">
+  <button data-layout="sidebar" title="目录栏">☰ 目录</button>
+  <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>
+</div>
 
 <div class="layout">
   <nav id="nav"></nav>
