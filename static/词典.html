@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四语母语习得 · 内置词典</title>
+<link rel="stylesheet" href="tril-skin.css">
+<script src="tril-skin.js"></script>
+<style>
+:root{--bg:#0e1320;--bg2:#151c2e;--panel:#1a2238;--panel2:#212c47;--line:#2c3756;--txt:#e8edf7;--muted:#93a0bd;--accent:#5b8cff;--en:#5b8cff;--bm:#ffb454;--zh:#4fd1a5;--th:#c792ea;--danger:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(160deg,var(--bg),var(--bg2));color:var(--txt);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:rgba(20,28,46,.7);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);flex:0 0 auto}
+header h1{font-size:16px;margin:0}
+header .sub{font-size:12px;color:var(--muted)}
+header .spacer{flex:1}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:9px;padding:8px 13px;font-size:13px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);transition:.15s}
+button:hover{background:var(--panel)}
+button.primary{background:linear-gradient(90deg,var(--en),#4fd1a5);border:none;color:#fff;font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+main{flex:1;display:flex;flex-direction:column;min-height:0;padding:16px 18px;gap:14px}
+.searchbox{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.searchbox input{flex:1;background:transparent;border:none;color:var(--txt);font-size:15px;outline:none}
+.searchbox select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.toolbar .group{display:flex;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+.toolbar label{font-size:12px;color:var(--muted)}
+.toolbar input[type=range]{width:90px}
+#status{font-size:12px;color:var(--muted)}
+.results{flex:1;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;position:relative}
+.card .top{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px}
+.langbox{flex:1;min-width:140px;background:var(--panel);border-radius:10px;padding:10px 12px}
+.langbox .lab{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.langbox .txt{font-size:16px;font-weight:700;line-height:1.4}
+.langbox.en .txt{color:var(--en)}.langbox.bm .txt{color:var(--bm)}.langbox.zh .txt{color:var(--zh)}.langbox.th .txt{color:var(--th)}
+.langbox .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.card .ex{font-size:13px;color:#cfe0ff;background:rgba(91,140,255,.08);border-left:3px solid var(--en);padding:8px 10px;border-radius:0 8px 8px 0;margin:8px 0;line-height:1.6}
+.card .ex.bm{border-color:var(--bm);background:rgba(255,180,84,.08);color:#ffe2bb}
+.card .ex.zh{border-color:var(--zh);background:rgba(79,209,165,.08);color:#bff3df}
+.card .ex.th{border-color:var(--th);background:rgba(199,146,234,.08);color:#e9cdf7}
+.card .meta{font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:12px;flex-wrap:wrap}
+.card .acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.card .acts button{font-size:12px;padding:6px 11px}
+.highlight{background:rgba(91,140,255,.25);border-radius:3px;padding:0 2px}
+#exportBox{display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;max-height:70vh;overflow:auto}
+#exportBox.show{display:block}
+.printtable{width:100%;border-collapse:collapse;font-size:13px}
+.printtable th,.printtable td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+.printtable th{background:var(--panel2)}
+@media print{
+  header,.searchbox,.toolbar,#exportBox .noprint{display:none!important}
+  body{height:auto;overflow:visible;background:#fff;color:#000}
+  main{padding:0}
+  .results{background:none;border:none}
+  .card{break-inside:avoid}
+}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--accent);padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:60}
+.toast.show{opacity:1}
+#spinner{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);color:var(--muted);z-index:9999;gap:14px}
+#spinner.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>📘 四语内置词典</h1>
+  <span class="sub">中↔马互查 · 四语朗读 · 一键加入词库</span>
+  <span class="spacer"></span>
+  <button onclick="location.href='index.html'">← 看板</button>
+</header>
+<main>
+  <div class="searchbox">
+    <input type="text" id="q" placeholder="输入中文或马来文查询，如：水 / air" autocomplete="off">
+    <select id="mode">
+      <option value="auto">自动检测</option>
+      <option value="zh2bm">中文 → 马来文</option>
+      <option value="bm2zh">马来文 → 中文</option>
+      <option value="all">全字段模糊</option>
+    </select>
+    <button class="primary" id="searchBtn">🔍 查询</button>
+  </div>
+  <div class="toolbar">
+    <div class="group">
+      <label>语速 <span id="rateTxt">1.0</span>x</label>
+      <input type="range" id="rate" min="0.6" max="1.5" step="0.1" value="1">
+    </div>
+    <div class="group">
+      <label><input type="checkbox" id="loopBox"> 循环朗读</label>
+    </div>
+    <div class="group">
+      <button id="expPrint">🖨 打印/导出</button>
+      <button id="expCsv">⤓ CSV</button>
+      <button id="expTxt">⤓ TXT</button>
+    </div>
+    <span id="status">⏳ 正在加载词库…</span>
+  </div>
+  <div class="results" id="results">
+    <div class="empty">输入中文或马来文开始查询</div>
+  </div>
+  <div id="exportBox">
+    <div class="noprint" style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+      <b>导出范围：</b>
+      <label><input type="radio" name="src" value="results" checked> 当前搜索结果</label>
+      <label><input type="radio" name="src" value="marks"> 我的收藏</label>
+      <label><input type="radio" name="src" value="custom"> 自定义词库</label>
+      <button class="primary" onclick="window.print()">🖨 打印此表</button>
+      <button onclick="document.getElementById('exportBox').classList.remove('show')">关闭</button>
+    </div>
+    <div id="exportBody"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<div id="spinner"><div style="font-size:36px">📚</div><div>正在加载四语词库…</div></div>
+
+<script src="tril-db.js"></script>
+<script src="tril-core.js"></script>
+<script src="tril-lib.js"></script>
+<script src="三语母语习得核心词库.index.js"></script>
+<script>
+const LS_DICT = "tril_dict_settings_v1";
+let settings = {rate:1, loop:false};
+try{ Object.assign(settings, JSON.parse(localStorage.getItem(LS_DICT)||"{}")); }catch(e){}
+function saveSettings(){ try{ localStorage.setItem(LS_DICT, JSON.stringify(settings)); }catch(e){} }
+
+let allEntries = [];
+let zhMap = new Map(), bmMap = new Map(), enMap = new Map(), thMap = new Map();
+let lastResults = [];
+let loopTimer = null, loopItem = null;
+
+function escapeHtml(s){ return (s||"").replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toast._tm); toast._tm=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+function normalize(s){ return (s||"").toLowerCase().trim().replace(/[\s·‧.]+/g,""); }
+function tokenize(s){ return normalize(s).split(/[,，;；|/\\]+/).map(x=>x.trim()).filter(Boolean); }
+
+function addToIndex(e, src){
+  function push(map, key){
+    if(!key) return;
+    const k=normalize(key);
+    if(!k) return;
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push({entry:e, src:src});
+  }
+  push(zhMap, e.zh);
+  push(bmMap, e.bm);
+  push(enMap, e.en);
+  push(thMap, e.th);
+}
+
+async function buildIndex(){
+  const data = await TrilCore.loadAll();
+  allEntries = [];
+  data.forEach((st, si)=>{
+    (st.files||[]).forEach((f, fi)=>{
+      (f.units||[]).forEach((u, ui)=>{
+        (u.entries||[]).forEach(e=>{
+          const enriched = Object.assign({}, e, {_meta:{stage:st.name, file:f.name, unit:u.title||u.t||""}});
+          allEntries.push(enriched);
+          addToIndex(enriched, {stage:st.name, file:f.name, unit:u.title||u.t||"", si, fi, ui});
+        });
+      });
+    });
+  });
+  document.getElementById("spinner").classList.add("hidden");
+  document.getElementById("status").textContent = "已索引 " + allEntries.length + " 条四语词条";
+}
+
+function speak(text, lang, onend){
+  if(!text) return;
+  if(!window.speechSynthesis){ toast("当前环境无语音合成"); return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang==="en"?"en-US":lang==="bm"?"ms-MY":lang==="zh"?"zh-CN":"th-TH";
+  u.rate = settings.rate || 1;
+  u.volume = 1;
+  u.onend = ()=>{ if(onend) onend(); };
+  u.onerror = ()=>{ if(onend) onend(); };
+  speechSynthesis.cancel();
+  speechSynthesis.resume();
+  speechSynthesis.speak(u);
+}
+function stopLoop(){ clearTimeout(loopTimer); loopItem=null; }
+function speakLoop(text, lang){
+  stopLoop();
+  if(!settings.loop){ speak(text, lang); return; }
+  function once(){ speak(text, lang, ()=>{ loopTimer=setTimeout(once, 600); }); }
+  once();
+}
+
+function addToCustom(e){
+  if(!window.TrilLib){ toast("词库模块未加载"); return; }
+  const st = TrilLib.loadStage();
+  st.files[0].units.push({
+    title: (e.zh||e.en||"未命名") + "（来自词典）",
+    type: "table",
+    langs: ["en","bm","zh","th"].filter(k=>e[k]),
+    entries: [{en:e.en||"", bm:e.bm||"", zh:e.zh||"", th:e.th||"", en_ipa:e.en_ipa||"", bm_ipa:e.bm_ipa||"", bm_pron:e.bm_pron||"", th_pron:e.th_pron||"", example:e.example||{}}],
+    summary: "", notes: ""
+  });
+  TrilLib.saveStage(st);
+  toast("已加入自定义词库，学习器可见");
+}
+
+function uniqueResults(arr){
+  const seen = new Set(); const out=[];
+  arr.forEach(x=>{
+    const e=x.entry;
+    const key = (e.en||"")+"|"+(e.bm||"")+"|"+(e.zh||"")+"|"+(e.th||"");
+    if(!seen.has(key)){ seen.add(key); out.push(x); }
+  });
+  return out;
+}
+
+function search(){
+  const raw = document.getElementById("q").value.trim();
+  const mode = document.getElementById("mode").value;
+  const box = document.getElementById("results");
+  if(!raw){ box.innerHTML='<div class="empty">输入中文或马来文开始查询</div>'; lastResults=[]; return; }
+  const keys = tokenize(raw);
+  let hits = [];
+  keys.forEach(k=>{
+    if(mode==="zh2bm"){
+      (zhMap.get(normalize(k))||[]).forEach(x=>hits.push(x));
+    }else if(mode==="bm2zh"){
+      (bmMap.get(normalize(k))||[]).forEach(x=>hits.push(x));
+    }else if(mode==="all"){
+      [zhMap, bmMap, enMap, thMap].forEach(m=>{
+        m.forEach((arr, mk)=>{ if(mk.indexOf(normalize(k))>=0) arr.forEach(x=>hits.push(x)); });
+      });
+    }else{
+      // auto: 优先中↔马，也包含英文/泰文精确匹配
+      const n = normalize(k);
+      if(/[\u4e00-\u9fff]/.test(k)){
+        (zhMap.get(n)||[]).forEach(x=>hits.push(x));
+      }else if(/[\u0e00-\u0e7f]/.test(k)){
+        (thMap.get(n)||[]).forEach(x=>hits.push(x));
+      }else{
+        (bmMap.get(n)||[]).forEach(x=>hits.push(x));
+        (enMap.get(n)||[]).forEach(x=>hits.push(x));
+      }
+    }
+  });
+  lastResults = uniqueResults(hits);
+  renderResults(lastResults, raw);
+}
+
+function renderResults(list, highlightText){
+  const box = document.getElementById("results");
+  if(!list.length){ box.innerHTML='<div class="empty">未找到「'+escapeHtml(highlightText)+'」相关结果</div>'; return; }
+  box.innerHTML = list.map((x, idx)=>{
+    const e=x.entry, src=e._meta;
+    function hl(s){ return escapeHtml(s||"").replace(new RegExp("("+escapeRegExp(highlightText)+")","gi"),'<span class="highlight">$1</span>'); }
+    const enBox = e.en ? '<div class="langbox en"><div class="lab">EN 英文</div><div class="txt">'+hl(e.en)+'</div>'+(e.en_ipa?'<div class="sub">/'+escapeHtml(e.en_ipa)+'/</div>':'')+'</div>' : '';
+    const bmBox = e.bm ? '<div class="langbox bm"><div class="lab">BM 马来文</div><div class="txt">'+hl(e.bm)+'</div>'+(e.bm_ipa?'<div class="sub">/'+escapeHtml(e.bm_ipa)+'/</div>':'')+(e.bm_pron?'<div class="sub">'+escapeHtml(e.bm_pron)+'</div>':'')+'</div>' : '';
+    const zhBox = e.zh ? '<div class="langbox zh"><div class="lab">ZH 中文</div><div class="txt">'+hl(e.zh)+'</div></div>' : '';
+    const thBox = e.th ? '<div class="langbox th"><div class="lab">TH 泰文</div><div class="txt">'+hl(e.th)+'</div>'+(e.th_pron?'<div class="sub">'+escapeHtml(e.th_pron)+'</div>':'')+'</div>' : '';
+    let exHtml='';
+    if(e.example){
+      ['en','bm','zh','th'].forEach(k=>{
+        const v = e.example[k]; if(!v) return;
+        exHtml += '<div class="ex '+k+'">'+({en:'🇬🇧',bm:'🇲🇾',zh:'🇨🇳',th:'🇹🇭'}[k])+' '+escapeHtml(v)+'</div>';
+      });
+    }
+    return '<div class="card" data-idx="'+idx+'">'+
+      '<div class="top">'+enBox+bmBox+zhBox+thBox+'</div>'+
+      (exHtml?'<div>'+exHtml+'</div>':'')+
+      '<div class="meta">'+
+        '<span>来源：'+escapeHtml(src.stage)+' / '+escapeHtml(src.file)+'</span>'+
+        (e.level?'<span>难度：'+escapeHtml(e.level)+'</span>':'')+
+      '</div>'+
+      '<div class="acts">'+
+        '<button onclick="speakLoop(this.dataset.t,this.dataset.l)" data-t="'+escapeHtml(e.en||"")+'" data-l="en">🔊 读英文</button>'+
+        '<button onclick="speakLoop(this.dataset.t,this.dataset.l)" data-t="'+escapeHtml(e.bm||"")+'" data-l="bm">🔊 读马来文</button>'+
+        '<button onclick="speakLoop(this.dataset.t,this.dataset.l)" data-t="'+escapeHtml(e.zh||"")+'" data-l="zh">🔊 读中文</button>'+
+        (e.th?'<button onclick="speakLoop(this.dataset.t,this.dataset.l)" data-t="'+escapeHtml(e.th||"")+'" data-l="th">🔊 读泰文</button>':'')+
+        '<button class="primary" onclick="addToCustomIdx('+idx+')">＋ 加入词库</button>'+
+      '</div>'+
+    '</div>';
+  }).join("");
+}
+function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function addToCustomIdx(idx){ addToCustom(lastResults[idx].entry); }
+
+function getExportRows(src){
+  if(src==="marks"){
+    let marks={}; try{ marks=JSON.parse(localStorage.getItem("tril_marks_v1")||"{}"); }catch(e){}
+    return Object.values(marks).map(e=>({entry:e, src:{stage:"我的收藏",file:"-"}}));
+  }
+  if(src==="custom"){
+    if(!window.TrilLib) return [];
+    const st = TrilLib.loadStage();
+    const out=[]; (st.files||[]).forEach(f=>(f.units||[]).forEach(u=>(u.entries||[]).forEach(e=>out.push({entry:Object.assign({},e,{_meta:{stage:"自定义词库",file:f.name}}), src:{stage:"自定义词库",file:f.name}}))));
+    return out;
+  }
+  return lastResults;
+}
+
+function buildExportTable(rows){
+  let html='<table class="printtable"><thead><tr><th>序号</th><th>英文</th><th>马来文</th><th>中文</th><th>泰文</th><th>英文音标</th><th>马来音标</th><th>例句</th></tr></thead><tbody>';
+  rows.forEach((x,i)=>{
+    const e=x.entry;
+    const ex=[]; if(e.example){ ['zh','en','bm','th'].forEach(k=>{ if(e.example[k]) ex.push(e.example[k]); }); }
+    html+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(e.en||"")+'</td><td>'+escapeHtml(e.bm||"")+'</td><td>'+escapeHtml(e.zh||"")+'</td><td>'+escapeHtml(e.th||"")+'</td><td>'+escapeHtml(e.en_ipa||"")+'</td><td>'+escapeHtml(e.bm_ipa||"")+'</td><td>'+escapeHtml(ex.join(" / "))+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  return html;
+}
+function doExportCsv(){
+  const src = document.querySelector('input[name=src]:checked').value;
+  const rows = getExportRows(src);
+  if(!rows.length){ toast("没有可导出内容"); return; }
+  const lines = [["序号","英文","马来文","中文","泰文","英文音标","马来音标","例句"].join("\t")];
+  rows.forEach((x,i)=>{
+    const e=x.entry;
+    const ex=[]; if(e.example){ ['zh','en','bm','th'].forEach(k=>{ if(e.example[k]) ex.push(e.example[k]); }); }
+    lines.push([i+1, e.en||"", e.bm||"", e.zh||"", e.th||"", e.en_ipa||"", e.bm_ipa||"", ex.join(" / ")].join("\t"));
+  });
+  const blob = new Blob(["\ufeff"+lines.join("\n")], {type:"text/tab-separated-values;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="四语词表_"+src+"_"+new Date().toISOString().slice(0,10)+".tsv"; a.click();
+  toast("已导出 TSV");
+}
+function doExportTxt(){
+  const src = document.querySelector('input[name=src]:checked').value;
+  const rows = getExportRows(src);
+  if(!rows.length){ toast("没有可导出内容"); return; }
+  const lines = rows.map((x,i)=>{
+    const e=x.entry;
+    return (i+1)+". "+(e.en?"EN:"+e.en+" ":"")+(e.bm?"BM:"+e.bm+" ":"")+(e.zh?"ZH:"+e.zh+" ":"")+(e.th?"TH:"+e.th+" ":"");
+  });
+  const blob = new Blob(["\ufeff"+lines.join("\n")], {type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="四语词表_"+src+"_"+new Date().toISOString().slice(0,10)+".txt"; a.click();
+  toast("已导出 TXT");
+}
+function refreshExport(){
+  const src = document.querySelector('input[name=src]:checked').value;
+  const rows = getExportRows(src);
+  document.getElementById("exportBody").innerHTML = rows.length ? buildExportTable(rows) : '<div class="empty">该范围无内容</div>';
+}
+
+/* 事件绑定 */
+document.getElementById("q").addEventListener("keydown", e=>{ if(e.key==="Enter") search(); });
+document.getElementById("searchBtn").onclick = search;
+document.getElementById("rate").oninput = e=>{ settings.rate=+e.target.value; document.getElementById("rateTxt").textContent=(+e.target.value).toFixed(1); saveSettings(); };
+document.getElementById("loopBox").onchange = e=>{ settings.loop=e.target.checked; saveSettings(); };
+document.getElementById("expPrint").onclick = ()=>{ refreshExport(); document.getElementById("exportBox").classList.add("show"); };
+document.getElementById("expCsv").onclick = doExportCsv;
+document.getElementById("expTxt").onclick = doExportTxt;
+document.querySelectorAll('input[name=src]').forEach(r=>r.onchange=refreshExport);
+
+/* 初始化 */
+document.getElementById("rate").value = settings.rate;
+document.getElementById("rateTxt").textContent = (settings.rate||1).toFixed(1);
+document.getElementById("loopBox").checked = !!settings.loop;
+buildIndex();
+</script>
+</body>
+</html>
