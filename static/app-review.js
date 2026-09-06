@@ -402,6 +402,13 @@ function updateHeaderStats(){
   document.getElementById("queueChip").innerHTML = '<strong>' + due + '</strong> 到期 / ' + week + ' 周内 / ' + mastered + ' 掌握 / ' + total + ' 总';
 }
 
+let filtersCollapsed = false;
+try{ filtersCollapsed = localStorage.getItem('tril_filter_collapsed_v1') === '1'; }catch(e){}
+function toggleFiltersCollapsed(){
+  filtersCollapsed = !filtersCollapsed;
+  try{ localStorage.setItem('tril_filter_collapsed_v1', filtersCollapsed ? '1' : '0'); }catch(e){}
+  renderFilters();
+}
 function renderFilters(){
   let bar = document.querySelector(".filters");
   if(!bar){
@@ -409,6 +416,21 @@ function renderFilters(){
     bar = document.createElement("div");
     bar.className = "filters";
     main.insertBefore(bar, main.firstChild);
+  }
+  // 折叠时只显示摘要 chip + 展开按钮
+  if(filtersCollapsed){
+    const labels = {due:"📅 今日到期", all:"🌐 全部词条", fuzzy:"? 模糊", wrong:"📕 错题本", marked:"★ 收藏"};
+    let summary = labels[filterMode] || "📅 今日到期";
+    if(filterMode === "unit"){
+      const st = DATA.stages[unitFilter.si];
+      const fl = (st && st.files[unitFilter.fi]) || null;
+      const un = (fl && fl.units[unitFilter.ui]) || null;
+      summary = "📚 " + (st ? st.name : "") + (fl ? " › " + fl.name : "") + (un ? " › " + un.title : "");
+    }
+    bar.innerHTML = '<span class="chip" style="background:var(--panel2);border:1px solid var(--line);padding:5px 10px;font-size:12px">' +
+      escapeHtml(summary) + '</span>' +
+      '<button class="ghost" onclick="toggleFiltersCollapsed()" title="展开过滤面板" style="font-size:12px;padding:5px 10px">▼ 过滤</button>';
+    return;
   }
   bar.innerHTML = '<span class="lbl">过滤：</span>';
   const opts = [
@@ -443,6 +465,14 @@ function renderFilters(){
     tip.innerHTML = '📚 ' + escapeHtml(name) + ' <button class="ghost" style="min-height:22px;padding:2px 7px;font-size:11px;margin-left:4px" onclick="clearUnitFilter()" title="取消单元过滤">✕</button>';
     bar.appendChild(tip);
   }
+  // 折叠按钮（置右）
+  const collapseBtn = document.createElement("button");
+  collapseBtn.className = "ghost";
+  collapseBtn.style.cssText = "margin-left:auto;font-size:12px;padding:5px 10px";
+  collapseBtn.textContent = "▲ 收起过滤";
+  collapseBtn.title = "收起过滤面板";
+  collapseBtn.onclick = toggleFiltersCollapsed;
+  bar.appendChild(collapseBtn);
 }
 
 /* ============ 📚 3 级钻取式目录（学段 → 文件 → 单元，与学习器一致） ============ */

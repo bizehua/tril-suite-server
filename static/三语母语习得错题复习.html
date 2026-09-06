@@ -484,6 +484,13 @@ function updateHeaderStats(){
   document.getElementById("queueChip").innerHTML = '<strong>' + total + '</strong> 总 · <strong>' + heavy + '</strong> 顽固 · <strong>' + almost + '</strong> 接近';
 }
 
+let filtersCollapsed = false;
+try{ filtersCollapsed = localStorage.getItem('tril_filter_collapsed_v1') === '1'; }catch(e){}
+function toggleFiltersCollapsed(){
+  filtersCollapsed = !filtersCollapsed;
+  try{ localStorage.setItem('tril_filter_collapsed_v1', filtersCollapsed ? '1' : '0'); }catch(e){}
+  renderFilters();
+}
 function renderFilters(){
   let bar = document.querySelector(".filters");
   if(!bar){
@@ -492,6 +499,20 @@ function renderFilters(){
     bar.className = "filters";
     main.insertBefore(bar, main.firstChild);
   }
+
+  // 折叠时只显示摘要 chip + 展开按钮
+  if(filtersCollapsed){
+    const summaryText = (function(){
+      const labels = {all:"📚 全部", heavy:"🔥 顽固≥3", new:"🔁 洗牌", almost:"🌟 接近", unit:("📖 "+unitFilterLabel())};
+      const sk = {wrong:"错多优先", recent:"最近复习", alpha:"字母序"};
+      return (labels[filterMode] || "📚 全部") + " · " + (sk[sortMode] || "错多优先");
+    })();
+    bar.innerHTML = '<span class="chip" style="background:var(--panel2);border:1px solid var(--line);padding:5px 10px;font-size:12px">' +
+      escapeHtml(summaryText) + '</span>' +
+      '<button class="ghost" onclick="toggleFiltersCollapsed()" title="展开过滤/排序面板" style="font-size:12px;padding:5px 10px">▼ 过滤/排序</button>';
+    return;
+  }
+
   bar.innerHTML = '<span class="lbl">过滤：</span>';
   const filterOpts = [
     {k:"all", t:"📚 全部"},
@@ -535,6 +556,14 @@ function renderFilters(){
     b.onclick = () => { sortMode = o.k; buildQueueAndRender(); };
     bar.appendChild(b);
   });
+  // 折叠按钮（置右）
+  const collapseBtn = document.createElement("button");
+  collapseBtn.className = "ghost";
+  collapseBtn.style.cssText = "margin-left:auto;font-size:12px;padding:5px 10px";
+  collapseBtn.textContent = "▲ 收起过滤/排序";
+  collapseBtn.title = "收起过滤/排序面板（点 chip 可展开）";
+  collapseBtn.onclick = toggleFiltersCollapsed;
+  bar.appendChild(collapseBtn);
 }
 
 /* ============ 📖 按单元选择错词范围 ============ */
