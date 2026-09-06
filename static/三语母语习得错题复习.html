@@ -105,9 +105,9 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <span class="sub">错得越多越靠前 · 连对 10 自动毕业</span>
   <span class="spacer"></span>
   <span class="chip" id="queueChip">队列 —</span>
+  <button class="ghost" onclick="goHome()" title="返回上一页 / 首页">← 返回</button>
   <button onclick="TrilAI && TrilAI.toggle()" title="问 AI">🤖 问 AI</button>
   <button onclick="TrilTTS && TrilTTS.toggle()" title="朗读">🎚 朗读</button>
-  <button onclick="goHome()">🏠 三器选择</button>
 </header>
 
 <main id="main"></main>
@@ -127,6 +127,8 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
 <script src="tril-csv.js"></script>
+<script src="三语母语习得核心词库.index.js"></script>
+<script src="tril-core.js"></script>
 <script src="tril-lib.js"></script>
 <script>
 "use strict";
@@ -216,12 +218,79 @@ let queue = [];
 let pos = -1;
 let flipped = false;
 let sortMode = "wrong";   // "wrong" | "recent" | "alpha"
-let filterMode = "all";   // "all" | "high" | "new" | "almost"
+let filterMode = "all";   // "all" | "high" | "new" | "almost" | "unit"
+let unitFilter = null;    // {si, fi, ui} — fi/ui 为 null 表示整文件/整学段；si=-1 表示未匹配词库的词
+let srcMap = null;        // key → {si,fi,ui,stage,unit}（词库后台加载完成后可用）
+let libStages = null;     // [{name, files:[{name, units:[...]]}]（选择器用）
+
+/* ============ 词库后台渐进加载（用于「按单元」过滤的 key→单元映射） ============ */
+(function loadLibInBackground(){
+  if(!window.TrilCore) return;
+  TrilCore.loadAll().then(function(data){
+    if(!data || !data.length) return;
+    const wrapped = {stages: data};
+    if(window.TrilLib) TrilLib.mergeStages(wrapped);
+    libStages = wrapped.stages;
+    const map = {};
+    wrapped.stages.forEach(function(st, si){
+      (st.files||[]).forEach(function(f, fi){
+        (f.units||[]).forEach(function(u, ui){
+          (u.entries||[]).forEach(function(e){
+            if(!e) return;
+            const k = (e.en||"")+"|"+(e.bm||"")+"|"+(e.zh||"")+"|"+(e.th||"");
+            if(!map[k]) map[k] = {si:si, fi:fi, ui:ui, stage:st.name, unit:u.title||("Unit "+(ui+1))};
+          });
+        });
+      });
+    });
+    srcMap = map;
+    // 若单元选择器已打开，刷新其内容
+    if(document.getElementById("unitPicker")) renderUnitPickerBody();
+    // 若当前处于「按单元」过滤但之前词库未就绪，重建队列
+    if(filterMode === "unit" && unitFilter) buildQueueAndRender();
+  }).catch(function(){});
+})();
+
+function unitWrongCounts(){
+  // 各单元（含学段/文件层级聚合）的错词数
+  const perUnit = {};    // "si|fi|ui" → n
+  const perFile = {};    // "si|fi" → n
+  const perStage = {};   // "si" → n
+  const unmatched = {n:0};
+  if(srcMap){
+    Object.keys(wrongbook).forEach(function(k){
+      const s = srcMap[k];
+      if(!s){ unmatched.n++; return; }
+      const uk = s.si+"|"+s.fi+"|"+s.ui;
+      perUnit[uk] = (perUnit[uk]||0)+1;
+      const fk = s.si+"|"+s.fi;
+      perFile[fk] = (perFile[fk]||0)+1;
+      perStage[s.si] = (perStage[s.si]||0)+1;
+    });
+  }
+  return {perUnit:perUnit, perFile:perFile, perStage:perStage, unmatched:unmatched.n};
+}
 
 function sortAndFilter(){
   let arr = Object.keys(wrongbook).map(k => ({key: k, entry: wrongbook[k]}));
   // 过滤
-  if(filterMode === "high"){
+  if(filterMode === "unit" && unitFilter){
+    const f = unitFilter;
+    if(f.si === -1){
+      // 未匹配词库的错词
+      arr = arr.filter(it => !srcMap || !srcMap[it.key]);
+    } else if(srcMap){
+      arr = arr.filter(it => {
+        const s = srcMap[it.key];
+        if(!s) return false;
+        if(s.si !== f.si) return false;
+        if(f.fi != null && s.fi !== f.fi) return false;
+        if(f.ui != null && s.ui !== f.ui) return false;
+        return true;
+      });
+    }
+    /* srcMap 未就绪时不过滤（保持全部） */
+  } else if(filterMode === "high"){
     arr = arr.filter(it => (it.entry.wrong || 0) >= 3);
   } else if(filterMode === "new"){
     // streak=0 且 wrong≥2 → 重新洗牌的「重点」用户
@@ -412,15 +481,29 @@ function renderFilters(){
     {k:"all", t:"📚 全部"},
     {k:"heavy", t:"🔥 顽固 ≥3"},
     {k:"new", t:"🔁 洗牌重点"},
-    {k:"almost", t:"🌟 接近毕业 ≥5"}
+    {k:"almost", t:"🌟 接近毕业 ≥5"},
+    {k:"unit", t:"📖 按单元"}
   ];
   filterOpts.forEach(o => {
     const b = document.createElement("button");
     b.textContent = o.t;
-    if((o.k === "high" ? "high" : o.k === "new" ? "new" : o.k === "almost" ? "almost" : "all") === filterMode) b.classList.add("active");
-    b.onclick = () => { filterMode = (o.k === "heavy" ? "high" : o.k); buildQueueAndRender(); };
+    if((o.k === "high" ? "high" : o.k === "new" ? "new" : o.k === "almost" ? "almost" : o.k) === filterMode) b.classList.add("active");
+    if(o.k === "unit"){
+      b.onclick = () => { openUnitPicker(); };
+    } else {
+      b.onclick = () => { filterMode = (o.k === "heavy" ? "high" : o.k); buildQueueAndRender(); };
+    }
     bar.appendChild(b);
   });
+  // 当前单元选择提示（带 ✕ 清除）
+  if(filterMode === "unit" && unitFilter){
+    const name = unitFilterLabel();
+    const tip = document.createElement("span");
+    tip.className = "chip";
+    tip.style.cssText = "max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    tip.innerHTML = '📖 ' + escapeHtml(name) + ' <button class="ghost" style="min-height:22px;padding:2px 7px;font-size:11px;margin-left:4px" onclick="clearUnitFilter()" title="取消单元过滤">✕</button>';
+    bar.appendChild(tip);
+  }
 
   bar.innerHTML += '<span class="lbl" style="margin-left:14px">排序：</span>';
   const sortOpts = [
@@ -435,6 +518,113 @@ function renderFilters(){
     b.onclick = () => { sortMode = o.k; buildQueueAndRender(); };
     bar.appendChild(b);
   });
+}
+
+/* ============ 📖 按单元选择错词范围 ============ */
+function unitFilterLabel(){
+  if(!unitFilter) return "";
+  if(unitFilter.si === -1) return "未匹配词库的词";
+  if(!libStages || !libStages[unitFilter.si]) return "已选单元";
+  const st = libStages[unitFilter.si];
+  let name = st.name;
+  if(unitFilter.fi != null && st.files && st.files[unitFilter.fi]){
+    name += " › " + st.files[unitFilter.fi].name;
+    if(unitFilter.ui != null && st.files[unitFilter.fi].units && st.files[unitFilter.fi].units[unitFilter.ui]){
+      name += " › " + (st.files[unitFilter.fi].units[unitFilter.ui].title || "");
+    }
+  }
+  return name;
+}
+
+function openUnitPicker(){
+  let ov = document.getElementById("unitPicker");
+  if(ov) ov.remove();
+  ov = document.createElement("div");
+  ov.id = "unitPicker";
+  ov.style.cssText = "position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.onclick = (ev) => { if(ev.target === ov) closeUnitPicker(); };
+  const box = document.createElement("div");
+  box.style.cssText = "background:var(--bg2);border:1px solid var(--line);border-radius:14px;max-width:600px;width:100%;max-height:80vh;overflow:auto;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.5)";
+  const head = document.createElement("div");
+  head.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:12px;position:sticky;top:-16px;background:var(--bg2);padding:6px 0;z-index:2";
+  head.innerHTML = '<b style="font-size:15px">📖 选择错词所在单元</b><span style="flex:1"></span>' +
+    '<button class="ghost" onclick="closeUnitPicker()" style="min-height:34px">✕ 关闭</button>';
+  const body = document.createElement("div");
+  body.id = "unitPickerBody";
+  ov.appendChild(box);
+  box.appendChild(head);
+  box.appendChild(body);
+  document.body.appendChild(ov);
+  renderUnitPickerBody();
+}
+
+function renderUnitPickerBody(){
+  const body = document.getElementById("unitPickerBody");
+  if(!body) return;
+  if(!libStages){
+    body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:26px 10px;font-size:13px">⏳ 词库后台加载中…<br>' +
+      '<span style="font-size:11px">首次约 30MB，之后走本地缓存。稍等片刻再点开即可按单元过滤错词。</span></div>';
+    return;
+  }
+  const cnt = unitWrongCounts();
+  let h = '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">只列出含错词的范围；点「专练」开始该范围内错词复习。</div>';
+  let any = false;
+  libStages.forEach(function(st, si){
+    const sc = cnt.perStage[si] || 0;
+    if(!sc) return;
+    any = true;
+    h += '<details style="margin-bottom:8px">' +
+      '<summary style="cursor:pointer;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:13px;display:flex;align-items:center;gap:6px;list-style:none">' +
+      '<span style="flex:1">' + escapeHtml(st.name) + ' <span style="color:var(--danger);font-size:11px">' + sc + ' 错词</span></span>' +
+      '<button class="primary" style="min-height:30px;padding:4px 12px;font-size:12px" onclick="event.preventDefault();event.stopPropagation();pickUnit(' + si + ',null,null)">专练整个学段</button>' +
+      '</summary>';
+    (st.files||[]).forEach(function(f, fi){
+      const fc = cnt.perFile[si+"|"+fi] || 0;
+      if(!fc) return;
+      h += '<details style="margin:6px 0 6px 12px">' +
+        '<summary style="cursor:pointer;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;display:flex;align-items:center;gap:6px;list-style:none">' +
+        '<span style="flex:1">' + escapeHtml(f.name) + ' <span style="color:var(--danger);font-size:11px">' + fc + ' 错词</span></span>' +
+        '<button style="min-height:28px;padding:3px 10px;font-size:12px" onclick="event.preventDefault();event.stopPropagation();pickUnit(' + si + ',' + fi + ',null)">专练整个文件</button>' +
+        '</summary>';
+      (f.units||[]).forEach(function(u, ui){
+        const uc = cnt.perUnit[si+"|"+fi+"|"+ui] || 0;
+        if(!uc) return;
+        h += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px 6px 24px">' +
+          '<span style="flex:1;font-size:12.5px">' + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span style="color:var(--danger);font-size:11px">' + uc + ' 错词</span></span>' +
+          '<button style="min-height:28px;padding:3px 12px;font-size:12px" onclick="pickUnit(' + si + ',' + fi + ',' + ui + ')">专练</button>' +
+          '</div>';
+      });
+      h += '</details>';
+    });
+    h += '</details>';
+  });
+  if(cnt.unmatched){
+    any = true;
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--panel);border:1px dashed var(--line);border-radius:9px;margin-top:6px">' +
+      '<span style="flex:1;font-size:13px">❓ 未匹配词库的错词 <span style="color:var(--danger);font-size:11px">' + cnt.unmatched + ' 词</span></span>' +
+      '<button style="min-height:30px;padding:4px 12px;font-size:12px" onclick="pickUnit(-1,null,null)">专练</button></div>';
+  }
+  if(!any){
+    h = '<div style="text-align:center;color:var(--muted);padding:26px 10px;font-size:13px">📭 词库中未找到任何错词的归属单元。<br>（错词可能来自自定义词库或导入）</div>';
+  }
+  body.innerHTML = h;
+}
+
+function closeUnitPicker(){
+  const ov = document.getElementById("unitPicker");
+  if(ov) ov.remove();
+}
+function pickUnit(si, fi, ui){
+  unitFilter = {si: si, fi: fi, ui: ui};
+  filterMode = "unit";
+  closeUnitPicker();
+  buildQueueAndRender();
+  toast("📖 已选择：" + unitFilterLabel());
+}
+function clearUnitFilter(){
+  unitFilter = null;
+  filterMode = "all";
+  buildQueueAndRender();
 }
 
 function rate(action){

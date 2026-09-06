@@ -27,6 +27,9 @@
   --dash-ok:#10b981; --dash-warn:#f59e0b; --dash-bad:#ef4444;
   --dash-levels:#ff6b6b,#ff9a3c,#ffd166,#a3d977,#4fd1a5,#3da9c4,#5b8cff;
   --dash-heat:#5b8cff;
+  /* 播放高亮背景（学习器/播放器朗读时当前词条底色） */
+  --hl-en:rgba(91,140,255,.24); --hl-bm:rgba(255,180,84,.20);
+  --hl-zh:rgba(79,209,165,.20); --hl-th:rgba(199,146,234,.20);
 }
 
 html[data-skin="default"]{
@@ -44,6 +47,9 @@ html[data-skin="default"]{
   --dash-ok:#10b981; --dash-warn:#f59e0b; --dash-bad:#ef4444;
   --dash-levels:#ff6b6b,#ff9a3c,#ffd166,#a3d977,#4fd1a5,#3da9c4,#5b8cff;
   --dash-heat:#5b8cff;
+  /* 播放高亮背景（学习器/播放器朗读时当前词条底色） */
+  --hl-en:rgba(91,140,255,.24); --hl-bm:rgba(255,180,84,.20);
+  --hl-zh:rgba(79,209,165,.20); --hl-th:rgba(199,146,234,.20);
 }
 
 /* ===================== 中国风 · 墨底朱红描金 ===================== */
@@ -62,6 +68,9 @@ html[data-skin="guofeng"]{
   --dash-ok:#7bbf8a; --dash-warn:#d4952a; --dash-bad:#c8382e;
   --dash-levels:#c8382e,#e06830,#d4952a,#bfa75a,#7bbf8a,#4a9a78,#2a6a8a;
   --dash-heat:#C8102E;
+  /* 播放高亮：暖金红调，墨底上对比清晰 */
+  --hl-en:rgba(255,122,107,.30); --hl-bm:rgba(255,207,107,.26);
+  --hl-zh:rgba(231,196,137,.26); --hl-th:rgba(212,175,55,.28);
   /* 纹样：祥云团纹 + 五角星（暗金描线） */
   --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23D4AF37' stroke-width='1.3'%3E%3Cg opacity='.085'%3E%3Ccircle cx='36' cy='38' r='15'/%3E%3Ccircle cx='52' cy='31' r='10'/%3E%3Ccircle cx='60' cy='41' r='7'/%3E%3Cpath d='M22 49q16 7 36 2'/%3E%3C/g%3E%3Cg opacity='.065'%3E%3Ccircle cx='116' cy='112' r='13'/%3E%3Ccircle cx='103' cy='104' r='9'/%3E%3Ccircle cx='124' cy='102' r='6'/%3E%3Cpath d='M100 120q18 5 32 0'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23C8102E' opacity='.10'%3E%3Cpath d='M108 20l1.6 4.1 4.4.3-3.4 2.9 1 4.3-3.6-2.3-3.6 2.3 1-4.3-3.4-2.9 4.4-.3z'/%3E%3C/g%3E%3C/svg%3E");
   /* 龙鳞纹（卡片暗纹） */
@@ -233,7 +242,7 @@ html[data-skin="guofeng"] body{
     var(--pat-bg);
 }
 
-/* 2) 顶栏：漆器质感 + 鎏金双线 */
+/* 2) 顶栏：漆器质感 + 回纹（中式雷纹边饰）鎏金饰带 */
 html[data-skin="guofeng"] header{
   background:linear-gradient(180deg, #331717 0%, #211010 100%);
   border-bottom:1px solid rgba(212,175,55,.8);
@@ -241,24 +250,29 @@ html[data-skin="guofeng"] header{
   position:relative;
 }
 html[data-skin="guofeng"] header::after{
-  content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
-  background:linear-gradient(90deg, transparent, rgba(212,175,55,.7) 15%, rgba(212,175,55,.7) 85%, transparent);
+  content:""; position:absolute; left:0; right:0; bottom:-11px; height:10px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='10' viewBox='0 0 30 10'%3E%3Cpath d='M1 9V2h22v5H9V4h9' fill='none' stroke='%23D4AF37' stroke-width='1.5'/%3E%3C/svg%3E") repeat-x left center / 30px 10px;
+  opacity:.55; pointer-events:none;
 }
 
-/* 3) 悬挂灯笼（视口左上 / 右上，摇曳动画） */
+/* 3) 悬挂灯笼（大号 + 金绳，位于顶栏下方两侧，不遮挡任何按钮） */
 html[data-skin="guofeng"]::before,
 html[data-skin="guofeng"]::after{
-  content:"🏮"; position:fixed; top:-4px; z-index:997;
-  pointer-events:none; transform-origin:50% -12px;
-  filter:drop-shadow(0 3px 7px rgba(200,16,46,.45));
+  content:"🏮"; position:fixed; top:0; z-index:997;
+  pointer-events:none; transform-origin:50% 0;
+  padding-top:104px;
+  background:linear-gradient(180deg, rgba(212,175,55,0) 0%, rgba(212,175,55,.6) 18%, rgba(212,175,55,.75) 100%) top center / 2px 104px no-repeat;
+  filter:drop-shadow(0 4px 10px rgba(200,16,46,.55)) drop-shadow(0 0 14px rgba(212,175,55,.25));
+  animation:tril-sway 3.4s ease-in-out infinite;
 }
 html[data-skin="guofeng"]::before{
-  left:26px; font-size:30px;
-  animation:tril-sway 3.2s ease-in-out infinite;
+  left:10px; font-size:58px; line-height:1;
 }
 html[data-skin="guofeng"]::after{
-  right:26px; font-size:22px; top:2px; opacity:.9;
-  animation:tril-sway-slow 3.8s ease-in-out infinite; animation-delay:.6s;
+  right:12px; font-size:44px; line-height:1; opacity:.95;
+  padding-top:96px;
+  background:linear-gradient(180deg, rgba(212,175,55,0) 0%, rgba(212,175,55,.55) 18%, rgba(212,175,55,.7) 100%) top center / 2px 96px no-repeat;
+  animation:tril-sway-slow 4.2s ease-in-out infinite; animation-delay:.7s;
 }
 
 /* 4) 「龍」字水墨水印（左下） */
@@ -313,15 +327,37 @@ html[data-skin="guofeng"] .primary:hover{
   box-shadow:0 0 0 2px rgba(212,175,55,.28), 0 6px 18px rgba(200,16,46,.5), inset 0 1px 0 rgba(255,220,150,.3);
 }
 
-/* 8) 页脚：鎏金顶线 */
+/* 8) 页脚：鎏金顶线 + 回纹呼应 */
 html[data-skin="guofeng"] footer{
   border-top:1px solid rgba(212,175,55,.4);
+}
+html[data-skin="guofeng"] footer::before{
+  content:""; display:block; height:8px; margin-bottom:6px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='8' viewBox='0 0 30 8'%3E%3Cpath d='M1 7V1h22v4H9V3h9' fill='none' stroke='%23D4AF37' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x left center / 30px 8px;
+  opacity:.35;
 }
 
 /* 9) 顶栏标题徽章（沿用 🏮，加金晕） */
 html[data-skin="guofeng"] h1::before{
   content:"🏮"; margin-right:8px; font-size:.95em;
   filter:drop-shadow(0 0 6px rgba(212,175,55,.6)) saturate(1.15);
+}
+
+/* 10) 印章式皮肤角标（右下角，朱红印章 + 竖排楷体） */
+html[data-skin="guofeng"] body::after{
+  content:"中国风" !important;
+  writing-mode:vertical-rl !important;
+  font-family:"STKaiti","KaiTi","楷体",serif !important;
+  font-weight:700 !important;
+  position:fixed !important; right:12px !important; bottom:12px !important;
+  padding:7px 5px !important; font-size:13px !important;
+  letter-spacing:3px !important;
+  background:linear-gradient(160deg,#d42034,#a01020) !important;
+  color:#ffe9c8 !important;
+  border:2px solid rgba(212,175,55,.75) !important;
+  border-radius:7px !important;
+  box-shadow:0 3px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,233,200,.25) !important;
+  z-index:998 !important; pointer-events:none !important; opacity:.92 !important;
 }
 
 /* 10) 看板（浅色区）：宣纸底 + 祥云角饰 */
@@ -353,14 +389,25 @@ html[data-skin="malaysia"] header::after{
   content:""; position:absolute; left:0; right:0; bottom:-4px; height:2px;
   background:repeating-linear-gradient(90deg,
     #FFCC00 0 5px, #CC0001 5px 10px, #010066 10px 15px, transparent 15px 18px);
-  opacity:.8;
+  opacity:.8; pointer-events:none;
 }
 
-/* 3) 新月十四角星水印（右上，国旗意象） */
+/* 3) 新月十四角星水印（右上大号，国旗意象）+ 木槿花水印（左下，国花） */
 html[data-skin="malaysia"]::before{
-  content:""; position:fixed; top:34px; right:14px; width:170px; height:170px;
+  content:""; position:fixed; top:96px; right:18px; width:250px; height:250px;
   z-index:0; pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 160 160'%3E%3Cg opacity='.06'%3E%3Cpath fill='%23FFCC00' d='M78 18a52 52 0 1 0 0 104 42 42 0 1 1 0-104z'/%3E%3Cpath fill='%23FFCC00' d='M124 45l4.1 11.3 12.1.5-9.5 7.4 3.3 11.6-10-6.8-10 6.8 3.3-11.6-9.5-7.4 12.1-.5z'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 160 160'%3E%3Cg opacity='.10'%3E%3Cpath fill='%23FFCC00' d='M78 18a52 52 0 1 0 0 104 42 42 0 1 1 0-104z'/%3E%3Cpath fill='%23FFCC00' d='M124 45l4.1 11.3 12.1.5-9.5 7.4 3.3 11.6-10-6.8-10 6.8 3.3-11.6-9.5-7.4 12.1-.5z'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;
+}
+html[data-skin="malaysia"]::after{
+  content:"🌺"; position:fixed; left:6px; bottom:34px; z-index:0;
+  font-size:110px; line-height:1; opacity:.12; pointer-events:none;
+  filter:saturate(1.2);
+}
+
+/* 3b) 视口左缘：国旗三色竖饰条（红·蓝·金） */
+html[data-skin="malaysia"] body{
+  border-left:6px solid transparent;
+  border-image:linear-gradient(180deg, #CC0001 0 33%, #010066 33% 66%, #FFCC00 66% 100%) 1;
 }
 
 /* 4) 卡片：金边 + songket 暗纹 + 蓝顶线 */
@@ -424,20 +471,46 @@ html[data-skin="malaysia"] .dashboard .sc{
   background-image:var(--pat-card);
 }
 
+/* 10) 旗帜式皮肤角标（右下角，国旗条纹） */
+html[data-skin="malaysia"] body::after{
+  content:"马来西亚" !important;
+  position:fixed !important; right:12px !important; bottom:12px !important;
+  padding:4px 12px !important; font-size:11px !important; font-weight:700 !important;
+  letter-spacing:2px !important;
+  background:#010066 !important; color:#FFCC00 !important;
+  border:1px solid #FFCC00 !important;
+  border-radius:99px !important;
+  box-shadow:0 3px 10px rgba(0,0,30,.55), inset 0 0 0 1px rgba(255,204,0,.2) !important;
+  z-index:998 !important; pointer-events:none !important; opacity:.94 !important;
+}
+
+/* 11) 表格头 / 目录按钮：深蓝衬底金线 */
+html[data-skin="malaysia"] th{
+  background:rgba(255,204,0,.08);
+  border-bottom:1px solid rgba(255,204,0,.3) !important;
+}
+
 /* =========================================================
    可读性与动效保护
    ========================================================= */
 /* 装饰不拦截交互 */
 html[data-skin="guofeng"]::before,
 html[data-skin="guofeng"]::after,
-html[data-skin="malaysia"]::before{ pointer-events:none; }
+html[data-skin="malaysia"]::before,
+html[data-skin="malaysia"]::after{ pointer-events:none; }
 
-/* 小屏隐藏悬垂装饰，保可读性 */
+/* 中屏以下：灯笼缩小并移到更边缘；小屏隐藏悬垂装饰，保可读性 */
+@media (max-width:1180px){
+  html[data-skin="guofeng"]::before{ font-size:40px; padding-top:84px; }
+  html[data-skin="guofeng"]::after{ font-size:30px; padding-top:78px; }
+}
 @media (max-width:760px){
   html[data-skin="guofeng"]::before,
   html[data-skin="guofeng"]::after,
-  html[data-skin="malaysia"]::before{ display:none; }
+  html[data-skin="malaysia"]::before,
+  html[data-skin="malaysia"]::after{ display:none; }
   html[data-skin="guofeng"] body::before{ font-size:130px; }
+  html[data-skin="malaysia"] body{ border-left-width:3px; }
 }
 
 /* 动效敏感用户：停用摇曳/波纹 */
