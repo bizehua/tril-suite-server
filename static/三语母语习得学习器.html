@@ -197,6 +197,7 @@ body.hide-examples .dexample{display:none}
   <a class="laybtn iconbtn" href="三语母语习得复习.html" title="艾宾浩斯复习（SRS 间隔重复）" style="text-decoration:none">🔁 复习</a>
   <a class="laybtn iconbtn" href="三语母语习得错题复习.html" title="错题专门复习页（错多 → 队首）" style="text-decoration:none">📕 错题</a>
   <button class="laybtn iconbtn" onclick="TrilAI.toggle()" title="展开 / 收起 AI 答疑">🤖 问 AI</button>
+  <button class="laybtn iconbtn" onclick="openSettings()" title="语音 / 语速 / 隐藏语言 等">⚙ 设置</button>
   <button class="laybtn iconbtn" onclick="TrilTTS.toggle()" title="展开 / 收起 朗读语音设置">🎚 朗读</button>
   <span class="studyChip" id="studyChip" title="今日学习时长（可在看板查看详情）" style="font-size:11px;color:var(--muted);padding:3px 8px;background:var(--panel);border-radius:99px;border:1px solid var(--line);cursor:default">⏱ 0分</span>
 </header>
@@ -205,6 +206,7 @@ body.hide-examples .dexample{display:none}
   <button data-layout="examples" title="例句区域">💬 例句</button>
   <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>
   <button onclick="TrilAI.toggle()" title="AI 答疑">🤖 问 AI</button>
+  <button onclick="openSettings()" title="语音 / 语速 / 隐藏语言 等">⚙ 设置</button>
   <button onclick="TrilTTS.toggle()" title="朗读语音">🎚 朗读</button>
 </div>
 
@@ -868,6 +870,8 @@ function openFileRefresh(){
 }
 
 const overlay=document.getElementById("overlay");
+function openSettings(){ document.getElementById("overlay").classList.add("show"); }
+window.openSettings=openSettings;
 (function(btn){ if(btn) btn.onclick=()=>overlay.classList.remove("show"); })(document.getElementById("closeSettings"));
 overlay.onclick=(e)=>{ if(e.target===overlay) overlay.classList.remove("show"); };
 document.getElementById("voiceEn").onchange=e=>{settings.en=e.target.value;saveSettings();};
