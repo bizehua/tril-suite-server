@@ -153,6 +153,11 @@ details.notes .body{font-size:13px;color:var(--muted);line-height:1.8;white-spac
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);
   border:1px solid var(--accent);padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
+#langVisBox .toggle{display:flex;align-items:center;gap:7px;font-size:13px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;padding:7px 10px;margin:4px 0;cursor:pointer}
+#langVisBox input{margin:0}
+/* 隐藏语言：用 body 类控制，不删 DOM，避免表格边框塌掉 */
+body.hide-lang-en .lang-en, body.hide-lang-bm .lang-bm, body.hide-lang-zh .lang-zh, body.hide-lang-th .lang-th{display:none !important}
 @media(max-width:820px){nav{flex-basis:160px}.unitgrid{grid-template-columns:1fr}}
 /* ===== 可折叠面板：左侧目录 / 例句区域 / 顶部栏 =====
    hide-sidebar / hide-topbar / nav transition 已统一到 tril-skin.css
@@ -257,6 +262,13 @@ body.hide-examples .dexample{display:none}
       <input type="range" id="gap" min="0" max="1200" step="100" value="350"></div>
     <div class="field"><label>音量：<span id="volTxt">100</span>%</label>
       <input type="range" id="vol" min="0.2" max="1" step="0.1" value="1"></div>
+    <div class="field" id="langVisBox">
+      <label>显示语言（取消勾选即隐藏该列并跳过朗读）</label>
+      <label class="toggle"><input type="checkbox" data-lang="en" checked> 🇬🇧 英文</label>
+      <label class="toggle"><input type="checkbox" data-lang="bm" checked> 🇲🇾 马来文</label>
+      <label class="toggle"><input type="checkbox" data-lang="zh" checked> 🇨🇳 中文</label>
+      <label class="toggle"><input type="checkbox" data-lang="th" checked> 🇹🇭 泰文</label>
+    </div>
     <div class="note">
       操作：<span class="kbd">空格</span> 播放/暂停 · <span class="kbd">→</span>/<span class="kbd">←</span> 上/下一条 ·
       <span class="kbd">Esc</span> 返回列表。<br>
@@ -336,9 +348,21 @@ function rootMarkEntry(e,langs){
   return t;
 }
 
-let settings = {en:"",bm:"",zh:"",th:"",rate:1,gap:350,volume:1};
+let settings = {en:"",bm:"",zh:"",th:"",rate:1,gap:350,volume:1,hiddenLangs:[]};
 try{ Object.assign(settings, JSON.parse(localStorage.getItem(LS_SET)||"{}")); }catch(e){}
 function saveSettings(){ try{ localStorage.setItem(LS_SET, JSON.stringify(settings)); }catch(e){} }
+function isLangVisible(lang){ return !(settings.hiddenLangs||[]).includes(lang); }
+function visibleLangs(arr){ return (arr||[]).filter(k=>isLangVisible(k)); }
+function applyLangVisibility(){
+  ['en','bm','zh','th'].forEach(k=>{ document.body.classList.toggle('hide-lang-'+k, !isLangVisible(k)); });
+  /* 例句行：若该行下没有可见语言例句，则整行隐藏 */
+  document.querySelectorAll('.exrow').forEach(row=>{
+    const spans = Array.from(row.querySelectorAll('.ex'));
+    spans.forEach(ex=>{ ex.style.display = isLangVisible(ex.dataset.lang)?'':'none'; });
+    const any = spans.some(ex=>isLangVisible(ex.dataset.lang));
+    row.style.display = any ? '' : 'none';
+  });
+}
 
 let voices = [];
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; fillVoiceSelects(); }
@@ -583,27 +607,29 @@ function renderTable(u){
     let ex='';
     if(e.example && (e.example.en||e.example.bm||e.example.zh||e.example.th)){
       let sp='';
-      if(e.example.en) sp+='<span class="ex ex-en" data-text="'+escapeHtml(e.example.en)+'" data-lang="en">🇬🇧 '+escapeHtml(e.example.en)+'</span>';
-      if(e.example.bm) sp+='<span class="ex ex-bm" data-text="'+escapeHtml(e.example.bm)+'" data-lang="bm">🇲🇾 '+escapeHtml(e.example.bm)+'</span>';
-      if(e.example.zh) sp+='<span class="ex ex-zh" data-text="'+escapeHtml(e.example.zh)+'" data-lang="zh">🇨🇳 '+escapeHtml(e.example.zh)+'</span>'+TrilPinyin.html(e.example.zh);
-      if(e.example.th) sp+='<span class="ex ex-th" data-text="'+escapeHtml(e.example.th)+'" data-lang="th">🇹🇭 '+escapeHtml(e.example.th)+'</span>';
+      if(e.example.en) sp+='<span class="ex ex-en lang-en" data-text="'+escapeHtml(e.example.en)+'" data-lang="en">🇬🇧 '+escapeHtml(e.example.en)+'</span>';
+      if(e.example.bm) sp+='<span class="ex ex-bm lang-bm" data-text="'+escapeHtml(e.example.bm)+'" data-lang="bm">🇲🇾 '+escapeHtml(e.example.bm)+'</span>';
+      if(e.example.zh) sp+='<span class="ex ex-zh lang-zh" data-text="'+escapeHtml(e.example.zh)+'" data-lang="zh">🇨🇳 '+escapeHtml(e.example.zh)+'</span>'+TrilPinyin.html(e.example.zh);
+      if(e.example.th) sp+='<span class="ex ex-th lang-th" data-text="'+escapeHtml(e.example.th)+'" data-lang="th">🇹🇭 '+escapeHtml(e.example.th)+'</span>';
       ex='<tr class="exrow" data-i="'+i+'"><td class="exwrap" colspan="'+cols+'">'+sp+'</td></tr>';
     }
     const mkd=isMarked(e);
     return '<tr id="row'+i+'" data-i="'+i+'">'+
       '<td class="c-mark"><span class="mark'+(mkd?" on":"")+'" data-i="'+i+'">'+(mkd?"★":"☆")+'</span></td>'+
-      '<td class="c-en"><div class="t">'+escapeHtml(e.en||"")+'</div>'+(e.en_ipa?'<div class="ipa">'+escapeHtml(e.en_ipa)+'</div>':'')+'</td>'+
-      '<td class="c-bm"><div class="t">'+escapeHtml(e.bm||"")+'</div>'+(e.bm_ipa?'<div class="ipa">'+escapeHtml(e.bm_ipa)+'</div>':'')+(e.bm_pron?'<div class="pron">'+escapeHtml(e.bm_pron)+'</div>':'')+'</td>'+
-      '<td class="c-zh"><div class="t">'+escapeHtml(e.zh||"")+'</div>'+TrilPinyin.html(e.zh||"")+'</td>'+
-      (hasTh?'<td class="c-th"><div class="t">'+escapeHtml(e.th||"")+'</div>'+(e.th_pron?'<div class="pron">'+escapeHtml(e.th_pron)+'</div>':'')+'</td>':'')+
+      '<td class="c-en lang-col lang-en"><div class="t">'+escapeHtml(e.en||"")+'</div>'+(e.en_ipa?'<div class="ipa">'+escapeHtml(e.en_ipa)+'</div>':'')+'</td>'+
+      '<td class="c-bm lang-col lang-bm"><div class="t">'+escapeHtml(e.bm||"")+'</div>'+(e.bm_ipa?'<div class="ipa">'+escapeHtml(e.bm_ipa)+'</div>':'')+(e.bm_pron?'<div class="pron">'+escapeHtml(e.bm_pron)+'</div>':'')+'</td>'+
+      '<td class="c-zh lang-col lang-zh"><div class="t">'+escapeHtml(e.zh||"")+'</div>'+TrilPinyin.html(e.zh||"")+'</td>'+
+      (hasTh?'<td class="c-th lang-col lang-th"><div class="t">'+escapeHtml(e.th||"")+'</div>'+(e.th_pron?'<div class="pron">'+escapeHtml(e.th_pron)+'</div>':'')+'</td>':'')+
       '<td class="c-lv">'+(e.level?escapeHtml(e.level):'')+'</td>'+
       '</tr>'+ex;
   }).join("");
+  const thHead = hasTh ? '<th class="lang-col lang-th">TH 泰文</th>' : '';
   main.innerHTML='<div class="lesson">'+lessonBar('🔊 朗读汇总')+
     '<div class="tablewrap"><table class="vid"><thead><tr>'+
-      '<th>★ 收藏</th><th>EN 英文</th><th>BM 马来文</th><th>ZH 中文</th>'+(hasTh?'<th>TH 泰文</th>':'')+'<th>难度</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<th>★ 收藏</th><th class="lang-col lang-en">EN 英文</th><th class="lang-col lang-bm">BM 马来文</th><th class="lang-col lang-zh">ZH 中文</th>'+thHead+'<th>难度</th></tr></thead><tbody>'+rows+'</tbody></table>'+
       (u.summary?'<details class="notes"><summary>📝 原文详解 / 朗读文本</summary><div class="body">'+escapeHtml(u.summary)+(u.notes?("\n\n"+u.notes):"")+'</div></details>':'')+
     '</div></div>';
+  applyLangVisibility();
   document.getElementById("backBtn").onclick=()=>openFile(cur.si,cur.fi);
   document.getElementById("playBtn").onclick=togglePlay;
   document.getElementById("sumBtn").onclick=playSummary;
@@ -634,8 +660,8 @@ function renderTable(u){
 
 function renderRoot(u){
   const langs=u.langs||["en","zh","bm"];
-  const LNAME={en:"EN",zh:"中文",bm:"BM"};
-  const LCOLOR={en:"l-en",zh:"l-zh",bm:"l-bm"};
+  const LNAME={en:"EN",zh:"中文",bm:"BM",th:"TH"};
+  const LCOLOR={en:"l-en",zh:"l-zh",bm:"l-bm",th:"l-th"};
   let html='<div class="lesson">'+lessonBar('🔊 词根串讲')+
     '<div class="rootwrap">'+
     '<div class="roothead"><div class="roottitle">'+escapeHtml(u.title)+'</div>'+
@@ -643,7 +669,7 @@ function renderRoot(u){
     '</div><div class="derivlist">';
   (u.entries||[]).forEach((e,i)=>{
     let dhead='<div class="dhead">';
-    e.head.forEach((h,p)=>{ dhead+='<span class="dw '+LCOLOR[langs[p]]+'">'+escapeHtml(h)+'</span><span class="langtag">'+LNAME[langs[p]]+'</span>'; });
+    e.head.forEach((h,p)=>{ const k=langs[p]; dhead+='<span class="dw '+LCOLOR[k]+' lang-'+k+'">'+escapeHtml(h)+'</span><span class="langtag lang-'+k+'">'+LNAME[k]+'</span>'; });
     dhead+='</div>';
     let pron=[];
     if(e.ipa) pron.push(e.ipa);
@@ -652,7 +678,7 @@ function renderRoot(u){
     let ex='';
     if(e.example&&e.example.length){
       ex='<div class="dexample">';
-      e.example.forEach((x,p)=>{ if(x) ex+='<div class="ex '+LCOLOR[langs[p]]+'" data-text="'+escapeHtml(x)+'" data-lang="'+langs[p]+'">'+escapeHtml(x)+'</div>'; });
+      e.example.forEach((x,p)=>{ const k=langs[p]; if(x) ex+='<div class="ex '+LCOLOR[k]+' lang-'+k+'" data-text="'+escapeHtml(x)+'" data-lang="'+k+'">'+escapeHtml(x)+'</div>'; });
       ex+='</div>';
     }
     const rm=rootMarkEntry(e,langs); const rmd=isMarked(rm);
@@ -671,6 +697,7 @@ function renderRoot(u){
     (u.summary||u.notes?'<details class="notes"><summary>📝 原文详解</summary><div class="body">'+escapeHtml((u.summary||"")+(u.notes?("\n\n"+u.notes):""))+'</div></details>':'')+
   '</div></div>';
   main.innerHTML=html;
+  applyLangVisibility();
   document.getElementById("backBtn").onclick=()=>openFile(cur.si,cur.fi);
   document.getElementById("playBtn").onclick=togglePlay;
   document.getElementById("sumBtn").onclick=playSummary;
@@ -686,24 +713,25 @@ function buildQueue(){
   if(!cur) return;
   if(cur.type==="root"){
     const langs=cur.langs||["en","zh","bm"];
-    if(cur.root_note) queue.push({text:cur.root_note,lang:"zh",row:-1,intro:true});
+    if(cur.root_note && isLangVisible("zh")) queue.push({text:cur.root_note,lang:"zh",row:-1,intro:true});
     (cur.entries||[]).forEach((e,i)=>{
       for(let p=0;p<3;p++){
-        if(e.head[p]) queue.push({text:e.head[p],lang:langs[p],row:i});
-        if(e.example&&e.example[p]) queue.push({text:e.example[p],lang:langs[p],row:i});
+        const k=langs[p];
+        if(e.head[p] && isLangVisible(k)) queue.push({text:e.head[p],lang:k,row:i});
+        if(e.example&&e.example[p] && isLangVisible(k)) queue.push({text:e.example[p],lang:k,row:i});
       }
     });
   } else {
     (cur.entries||[]).forEach((e,i)=>{
-      if(e.en) queue.push({text:e.en,lang:"en",row:i});
-      if(e.bm) queue.push({text:e.bm,lang:"bm",row:i});
-      if(e.zh) queue.push({text:e.zh,lang:"zh",row:i});
-      if(e.th) queue.push({text:e.th,lang:"th",row:i});
+      if(e.en && isLangVisible("en")) queue.push({text:e.en,lang:"en",row:i});
+      if(e.bm && isLangVisible("bm")) queue.push({text:e.bm,lang:"bm",row:i});
+      if(e.zh && isLangVisible("zh")) queue.push({text:e.zh,lang:"zh",row:i});
+      if(e.th && isLangVisible("th")) queue.push({text:e.th,lang:"th",row:i});
       if(e.example){
-        if(e.example.en) queue.push({text:e.example.en,lang:"en",row:i});
-        if(e.example.bm) queue.push({text:e.example.bm,lang:"bm",row:i});
-        if(e.example.zh) queue.push({text:e.example.zh,lang:"zh",row:i});
-        if(e.example.th) queue.push({text:e.example.th,lang:"th",row:i});
+        if(e.example.en && isLangVisible("en")) queue.push({text:e.example.en,lang:"en",row:i});
+        if(e.example.bm && isLangVisible("bm")) queue.push({text:e.example.bm,lang:"bm",row:i});
+        if(e.example.zh && isLangVisible("zh")) queue.push({text:e.example.zh,lang:"zh",row:i});
+        if(e.example.th && isLangVisible("th")) queue.push({text:e.example.th,lang:"th",row:i});
       }
     });
   }
@@ -783,7 +811,11 @@ function speakRow(i){
   curRow=i; highlight(i,"en");
   const e=cur.entries[i]; if(!e) return;
   const seq=[];
-  if(e.en) seq.push(["en",e.en]); if(e.bm) seq.push(["bm",e.bm]); if(e.zh) seq.push(["zh",e.zh]); if(e.th) seq.push(["th",e.th]);
+  if(e.en && isLangVisible("en")) seq.push(["en",e.en]);
+  if(e.bm && isLangVisible("bm")) seq.push(["bm",e.bm]);
+  if(e.zh && isLangVisible("zh")) seq.push(["zh",e.zh]);
+  if(e.th && isLangVisible("th")) seq.push(["th",e.th]);
+  if(!seq.length){ toast("当前词的所有语言均被隐藏"); return; }
   let k=0;
   const step=()=>{ if(k>=seq.length) return; const [lang,txt]=seq[k++]; highlight(i,lang); speak(txt,lang,()=>setTimeout(step,Math.max(settings.gap||0,60))); };
   step();
@@ -793,9 +825,11 @@ function speakOne(i){
   const e=cur.entries[i]; if(!e) return;
   const langs=cur.langs; const seq=[];
   for(let p=0;p<3;p++){
-    if(e.head[p]) seq.push([langs[p],e.head[p]]);
-    if(e.example&&e.example[p]) seq.push([langs[p],e.example[p]]);
+    const k=langs[p];
+    if(e.head[p] && isLangVisible(k)) seq.push([k,e.head[p]]);
+    if(e.example&&e.example[p] && isLangVisible(k)) seq.push([k,e.example[p]]);
   }
+  if(!seq.length){ toast("当前词的所有语言均被隐藏"); return; }
   let k=0;
   const step=()=>{ if(k>=seq.length) return; const [lang,txt]=seq[k++]; highlight(i,lang); speak(txt,lang,()=>setTimeout(step,Math.max(settings.gap||0,60))); };
   step();
@@ -851,6 +885,20 @@ document.getElementById("testTh").onclick=()=>{
 document.getElementById("rate").oninput=e=>{settings.rate=+e.target.value;document.getElementById("rateTxt").textContent=(+e.target.value).toFixed(1);saveSettings();};
 document.getElementById("gap").oninput=e=>{settings.gap=+e.target.value;saveSettings();};
 document.getElementById("vol").oninput=e=>{settings.volume=+e.target.value;document.getElementById("volTxt").textContent=Math.round(+e.target.value*100);saveSettings();};
+/* 语言显示/隐藏 */
+document.querySelectorAll('#langVisBox input[type=checkbox]').forEach(cb=>{
+  const k=cb.dataset.lang;
+  cb.checked = isLangVisible(k);
+  cb.onchange = e => {
+    const hidden = settings.hiddenLangs || (settings.hiddenLangs=[]);
+    if(e.target.checked){
+      const i=hidden.indexOf(k); if(i>=0) hidden.splice(i,1);
+    } else {
+      if(!hidden.includes(k)) hidden.push(k);
+    }
+    saveSettings(); applyLangVisibility();
+  };
+});
 document.getElementById("rate").value=settings.rate; document.getElementById("rateTxt").textContent=(settings.rate||1).toFixed(1);
 document.getElementById("gap").value=settings.gap;
 document.getElementById("vol").value=(settings.volume!=null?settings.volume:1); document.getElementById("volTxt").textContent=Math.round((settings.volume!=null?settings.volume:1)*100);
