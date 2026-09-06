@@ -103,6 +103,7 @@ function showTtsBanner(ok){
 if(!window.speechSynthesis) showTtsBanner(false);
 
 /* ===== 钻取式目录（学段→文件→单元），与播放器一致 ===== */
+const nav = document.getElementById("nav");
 const navState={level:1,si:-1,fi:-1,hist:[]};
 function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
 function goLevel(level,si,fi){
