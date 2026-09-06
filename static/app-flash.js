@@ -2,6 +2,28 @@ const DATA = window.__TRIL_DATA__;
 const LS_KEY = "tril_flash_mastery_v1";
 const LS_SET = "tril_flash_settings_v1";
 
+/* ===== 全局错误捕获：把任何 JS 异常写到 spinner，让用户看到根因 ===== */
+function _flashShowErr(msg){
+    try{
+      var txt = document.getElementById("trilSpinnerTxt");
+      if(txt){ txt.textContent = "⚠ " + msg; txt.style.color = "#ff6b6b"; }
+      var pct = document.getElementById("trilSpinnerPct");
+      if(pct) pct.textContent = "已停止";
+      var btn = document.getElementById("trilSpinnerRetry");
+      if(btn){ btn.style.display = "inline-block"; btn.onclick = function(){ location.reload(); }; }
+    }catch(e){}
+}
+window.addEventListener("error", function(ev){
+    if(!window.__TRIL_FLASH_LOADED__){
+      _flashShowErr("JS 错误：" + (ev.message || (ev.error && ev.error.message) || "未知"));
+    }
+});
+window.addEventListener("unhandledrejection", function(ev){
+    if(!window.__TRIL_FLASH_LOADED__){
+      _flashShowErr("Promise 异常：" + ((ev.reason && ev.reason.message) || ev.reason || "未知"));
+    }
+});
+
 const LANGS=[
   {k:"en",label:"英文",short:"EN",cls:"l-en",color:"#5b8cff"},
   {k:"bm",label:"马来文",short:"BM",cls:"l-bm",color:"#ffb454"},
