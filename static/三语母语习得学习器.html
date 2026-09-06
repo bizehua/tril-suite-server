@@ -969,7 +969,7 @@ applyLayout();
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js').catch(function (e) { console.log('SW 注册失败', e); });
+    navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'}).catch(function (e) { console.log('SW 注册失败', e); });
   });
 }
 </script>

@@ -1,5 +1,5 @@
 // 四语母语习得套件 Service Worker：缓存应用外壳，支持离线使用
-const CACHE_NAME = 'tril-pwa-v12';
+const CACHE_NAME = 'tril-pwa-v13';
 const ASSETS = [
   './',
   './index.html',
