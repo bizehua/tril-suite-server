@@ -156,13 +156,22 @@ function navBack(){
   const p=navState.hist.pop();
   navState.level=p.level; navState.si=p.si; navState.fi=p.fi; renderNav();
 }
+function sortedStages(){
+  /* 东钢岗位词汇 永远在第一位 — 与学习器/测试器/闪记/复习一致 */
+  const a=DATA.stages.slice();
+  const i=a.findIndex(s=>/东钢岗位词汇/.test(s.name||""));
+  if(i>0){ const x=a.splice(i,1)[0]; a.unshift(x); }
+  return a;
+}
 function renderNav(){
   nav.innerHTML="";
   if(navState.level===1){
     const close=document.createElement("button"); close.className="navback"; close.textContent="✕ 关闭目录";
     close.onclick=()=>document.body.classList.remove("show-sidebar-m");
     nav.appendChild(close);
-    DATA.stages.forEach((st,si)=>{
+    /* 学段列表（东钢岗位词汇置顶） */
+    sortedStages().forEach(st=>{
+      const si=DATA.stages.indexOf(st);
       const total=st.files.reduce((a,f)=>a+f.units.length,0);
       const b=document.createElement("button"); b.className="navfile";
       b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
