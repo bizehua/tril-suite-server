@@ -121,6 +121,36 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <button class="ghost" onclick="if(confirm('确定清空所有 SRS 复习进度？（不可恢复）')){localStorage.removeItem('tril_review_v1');localStorage.removeItem('tril_review_meta_v1');location.reload();}">🗑 重置</button>
 </header>
 
+<div id="displayPanel" class="display-panel">
+  <div class="display-panel-header" onclick="toggleDisplayPanel()" title="折叠 / 展开显示控制">
+    <span>👁 显示设置（隐藏语言 / 正面 / 背面）</span>
+    <span id="displayPanelArrow">▼</span>
+  </div>
+  <div id="displayPanelBody" class="display-panel-body" hidden>
+    <div class="display-section">
+      <span class="sec-label">🔒 隐藏：</span>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="en" checked> 🇬🇧 EN</label>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="bm" checked> 🇲🇾 BM</label>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="zh" checked> 🇨🇳 ZH</label>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="th" checked> 🇹🇭 TH</label>
+    </div>
+    <div class="display-section">
+      <span class="sec-label">👁 正面：</span>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="en" checked> 🇬🇧 EN</label>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="bm"> 🇲🇾 BM</label>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="zh"> 🇨🇳 ZH</label>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="th"> 🇹🇭 TH</label>
+    </div>
+    <div class="display-section">
+      <span class="sec-label">📖 背面：</span>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="en"> 🇬🇧 EN</label>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="bm" checked> 🇲🇾 BM</label>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="zh" checked> 🇨🇳 ZH</label>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="th" checked> 🇹🇭 TH</label>
+    </div>
+  </div>
+</div>
+
 <div id="layoutDock">
   <button data-layout="sidebar" title="目录栏">☰ 目录</button>
   <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>

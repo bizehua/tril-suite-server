@@ -195,6 +195,104 @@ let queue = [];
 let pos = -1;
 let flipped = false;
 
+/* ============ 显示设置（隐藏语言 / 正面 / 背面） ============ */
+const DISPLAY_KEY = "tril_review_display_v1";
+let displaySettings = {
+  hiddenLangs: [],          // [] = 全部可见；['en','bm'] = 隐藏这 2 种
+  frontLang: "en",          // 正面显示哪种语言（单选）
+  backLangs: ["bm","zh","th"], // 背面显示哪些语言（多选）
+  panelOpen: false          // 显示设置面板是否展开
+};
+try{
+  const saved = JSON.parse(localStorage.getItem(DISPLAY_KEY) || "{}");
+  if(saved && typeof saved === "object") Object.assign(displaySettings, saved);
+}catch(e){}
+/* 默认值兜底 */
+if(!Array.isArray(displaySettings.hiddenLangs)) displaySettings.hiddenLangs = [];
+if(!Array.isArray(displaySettings.backLangs)) displaySettings.backLangs = ["bm","zh","th"];
+if(typeof displaySettings.frontLang !== "string") displaySettings.frontLang = "en";
+
+function saveDisplaySettings(){
+  try{ localStorage.setItem(DISPLAY_KEY, JSON.stringify(displaySettings)); }catch(e){}
+}
+function isLangVisible(lang){ return !displaySettings.hiddenLangs.includes(lang); }
+function toggleDisplayPanel(){
+  displaySettings.panelOpen = !displaySettings.panelOpen;
+  saveDisplaySettings();
+  applyDisplayPanel();
+}
+function applyDisplayPanel(){
+  /* 折叠态：body hidden，箭头 ▼ */
+  const body = document.getElementById("displayPanelBody");
+  const arrow = document.getElementById("displayPanelArrow");
+  if(!body) return;
+  body.hidden = !displaySettings.panelOpen;
+  if(arrow) arrow.textContent = displaySettings.panelOpen ? "▲" : "▼";
+  /* body class 控制 hide-lang-* */
+  ['en','bm','zh','th'].forEach(k => document.body.classList.toggle('hide-lang-'+k, !isLangVisible(k)));
+  /* 同步控件 checked 状态 */
+  document.querySelectorAll('[data-hidelang]').forEach(cb => { cb.checked = isLangVisible(cb.dataset.hidelang); });
+  document.querySelectorAll('input[name="frontLang"]').forEach(r => { r.checked = (r.value === displaySettings.frontLang); });
+  document.querySelectorAll('[data-backlang]').forEach(cb => { cb.checked = displaySettings.backLangs.includes(cb.dataset.backlang); });
+}
+function bindDisplayPanel(){
+  document.querySelectorAll('[data-hidelang]').forEach(cb => {
+    cb.onchange = () => {
+      const k = cb.dataset.hidelang;
+      const i = displaySettings.hiddenLangs.indexOf(k);
+      if(cb.checked){ if(i>=0) displaySettings.hiddenLangs.splice(i,1); }
+      else { if(i<0) displaySettings.hiddenLangs.push(k); }
+      saveDisplaySettings();
+      applyDisplayPanel();
+      /* 卡片重渲 */
+      renderCard();
+    };
+  });
+  document.querySelectorAll('input[name="frontLang"]').forEach(r => {
+    r.onchange = () => {
+      displaySettings.frontLang = r.value;
+      saveDisplaySettings();
+      renderCard();
+    };
+  });
+  document.querySelectorAll('[data-backlang]').forEach(cb => {
+    cb.onchange = () => {
+      const k = cb.dataset.backlang;
+      const i = displaySettings.backLangs.indexOf(k);
+      if(cb.checked){ if(i<0) displaySettings.backLangs.push(k); }
+      else { if(i>=0) displaySettings.backLangs.splice(i,1); }
+      saveDisplaySettings();
+      applyDisplayPanel();
+      renderCard();
+    };
+  });
+}
+/* 渲染正面（根据 frontLang） */
+function frontHtmlByLang(e){
+  const map = {
+    en: { val: e.en,    pron: e.en_ipa,            lang: "en", label: "英文" },
+    bm: { val: e.bm,    pron: e.bm_pron || e.bm_ipa, lang: "bm", label: "马来" },
+    zh: { val: e.zh,    pron: e.zh_pinyin,         lang: "zh", label: "中文" },
+    th: { val: e.th,    pron: e.th_pron,           lang: "th", label: "泰文" }
+  };
+  const f = map[displaySettings.frontLang] || map.en;
+  const val = f.val || "";
+  const safe = String(val).replace(/'/g, "\\'");
+  return '<div class="front-en lang-' + f.lang + '">' + escapeHtml(val) +
+    ' <button class="ghost" style="padding:4px 8px;min-height:28px;font-size:14px;vertical-align:middle" onclick="event.stopPropagation();speak(\'' + safe + '\',\'' + f.lang + '\')">🔊</button></div>' +
+    '<div class="front-ipa lang-' + f.lang + '">' + escapeHtml(f.pron || "") + '</div>';
+}
+/* 渲染背面某语种行（仅当 backLangs 含此语言） */
+function backRowHtml(label, val, phonetic, lang){
+  if(!displaySettings.backLangs.includes(lang)) return '';
+  return rowHtml(label, val, phonetic, lang);
+}
+function autoSpeakFront(e){
+  const map = { en: {val: e.en, lang:"en"}, bm: {val: e.bm, lang:"bm"}, zh: {val: e.zh, lang:"zh"}, th: {val: e.th, lang:"th"} };
+  const f = map[displaySettings.frontLang] || map.en;
+  try{ speak(f.val || "", f.lang); }catch(_){}
+}
+
 function buildQueue(){
   // 入口：把 candidates → srs（仅在「due/all」模式下才纳入，其余过滤模式下用现有 srs）
   // 简化策略：
@@ -323,13 +421,13 @@ function renderCard(){
       '<span class="spacer" style="flex:1"></span>' +
       '<span class="chip">第 ' + (pos+1) + '/' + queue.length + ' 张</span>' +
     '</div>' +
-    '<div class="front-en">' + escapeHtml(e.en || "") + ' <button class="ghost" style="padding:4px 8px;min-height:28px;font-size:14px;vertical-align:middle" onclick="event.stopPropagation();speak(\'' + (e.en||"").replace(/'/g, "\\'") + '\',\'en\')">🔊</button></div>' +
-    '<div class="front-ipa">' + escapeHtml(e.en_ipa || "") + '</div>' +
+    frontHtmlByLang(e) +
     '<div class="levels" style="display:flex;gap:4px;justify-content:center;margin-top:4px">' + levelsHtml + '</div>' +
     '<div class="back ' + (flipped ? '' : 'hidden') + '">' +
-      rowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
-      rowHtml("中文", e.zh, "", "zh") +
-      rowHtml("泰文", e.th, e.th_pron, "th") +
+      backRowHtml("英文", e.en, e.en_ipa, "en") +
+      backRowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
+      backRowHtml("中文", e.zh, e.zh_pinyin, "zh") +
+      backRowHtml("泰文", e.th, e.th_pron, "th") +
       (e.example_zh || e.example_en ? '<div class="row" style="margin-top:4px"><span class="lbl">例句</span><div class="val" style="font-weight:400;font-size:14px">' + escapeHtml(e.example_en || "") + (e.example_zh ? '<br><span style="color:var(--muted);font-size:13px">' + escapeHtml(e.example_zh) + '</span>' : '') + '</div></div>' : '') +
     '</div>' +
     '<div class="rate ' + (flipped ? '' : 'hidden') + '">' +
@@ -348,7 +446,7 @@ function renderCard(){
   main.appendChild(card);
 
   // 自动朗读英文
-  setTimeout(()=>{ try{ speak(e.en, 'en'); }catch(_){} }, 80);
+  setTimeout(()=>{ autoSpeakFront(e); }, 80);
 
   // 更新底部进度
   const pct = queue.length ? Math.round((pos) / queue.length * 100) : 0;
@@ -359,11 +457,11 @@ function renderCard(){
 function rowHtml(label, val, phonetic, lang){
   if(!val) return '';
   var valEsc = escapeHtml(val);
-  var valPron = phonetic ? '<span class="py">' + escapeHtml(phonetic) + '</span>' : '';
+  var valPron = phonetic ? '<span class="py"> · ' + escapeHtml(phonetic) + '</span>' : '';
   var py = (lang === "zh" && window.TrilPinyin) ? TrilPinyin.html(val) : '';
   var safeVal = String(val).replace(/'/g, "\\'");
   var btn = '<button class="ghost row-spk" onclick="event.stopPropagation();speak(\'' + safeVal + '\',\'' + (lang||"en") + '\')" title="朗读 ' + label + '">🔊</button>';
-  return '<div class="row"><span class="lbl">' + label + '</span><div class="val">' + valEsc + ' ' + valPron + py + btn + '</div></div>';
+  return '<div class="row lang-' + (lang||'en') + '"><span class="lbl">' + label + '</span><div class="val">' + valEsc + valPron + py + btn + '</div></div>';
 }
 
 function renderSummary(){
@@ -695,6 +793,8 @@ function applyLayout(){
 function bootReview(){
   applyLayout();
   document.querySelectorAll('[data-layout]').forEach(b => { b.onclick = ()=>toggleLayout(b.dataset.layout); });
+  applyDisplayPanel();
+  bindDisplayPanel();
   setTimeout(function(){
     const s = document.getElementById("trilSpinner");
     if(s) s.remove();

@@ -112,6 +112,36 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <button onclick="TrilTTS && TrilTTS.toggle()" title="朗读">🎚 朗读</button>
 </header>
 
+<div id="displayPanel" class="display-panel">
+  <div class="display-panel-header" onclick="toggleDisplayPanel()" title="折叠 / 展开显示控制">
+    <span>👁 显示设置（隐藏语言 / 正面 / 背面）</span>
+    <span id="displayPanelArrow">▼</span>
+  </div>
+  <div id="displayPanelBody" class="display-panel-body" hidden>
+    <div class="display-section">
+      <span class="sec-label">🔒 隐藏：</span>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="en" checked> 🇬🇧 EN</label>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="bm" checked> 🇲🇾 BM</label>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="zh" checked> 🇨🇳 ZH</label>
+      <label class="lang-toggle"><input type="checkbox" data-hidelang="th" checked> 🇹🇭 TH</label>
+    </div>
+    <div class="display-section">
+      <span class="sec-label">👁 正面：</span>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="en" checked> 🇬🇧 EN</label>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="bm"> 🇲🇾 BM</label>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="zh"> 🇨🇳 ZH</label>
+      <label class="lang-radio"><input type="radio" name="frontLang" value="th"> 🇹🇭 TH</label>
+    </div>
+    <div class="display-section">
+      <span class="sec-label">📖 背面：</span>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="en"> 🇬🇧 EN</label>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="bm" checked> 🇲🇾 BM</label>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="zh" checked> 🇨🇳 ZH</label>
+      <label class="lang-toggle"><input type="checkbox" data-backlang="th" checked> 🇹🇭 TH</label>
+    </div>
+  </div>
+</div>
+
 <div id="layoutDock">
   <button data-layout="sidebar" title="目录栏">☰ 目录</button>
   <button data-layout="topbar" title="顶部栏">▭ 顶栏</button>
@@ -406,13 +436,13 @@ function renderCard(){
       '<span class="spacer" style="flex:1"></span>' +
       (e.level ? '<span class="chip">L' + escapeHtml(String(e.level)) + '</span>' : '') +
     '</div>' +
-    '<div class="front-en">' + escapeHtml(e.en || "") + ' <button class="ghost" style="padding:4px 8px;min-height:28px;font-size:14px;vertical-align:middle" onclick="event.stopPropagation();speak(\'' + (e.en||"").replace(/'/g, "\\'") + '\',\'en\')">🔊</button></div>' +
-    '<div class="front-ipa">' + escapeHtml(e.en_ipa || "") + '</div>' +
+    frontHtmlByLang(e) +
     '<div class="streakbar" title="连对 10 自动毕业">' + streakHtml + '</div>' +
     '<div class="back ' + (flipped ? '' : 'hidden') + '">' +
-      rowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
-      rowHtml("中文", e.zh, e.zh_pinyin, "zh") +
-      rowHtml("泰文", e.th, e.th_pron, "th") +
+      backRowHtml("英文", e.en, e.en_ipa, "en") +
+      backRowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
+      backRowHtml("中文", e.zh, e.zh_pinyin, "zh") +
+      backRowHtml("泰文", e.th, e.th_pron, "th") +
       exHtml +
     '</div>' +
     '<div class="rate ' + (flipped ? '' : 'hidden') + '">' +
@@ -429,7 +459,7 @@ function renderCard(){
   main.innerHTML = '';
   main.appendChild(card);
 
-  setTimeout(()=>{ try{ speak(e.en, 'en'); }catch(_){} }, 80);
+  setTimeout(()=>{ autoSpeakFront(e); }, 80);
 
   const pct = queue.length ? Math.round((pos) / queue.length * 100) : 0;
   document.getElementById("progFill").style.width = pct + "%";
@@ -443,7 +473,7 @@ function rowHtml(label, val, phonetic, lang){
   var py = (lang === "zh" && window.TrilPinyin) ? TrilPinyin.html(val) : '';
   var safeVal = String(val).replace(/'/g, "\\'");
   var btn = '<button class="ghost row-spk" onclick="event.stopPropagation();speak(\'' + safeVal + '\',\'' + (lang||"en") + '\')" title="朗读 ' + label + '">🔊</button>';
-  return '<div class="row"><span class="lbl">' + label + '</span><div class="val">' + valEsc + valPron + py + btn + '</div></div>';
+  return '<div class="row lang-' + (lang||'en') + '"><span class="lbl">' + label + '</span><div class="val">' + valEsc + valPron + py + btn + '</div></div>';
 }
 
 function renderSummary(){
@@ -838,10 +868,103 @@ function applyLayout(){
   });
 }
 
+/* ============ 显示设置（隐藏语言 / 正面 / 背面） ============ */
+const DISPLAY_KEY = "tril_wrong_display_v1";
+let displaySettings = {
+  hiddenLangs: [],
+  frontLang: "en",
+  backLangs: ["bm","zh","th"],
+  panelOpen: false
+};
+try{
+  const saved = JSON.parse(localStorage.getItem(DISPLAY_KEY) || "{}");
+  if(saved && typeof saved === "object") Object.assign(displaySettings, saved);
+}catch(e){}
+if(!Array.isArray(displaySettings.hiddenLangs)) displaySettings.hiddenLangs = [];
+if(!Array.isArray(displaySettings.backLangs)) displaySettings.backLangs = ["bm","zh","th"];
+if(typeof displaySettings.frontLang !== "string") displaySettings.frontLang = "en";
+
+function saveDisplaySettings(){
+  try{ localStorage.setItem(DISPLAY_KEY, JSON.stringify(displaySettings)); }catch(e){}
+}
+function isLangVisible(lang){ return !displaySettings.hiddenLangs.includes(lang); }
+function toggleDisplayPanel(){
+  displaySettings.panelOpen = !displaySettings.panelOpen;
+  saveDisplaySettings();
+  applyDisplayPanel();
+}
+function applyDisplayPanel(){
+  const body = document.getElementById("displayPanelBody");
+  const arrow = document.getElementById("displayPanelArrow");
+  if(!body) return;
+  body.hidden = !displaySettings.panelOpen;
+  if(arrow) arrow.textContent = displaySettings.panelOpen ? "▲" : "▼";
+  ['en','bm','zh','th'].forEach(k => document.body.classList.toggle('hide-lang-'+k, !isLangVisible(k)));
+  document.querySelectorAll('[data-hidelang]').forEach(cb => { cb.checked = isLangVisible(cb.dataset.hidelang); });
+  document.querySelectorAll('input[name="frontLang"]').forEach(r => { r.checked = (r.value === displaySettings.frontLang); });
+  document.querySelectorAll('[data-backlang]').forEach(cb => { cb.checked = displaySettings.backLangs.includes(cb.dataset.backlang); });
+}
+function bindDisplayPanel(){
+  document.querySelectorAll('[data-hidelang]').forEach(cb => {
+    cb.onchange = () => {
+      const k = cb.dataset.hidelang;
+      const i = displaySettings.hiddenLangs.indexOf(k);
+      if(cb.checked){ if(i>=0) displaySettings.hiddenLangs.splice(i,1); }
+      else { if(i<0) displaySettings.hiddenLangs.push(k); }
+      saveDisplaySettings();
+      applyDisplayPanel();
+      renderCard();
+    };
+  });
+  document.querySelectorAll('input[name="frontLang"]').forEach(r => {
+    r.onchange = () => {
+      displaySettings.frontLang = r.value;
+      saveDisplaySettings();
+      renderCard();
+    };
+  });
+  document.querySelectorAll('[data-backlang]').forEach(cb => {
+    cb.onchange = () => {
+      const k = cb.dataset.backlang;
+      const i = displaySettings.backLangs.indexOf(k);
+      if(cb.checked){ if(i<0) displaySettings.backLangs.push(k); }
+      else { if(i>=0) displaySettings.backLangs.splice(i,1); }
+      saveDisplaySettings();
+      applyDisplayPanel();
+      renderCard();
+    };
+  });
+}
+function frontHtmlByLang(e){
+  const map = {
+    en: { val: e.en,    pron: e.en_ipa,             lang: "en" },
+    bm: { val: e.bm,    pron: e.bm_pron || e.bm_ipa, lang: "bm" },
+    zh: { val: e.zh,    pron: e.zh_pinyin,          lang: "zh" },
+    th: { val: e.th,    pron: e.th_pron,            lang: "th" }
+  };
+  const f = map[displaySettings.frontLang] || map.en;
+  const val = f.val || "";
+  const safe = String(val).replace(/'/g, "\\'");
+  return '<div class="front-en lang-' + f.lang + '">' + escapeHtml(val) +
+    ' <button class="ghost" style="padding:4px 8px;min-height:28px;font-size:14px;vertical-align:middle" onclick="event.stopPropagation();speak(\'' + safe + '\',\'' + f.lang + '\')">🔊</button></div>' +
+    '<div class="front-ipa lang-' + f.lang + '">' + escapeHtml(f.pron || "") + '</div>';
+}
+function backRowHtml(label, val, phonetic, lang){
+  if(!displaySettings.backLangs.includes(lang)) return '';
+  return rowHtml(label, val, phonetic, lang);
+}
+function autoSpeakFront(e){
+  const map = { en: {val: e.en, lang:"en"}, bm: {val: e.bm, lang:"bm"}, zh: {val: e.zh, lang:"zh"}, th: {val: e.th, lang:"th"} };
+  const f = map[displaySettings.frontLang] || map.en;
+  try{ speak(f.val || "", f.lang); }catch(_){}
+}
+
 /* ============ 启动 ============ */
 window.addEventListener("load", function(){
   applyLayout();
   document.querySelectorAll('[data-layout]').forEach(b => { b.onclick = ()=>toggleLayout(b.dataset.layout); });
+  applyDisplayPanel();
+  bindDisplayPanel();
   setTimeout(function(){
     const s = document.getElementById("trilSpinner");
     if(s) s.remove();
