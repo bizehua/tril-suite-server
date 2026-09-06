@@ -40,7 +40,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 .section h2{margin:0 0 6px;font-size:15px;font-weight:700;color:var(--txt)}
 .section .sub{margin:0 0 12px;font-size:12px;color:var(--muted)}
 .theme-chips{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.theme-chips button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;box-shadow:0 4px 10px var(--shadow);transition:.15s;position:relative}
+.theme-chips button{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;box-shadow:0 4px 10px var(--shadow);transition:.15s;position:relative}
 .theme-chips button:hover{transform:scale(1.1)}
 .theme-chips button.on{box-shadow:0 0 0 2px var(--accent),0 4px 10px var(--shadow)}
 .cards{width:100%;max-width:920px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
@@ -192,16 +192,6 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
   </div>
 </section>
 
-<section class="section">
-  <h2>🌏 套件皮肤</h2>
-  <p class="sub">选择整体配色皮肤（含中国风 / 马来西亚国旗配色），保存 30 天，全页面同步</p>
-  <div class="theme-chips" id="skinChips">
-    <button data-skin="default" title="默认蓝" style="background:linear-gradient(135deg,#5b8cff,#7aa2ff)"></button>
-    <button data-skin="guofeng" title="中国风" style="background:linear-gradient(135deg,#C8102E,#D4AF37)"></button>
-    <button data-skin="malaysia" title="马来西亚" style="background:linear-gradient(135deg,#010066,#FFCC00)"></button>
-  </div>
-</section>
-
 <div class="cards">
   <a class="card" href="三语母语习得学习器.html">
     <div class="emoji">🎧</div>
@@ -240,6 +230,19 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <span class="tag" style="background:rgba(255,107,107,.18);color:#ff6b6b;border:1px solid #ff6b6b;">HOT → 打开错题</span>
   </a>
 </div>
+
+<section class="section">
+  <h2>🌏 套件皮肤</h2>
+  <p class="sub">选择整体配色皮肤（含中国风 / 马来西亚国旗配色 · 含节日皮肤🧧春节/🌙开斋/🥮中秋），保存 30 天，全页面同步</p>
+  <div class="theme-chips" id="skinChips">
+    <button data-skin="default" title="默认蓝" style="background:linear-gradient(135deg,#5b8cff,#7aa2ff)"></button>
+    <button data-skin="guofeng" title="中国风" style="background:linear-gradient(135deg,#C8102E,#D4AF37)"></button>
+    <button data-skin="malaysia" title="马来西亚" style="background:linear-gradient(135deg,#010066,#FFCC00)"></button>
+    <button data-skin="chunjie" title="🧧 春节" style="background:linear-gradient(135deg,#D71920,#FFD700)"></button>
+    <button data-skin="kaifa" title="🌙 开斋节" style="background:linear-gradient(135deg,#006233,#FFCC00)"></button>
+    <button data-skin="zhongqiu" title="🥮 中秋" style="background:linear-gradient(135deg,#1a2a4d,#F5C26B)"></button>
+  </div>
+</section>
 
 <section class="install">
   <div class="badges"><span class="badge">PWA 可安装</span><span class="badge">iOS · 安卓 · 平板</span><span class="badge">扫码即用</span></div>
