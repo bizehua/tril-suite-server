@@ -343,22 +343,7 @@ html[data-skin="guofeng"] h1::before{
   filter:drop-shadow(0 0 6px rgba(212,175,55,.6)) saturate(1.15);
 }
 
-/* 10) 印章式皮肤角标（右下角，朱红印章 + 竖排楷体） */
-html[data-skin="guofeng"] body::after{
-  content:"中国风" !important;
-  writing-mode:vertical-rl !important;
-  font-family:"STKaiti","KaiTi","楷体",serif !important;
-  font-weight:700 !important;
-  position:fixed !important; right:12px !important; bottom:12px !important;
-  padding:7px 5px !important; font-size:13px !important;
-  letter-spacing:3px !important;
-  background:linear-gradient(160deg,#d42034,#a01020) !important;
-  color:#ffe9c8 !important;
-  border:2px solid rgba(212,175,55,.75) !important;
-  border-radius:7px !important;
-  box-shadow:0 3px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,233,200,.25) !important;
-  z-index:998 !important; pointer-events:none !important; opacity:.92 !important;
-}
+/* 10) 印章式皮肤角标：已移除，避免遮挡右下角 Dock（用户反馈#8） */
 
 /* 10) 看板（浅色区）：宣纸底 + 祥云角饰 */
 html[data-skin="guofeng"] .dashboard .cc,
@@ -471,18 +456,7 @@ html[data-skin="malaysia"] .dashboard .sc{
   background-image:var(--pat-card);
 }
 
-/* 10) 旗帜式皮肤角标（右下角，国旗条纹） */
-html[data-skin="malaysia"] body::after{
-  content:"马来西亚" !important;
-  position:fixed !important; right:12px !important; bottom:12px !important;
-  padding:4px 12px !important; font-size:11px !important; font-weight:700 !important;
-  letter-spacing:2px !important;
-  background:#010066 !important; color:#FFCC00 !important;
-  border:1px solid #FFCC00 !important;
-  border-radius:99px !important;
-  box-shadow:0 3px 10px rgba(0,0,30,.55), inset 0 0 0 1px rgba(255,204,0,.2) !important;
-  z-index:998 !important; pointer-events:none !important; opacity:.94 !important;
-}
+/* 10) 旗帜式皮肤角标：已移除，避免遮挡右下角 Dock（用户反馈#8） */
 
 /* 11) 表格头 / 目录按钮：深蓝衬底金线 */
 html[data-skin="malaysia"] th{

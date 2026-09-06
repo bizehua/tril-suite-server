@@ -472,8 +472,7 @@ refreshProgress();
     if(!isNaN(si)){ goLevel(2, si, -1); return; }
   }catch(e){}
 })();
-/* 自动展开到第一个学段（不开单元），用户从侧栏直接选单元开始 */
-if(navState.level === 1 && flat.length && DATA.stages.length){ goLevel(2,0,-1); }
+/* 首页保持 level 1 学段列表，不自动展开 */
 
 /* ===== auth-client 返回键：学习回合逐级回退 ===== */
 window.TrilAppBack = function(){
