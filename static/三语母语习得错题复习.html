@@ -399,9 +399,9 @@ function renderCard(){
     '<div class="front-ipa">' + escapeHtml(e.en_ipa || "") + '</div>' +
     '<div class="streakbar" title="连对 10 自动毕业">' + streakHtml + '</div>' +
     '<div class="back ' + (flipped ? '' : 'hidden') + '">' +
-      rowHtml("马来", e.bm, e.bm_pron || e.bm_ipa) +
-      rowHtml("中文", e.zh, e.zh_pinyin) +
-      rowHtml("泰文", e.th, e.th_pron) +
+      rowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
+      rowHtml("中文", e.zh, e.zh_pinyin, "zh") +
+      rowHtml("泰文", e.th, e.th_pron, "th") +
       exHtml +
     '</div>' +
     '<div class="rate ' + (flipped ? '' : 'hidden') + '">' +
@@ -425,9 +425,14 @@ function renderCard(){
   document.getElementById("footChip").textContent = (pos+1) + " / " + queue.length + " · 余 " + (queue.length - pos);
 }
 
-function rowHtml(label, val, ipa){
+function rowHtml(label, val, phonetic, lang){
   if(!val) return '';
-  return '<div class="row"><span class="lbl">' + label + '</span><div class="val">' + escapeHtml(val) + (ipa ? '<span class="py"> · ' + escapeHtml(ipa) + '</span>' : '') + '</div></div>';
+  var valEsc = escapeHtml(val);
+  var valPron = phonetic ? '<span class="py"> · ' + escapeHtml(phonetic) + '</span>' : '';
+  var py = (lang === "zh" && window.TrilPinyin) ? TrilPinyin.html(val) : '';
+  var safeVal = String(val).replace(/'/g, "\\'");
+  var btn = '<button class="ghost row-spk" onclick="event.stopPropagation();speak(\'' + safeVal + '\',\'' + (lang||"en") + '\')" title="朗读 ' + label + '">🔊</button>';
+  return '<div class="row"><span class="lbl">' + label + '</span><div class="val">' + valEsc + valPron + py + btn + '</div></div>';
 }
 
 function renderSummary(){

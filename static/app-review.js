@@ -327,9 +327,9 @@ function renderCard(){
     '<div class="front-ipa">' + escapeHtml(e.en_ipa || "") + '</div>' +
     '<div class="levels" style="display:flex;gap:4px;justify-content:center;margin-top:4px">' + levelsHtml + '</div>' +
     '<div class="back ' + (flipped ? '' : 'hidden') + '">' +
-      rowHtml("马来", e.bm, e.bm_ipa) +
-      rowHtml("中文", e.zh, "") +
-      rowHtml("泰文", e.th, "") +
+      rowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
+      rowHtml("中文", e.zh, "", "zh") +
+      rowHtml("泰文", e.th, e.th_pron, "th") +
       (e.example_zh || e.example_en ? '<div class="row" style="margin-top:4px"><span class="lbl">例句</span><div class="val" style="font-weight:400;font-size:14px">' + escapeHtml(e.example_en || "") + (e.example_zh ? '<br><span style="color:var(--muted);font-size:13px">' + escapeHtml(e.example_zh) + '</span>' : '') + '</div></div>' : '') +
     '</div>' +
     '<div class="rate ' + (flipped ? '' : 'hidden') + '">' +
@@ -356,9 +356,14 @@ function renderCard(){
   document.getElementById("footChip").textContent = (pos+1) + " / " + queue.length + " · 待评 " + (queue.length - pos);
 }
 
-function rowHtml(label, val, ipa){
+function rowHtml(label, val, phonetic, lang){
   if(!val) return '';
-  return '<div class="row"><span class="lbl">' + label + '</span><div class="val">' + escapeHtml(val) + (ipa ? '<span class="py"> · ' + escapeHtml(ipa) + '</span>' : '') + '</div></div>';
+  var valEsc = escapeHtml(val);
+  var valPron = phonetic ? '<span class="py">' + escapeHtml(phonetic) + '</span>' : '';
+  var py = (lang === "zh" && window.TrilPinyin) ? TrilPinyin.html(val) : '';
+  var safeVal = String(val).replace(/'/g, "\\'");
+  var btn = '<button class="ghost row-spk" onclick="event.stopPropagation();speak(\'' + safeVal + '\',\'' + (lang||"en") + '\')" title="朗读 ' + label + '">🔊</button>';
+  return '<div class="row"><span class="lbl">' + label + '</span><div class="val">' + valEsc + ' ' + valPron + py + btn + '</div></div>';
 }
 
 function renderSummary(){

@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<link rel="stylesheet" href="tril-skin.css">
+<html lang="zh-CN" data-page-node-id="ECb3AieJv8yhuySYLQpYB5">
+<head data-page-node-id="6cIZ0kpdo2bOIL5AOeSw6o">
+<link rel="stylesheet" href="tril-skin.css" data-page-node-id="G3bETaB9ESQXaJJfpNe6nV">
 <script src="tril-skin.js"></script>
 <script src="tril-skin-widget.js"></script>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" data-page-node-id="CVu7oDH7P1td7OWPAGNmP0">
+<meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="O1nLZFXywkEVHC9W76udqj">
 <title>四语母语习得 · 学习看板</title>
-<meta name="theme-color" content="#2563eb">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="四语学习看板">
-<link rel="manifest" href="./index.webmanifest">
-<link rel="apple-touch-icon" href="./icon-learner.png">
-<link rel="icon" type="image/png" href="./favicon-learner.png">
+<meta name="theme-color" content="#2563eb" data-page-node-id="v2u1bUux4m4rDL0XasE2n6">
+<meta name="apple-mobile-web-app-capable" content="yes" data-page-node-id="6z75VOCJ6ylb1egCSlxiJC">
+<meta name="mobile-mobile-web-app-capable" content="yes" data-page-node-id="u7LVPqlzsVBfzZAHC1HGXJ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-page-node-id="RCMolfumC6YESuL0zq0qYh">
+<meta name="apple-mobile-web-app-title" content="四语学习看板" data-page-node-id="fEfmRsdFrsGBanDZvR54gg">
+<link rel="manifest" href="./index.webmanifest" data-page-node-id="u3G2IY3CHIrp4T8EpayDv5">
+<link rel="apple-touch-icon" href="./icon-learner.png" data-page-node-id="zEPDPJuE2vx6g128CrAqnP">
+<link rel="icon" type="image/png" href="./favicon-learner.png" data-page-node-id="pNsStTgLyhSQIGp1g4HqAJ">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js" crossorigin="anonymous"></script>
 <style>
 :root{--bg:#0e1320;--bg2:#151c2e;--panel:#1a2238;--panel2:#212c47;--line:#2c3756;--txt:#e8edf7;--muted:#93a0bd;--accent:#5b8cff;--en:#5b8cff;--bm:#ffb454;--zh:#4fd1a5;--th:#c792ea;--shadow:rgba(0,0,0,.35)}
@@ -122,146 +122,151 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
   .dash-hero{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:560px){.hero{padding-top:50px}.cards{grid-template-columns:1fr}.install .qrwrap{flex-direction:column}}
+
+/* ============ 中马双语副标题（.i18n-bm 在中文下显示马来文一行） ============ */
+.i18n-bm{display:block;font-size:11px;color:var(--muted);line-height:1.45;margin-top:1px;letter-spacing:.1px;font-weight:400}
+.i18n-bm-sm{display:block;font-size:9.5px;color:var(--muted);line-height:1.3;margin-top:1px;letter-spacing:.1px;font-weight:400}
+.i18n-bm-cta{display:block;font-size:10px;color:rgba(255,255,255,.85);line-height:1.3;margin-top:1px;letter-spacing:.1px;font-weight:400;text-shadow:0 1px 2px rgba(0,0,0,.15)}
 </style>
 </head>
-<body>
-<header class="hero">
-  <div class="topbar">
-    <span class="dev-credit">网站开发者：毕泽华</span>
+<body data-page-node-id="EYQ252DbJFvaPDhj0V4UPT">
+<header class="hero" data-page-node-id="85k8IFUhd5TEoA4FPUOkyW">
+  <div class="topbar" data-page-node-id="Gq5WKjESv3EqE8RwoqvhO2">
+    <span class="dev-credit" data-page-node-id="iwaOBNXKWdJHwDJHVfy752">网站开发者：毕泽华</span>
   </div>
-  <h1>📚 四语母语习得 · 学习看板</h1>
-  <p>英语 · 马来语 · 中文 · 泰语 ｜ 50000+ 词条 · 87% 含泰文<br>今日学习目标、复习排期、词条掌握度，一屏掌握</p>
+  <h1 data-page-node-id="C8s7nbbFmFDI2kwQW0jfbr">📚 四语母语习得 · 学习看板</h1>
+  <p data-page-node-id="mnausWSPlA8e3jzvhoJUvb">英语 · 马来语 · 中文 · 泰语 ｜ 50000+ 词条 · 87% 含泰文<br data-page-node-id="eG5X2D4CZhGC4xD8WhG3Rr">今日学习目标、复习排期、词条掌握度，一屏掌握</p>
 </header>
 
 <!-- ========== 看板 ========== -->
-<section class="dashboard" id="dashboard">
-  <div class="dash-head">
-    <div class="ico">📊</div>
-    <h2>今日学习看板</h2>
-    <div class="meta">
-      <span id="dashDate"></span>
-      <span>·</span>
-      <a href="#" onclick="event.preventDefault();location.reload()">🔄 刷新</a>
+<section class="dashboard" id="dashboard" data-page-node-id="iQgDuJ6HP4dAsUqHox7ql4">
+  <div class="dash-head" data-page-node-id="3LxXgdT1wqQBQ6l94juxCN">
+    <div class="ico" data-page-node-id="OwHALCYNBTlyiwJPQEuk1L">📊</div>
+    <h2 data-page-node-id="jXWZVc9uMjrnmUWhMOt8B1">今日学习看板</h2>
+    <div class="meta" data-page-node-id="sKYouW6FjNvzecpkvDOPvI">
+      <span id="dashDate" data-page-node-id="HnGZ3Bptdvhhy7aCfX4h6b"></span>
+      <span data-page-node-id="S74bC6RpGBA3bNG9f4q64d">·</span>
+      <a href="#" onclick="event.preventDefault();location.reload()" data-page-node-id="gwQ9VXwhU2jqj7sXKv8uIQ">🔄 刷新<span class="i18n-bm">Segar Semula</span></a>
     </div>
   </div>
 
-  <div class="dash-hero" id="dashHero">
-    <div class="sc" data-color="warn"><div class="lbl">今日待复习</div><div class="val" id="mDue">—</div><div class="sub">到期 SRS 词条</div></div>
-    <div class="sc" data-color="muted"><div class="lbl">本周到期</div><div class="val" id="mWeek">—</div><div class="sub">含今日 · 7 日内</div></div>
-    <div class="sc" data-color="ok"><div class="lbl">已掌握 (L≥5)</div><div class="val ok" id="mMaster">—</div><div class="sub" id="mTotal">总词条 —</div></div>
-    <div class="sc" data-color="muted"><div class="lbl">学习进度</div><div class="val" id="mProg">—</div><div class="sub" id="mProgSub">📕 — · ★ —</div></div>
-    <div class="sc" data-color="ok"><div class="lbl">⏱ 今日学习</div><div class="val" id="mTodayMin">—</div><div class="sub" id="mTodayCount">— 次 · — 词</div></div>
-    <div class="sc" data-color="bad"><div class="lbl">📕 错题本</div><div class="val bad" id="mWrong">—</div><div class="sub" id="mWrongSub">— 顽固 · — 接近毕业</div></div>
+  <div class="dash-hero" id="dashHero" data-page-node-id="Ps3G47G4zwNDVHl5kszunX">
+    <div class="sc" data-color="warn" data-page-node-id="Bd80HVLazTVzXddDYihgmG"><div class="lbl" data-page-node-id="GiVSKYKMQP60mrUUZixoYA">今日待复习<span class="i18n-bm-sm">Perlu Ulangkaji Hari Ini</span></div><div class="val" id="mDue" data-page-node-id="5stIemRAbgkrEA7LzuMWjr">—</div><div class="sub" data-page-node-id="ku9MEUMmYdrjB3mCMeWO3r">到期 SRS 词条</div></div>
+    <div class="sc" data-color="muted" data-page-node-id="G9YvW8S4nParfXoBuBmmUl"><div class="lbl" data-page-node-id="1vELNuyhBX7oWX4EIsvWAy">本周到期</div><div class="val" id="mWeek" data-page-node-id="tFiFCCuEe1bnbS5dvHbmYz">—</div><div class="sub" data-page-node-id="J5UwS8a9noqsNfPCdc46ip">含今日 · 7 日内</div></div>
+    <div class="sc" data-color="ok" data-page-node-id="l9GbSy6rFCJFhUOVKbXCdY"><div class="lbl" data-page-node-id="QtB1WM3zEPdAzwK9doNNcs">已掌握 (L≥5)<span class="i18n-bm-sm">Dikuasai (L≥5)</span></div><div class="val ok" id="mMaster" data-page-node-id="BfZkpu3ddzumhRUijlmUxL">—</div><div class="sub" id="mTotal" data-page-node-id="cQTFgAurEuHKhC3hHhGB7o">总词条 —</div></div>
+    <div class="sc" data-color="muted" data-page-node-id="PBWFHzYZvYQl3mn44pqmOD"><div class="lbl" data-page-node-id="clRtXSEkwKcRHEDRzm0hch">学习进度</div><div class="val" id="mProg" data-page-node-id="Joh9WHjphZIqnjpCrCnM9n">—</div><div class="sub" id="mProgSub" data-page-node-id="FIaqjq7jm5ALBiHBOfUzNu">📕 — · ★ —</div></div>
+    <div class="sc" data-color="ok" data-page-node-id="jPo7BbBrBz9C1HkeBwKOPA"><div class="lbl" data-page-node-id="jP1bc3sF27so75dqtRV5NL">⏱ 今日学习</div><div class="val" id="mTodayMin" data-page-node-id="CqwmM5BDcNbmlEhiqnRxNI">—</div><div class="sub" id="mTodayCount" data-page-node-id="wdWT4jbv1Bstq1zK4NtZqq">— 次 · — 词</div></div>
+    <div class="sc" data-color="bad" data-page-node-id="yEPFl58rGSJoQhZFBdX8AE"><div class="lbl" data-page-node-id="NADRYenzfZ0KzURr2nu4Gt">📕 错题本</div><div class="val bad" id="mWrong" data-page-node-id="7EfA2bdQK3jUlvXRycJmJV">—</div><div class="sub" id="mWrongSub" data-page-node-id="o9TQlsQUCjoBjo99VHsYAw">— 顽固 · — 接近毕业</div></div>
   </div>
 
-  <div class="dash-grid">
-    <div class="cc"><h3>📅 7 日复习预测</h3><div class="ct" id="ctForecast"><div class="loading">⏳ 计算中…</div></div></div>
-    <div class="cc"><h3>📊 SRS 等级分布</h3><div class="ct" id="ctLevel"><div class="loading">⏳ 计算中…</div></div></div>
-    <div class="cc"><h3>🥧 30 日评分</h3><div class="ct" id="ctRating"><div class="loading">⏳ 计算中…</div></div></div>
-    <div class="cc"><h3>📚 单元完成度</h3><div class="ct" id="ctStage"><div class="loading">⏳ 计算中…</div></div></div>
-    <div class="cc"><h3>🔥 弱项词条 TOP 10</h3><div class="ct" id="ctWeak"><div class="loading">⏳ 计算中…</div></div></div>
-    <div class="cc"><h3>🌐 各语言词条占比</h3><div class="ct" id="ctLang"><div class="loading">⏳ 计算中…</div></div></div>
+  <div class="dash-grid" data-page-node-id="5aOsT6QW2x2mi27x3OmfVX">
+    <div class="cc" data-page-node-id="rGn2qe87WDCbcDEYEL2Ak4"><h3 data-page-node-id="00B0CiJJeliX1IL8WQerBA">📅 7 日复习预测<span class="i18n-bm-sm">Ramalan Ulangkaji 7 Hari</span></h3><div class="ct" id="ctForecast" data-page-node-id="VJD2BefufjSveEHlhgHcAC"><div class="loading" data-page-node-id="Esy2EE7loUd44cVK93R1eK">⏳ 计算中…</div></div></div>
+    <div class="cc" data-page-node-id="6ZSTiTNBEeXBaHIG0Eh5b7"><h3 data-page-node-id="Pv2FrVAowoL43BTtMA8zjh">📊 SRS 等级分布<span class="i18n-bm-sm">Taburan Tahap SRS</span></h3><div class="ct" id="ctLevel" data-page-node-id="lJ5TjIORMqLw94lpvypHF5"><div class="loading" data-page-node-id="PWimHFq1MFKoBZnNKtNSjC">⏳ 计算中…</div></div></div>
+    <div class="cc" data-page-node-id="V5BggaavuRIzOkzXc9IJ6d"><h3 data-page-node-id="GdE9fy30dzkdfgNBqO29Rl">🥧 30 日评分<span class="i18n-bm-sm">Penilaian 30 Hari</span></h3><div class="ct" id="ctRating" data-page-node-id="9GNKFh2PkPAIvhlirs2fVh"><div class="loading" data-page-node-id="uAgTMdPl1bRwCaf83hBxbf">⏳ 计算中…</div></div></div>
+    <div class="cc" data-page-node-id="VKEnLKBJFTOqEYXXf6jOhA"><h3 data-page-node-id="vbHeR7QF1IQp9zY1StFtLU">📚 单元完成度<span class="i18n-bm-sm">Penyelesaian Unit</span></h3><div class="ct" id="ctStage" data-page-node-id="B6vdhCLCfbaQJwmUCU7Uge"><div class="loading" data-page-node-id="O4jO2XXoEOIBwiY3sNlZHA">⏳ 计算中…</div></div></div>
+    <div class="cc" data-page-node-id="AcgbaU04p20JxxvJlDv38i"><h3 data-page-node-id="UlnFppQ1IM5lcQI8pwiQ6k">🔥 弱项词条 TOP 10<span class="i18n-bm-sm">Top 10 Perkataan Lemah</span></h3><div class="ct" id="ctWeak" data-page-node-id="HOeRddyc87O5I1WOpSfJG2"><div class="loading" data-page-node-id="DdH6VDOL0ink74FWqPLC1x">⏳ 计算中…</div></div></div>
+    <div class="cc" data-page-node-id="w7WSnFICxPGMCQ7kRLg5HP"><h3 data-page-node-id="N6C5ojcMo2XyCG7KXql7dN">🌐 各语言词条占比<span class="i18n-bm-sm">Taburan Bahasa</span></h3><div class="ct" id="ctLang" data-page-node-id="aN6zWDMLC9sqZPH0v7xEwp"><div class="loading" data-page-node-id="BG4BudA4YXw1H9md4Tsh6W">⏳ 计算中…</div></div></div>
   </div>
 
-  <div class="cc" style="background:var(--dash-panel);border:1px solid var(--dash-line);border-radius:13px;padding:12px 14px 8px;margin-bottom:14px">
-    <h3 style="margin:0 0 6px;font-size:13px;color:var(--dash-txt);font-weight:700">🕐 7 日学习热力图（行=日期 · 列=小时）</h3>
-    <div class="ct" id="ctHeatmap" style="height:180px"><div class="loading" style="height:180px;display:flex;align-items:center;justify-content:center;color:var(--dash-faint);font-size:12px">⏳ 计算中…</div></div>
+  <div class="cc" style="background:var(--dash-panel);border:1px solid var(--dash-line);border-radius:13px;padding:12px 14px 8px;margin-bottom:14px" data-page-node-id="PpLgQAU1Alqwo5ux1HRpP2">
+    <h3 style="margin:0 0 6px;font-size:13px;color:var(--dash-txt);font-weight:700" data-page-node-id="wPQlosibzCBmpqSAGOb98N">🕐 7 日学习热力图（行=日期 · 列=小时）<span class="i18n-bm-sm">Peta Haba Pembelajaran 7 Hari (Baris=Tarikh · Lajur=Jam)</span></h3>
+    <div class="ct" id="ctHeatmap" style="height:180px" data-page-node-id="NiJBrWtWdVhaqBfr3RCLUw"><div class="loading" style="height:180px;display:flex;align-items:center;justify-content:center;color:var(--dash-faint);font-size:12px" data-page-node-id="Mkw1ScSFUjL7zxTpd0fPAU">⏳ 计算中…</div></div>
   </div>
 
-  <div class="dash-cta" id="dashCta">
-    <a class="go-review" href="三语母语习得复习.html">🔁 开始今日复习</a>
-    <a class="go-test" href="三语母语习得测试器.html">📝 做四语测试</a>
-    <a class="go-flash" href="三语母语习得闪记.html">⚡ 闪记练词卡</a>
-    <a href="三语母语习得学习器.html">🎧 进入学习器</a>
-    <a href="三语母语习得错题复习.html">📕 错题专练</a>
-    <a href="三语母语习得快速播放器.html">🔊 单词播放器</a>
-  </div>
-</section>
-
-<section class="section">
-  <h2>🎨 外观主题</h2>
-  <p class="sub">点击下方色块即时切换背景颜色（仅本设备生效）</p>
-  <div class="theme-chips" id="themeChips">
-    <button data-bg="#0e1320" data-font="#e8edf7" title="深邃蓝" style="background:#0e1320"></button>
-    <button data-bg="#f3f4f6" data-font="#1f2937" title="明亮灰" style="background:#f3f4f6"></button>
-    <button data-bg="#0b1f1a" data-font="#d1fae5" title="护眼绿" style="background:#0b1f1a"></button>
-    <button data-bg="#1a0f05" data-font="#fef3c7" title="暖棕色" style="background:#1a0f05"></button>
-    <button data-bg="#150a1f" data-font="#f3e8ff" title="暗夜紫" style="background:#150a1f"></button>
-    <button data-bg="#05101a" data-font="#e0f2fe" title="深空青" style="background:#05101a"></button>
-    <button data-bg="#1a0505" data-font="#ffe4e6" title="暗玫瑰" style="background:#1a0505"></button>
+  <div class="dash-cta" id="dashCta" data-page-node-id="TgkDYHiupWPYtOvmrKBxrA">
+    <a class="go-review" href="三语母语习得复习.html" data-page-node-id="CmgIIvoawuFynV5geAn8ie">🔁 开始今日复习<span class="i18n-bm-cta">🔁 Mula Ulangkaji Hari Ini</span></a>
+    <a class="go-test" href="三语母语习得测试器.html" data-page-node-id="GNAAPYGQKtZY3vFAbGeQ1p">📝 做四语测试<span class="i18n-bm-cta">📝 Ujian Empat Bahasa</span></a>
+    <a class="go-flash" href="三语母语习得闪记.html" data-page-node-id="ThOhWI1wDqBQAOYVIGFxG2">⚡ 闪记练词卡<span class="i18n-bm-cta">⚡ Kad Kilat</span></a>
+    <a href="三语母语习得学习器.html" data-page-node-id="fq5DkK0zimZflZk1OKTNew">🎧 进入学习器<span class="i18n-bm-cta">🎧 Pembelajaran</span></a>
+    <a href="三语母语习得错题复习.html" data-page-node-id="ABVYQ5dwP6i0FEFd3GUBD0">📕 错题专练<span class="i18n-bm-cta">📕 Latihan Soalan Salah</span></a>
+    <a href="三语母语习得快速播放器.html" data-page-node-id="oaTb0TiVcpLYWuyrv3feTo">🔊 单词播放器<span class="i18n-bm-cta">🔊 Pemain Perkataan</span></a>
   </div>
 </section>
 
-<div class="cards">
-  <a class="card" href="三语母语习得学习器.html">
-    <div class="emoji">🎧</div>
-    <h2>可朗读解说学习器</h2>
-    <div class="desc">按学段/词根区浏览，逐条四语串讲，支持 Web Speech 朗读解说、进度保存、词根派生习得。每条单词附例句，点击即可朗读。</div>
-    <span class="tag">打开学习器 →</span>
+<section class="section" data-page-node-id="IZzWmjhMNU0ZJzl4Ssqp13">
+  <h2 data-page-node-id="xgHlSAXb2qMP32Dcne2bHV">🎨 外观主题<span class="i18n-bm">Tema Penampilan</span></h2>
+  <p class="sub" data-page-node-id="yrBylZafsIesIDkQMiEXii">点击下方色块即时切换背景颜色（仅本设备生效）<span class="i18n-bm">Klik bulatan warna untuk tukar latar belakang serta-merta (hanya peranti ini)</span></p>
+  <div class="theme-chips" id="themeChips" data-page-node-id="MHwTuJ57UBNhiAHNwGki0D">
+    <button data-bg="#0e1320" data-font="#e8edf7" title="深邃蓝" style="background:#0e1320" data-page-node-id="wHlkrNNyFjbHycmnL8gis6"></button>
+    <button data-bg="#f3f4f6" data-font="#1f2937" title="明亮灰" style="background:#f3f4f6" data-page-node-id="slS6d7fnQBSOONKdB2JGLI"></button>
+    <button data-bg="#0b1f1a" data-font="#d1fae5" title="护眼绿" style="background:#0b1f1a" data-page-node-id="ojpj2dpGZnQGHNrfjmCdmm"></button>
+    <button data-bg="#1a0f05" data-font="#fef3c7" title="暖棕色" style="background:#1a0f05" data-page-node-id="gn5dotwfdk3h21rnLUBZOJ"></button>
+    <button data-bg="#150a1f" data-font="#f3e8ff" title="暗夜紫" style="background:#150a1f" data-page-node-id="J05TzPKL9cWEb2je3Az355"></button>
+    <button data-bg="#05101a" data-font="#e0f2fe" title="深空青" style="background:#05101a" data-page-node-id="hL91eJjHGr2sY0sAgZ8EPi"></button>
+    <button data-bg="#1a0505" data-font="#ffe4e6" title="暗玫瑰" style="background:#1a0505" data-page-node-id="9ZMGiIjXvdbmrPuKDQ113n"></button>
+  </div>
+</section>
+
+<div class="cards" data-page-node-id="0azTupLUwie4RX2Ea7RBIW">
+  <a class="card" href="三语母语习得学习器.html" data-page-node-id="lWxAyHz2Bo3EDeRbrqTPey">
+    <div class="emoji" data-page-node-id="wpxnkBuIB06rAu3RAtHHCw">🎧</div>
+    <h2 data-page-node-id="J5wv7NsvrTRJEIpOgG7gdX">可朗读解说学习器<span class="i18n-bm">Pembelajaran Bersuara</span></h2>
+    <div class="desc" data-page-node-id="p2yA8u2T0zbIWRupl25RpY">按学段/词根区浏览，逐条四语串讲，支持 Web Speech 朗读解说、进度保存、词根派生习得。每条单词附例句，点击即可朗读。<span class="i18n-bm">Layari mengikut tahap/akar kata, penerangan empat bahasa setiap perkataan, sokongan Web Speech, simpan kemajuan, derivasi akar. Tiap perkataan ada contoh ayat, klik untuk baca.</span></div>
+    <span class="tag" data-page-node-id="nNsxoko8EBJmubVSdGwUHU">打开学习器 →</span>
   </a>
-  <a class="card" href="三语母语习得测试器.html">
-    <div class="emoji">📝</div>
-    <h2>四语学习测试器</h2>
-    <div class="desc">东钢学习词汇单元位置。每个单元一份小测，以选择题为主（含听力辨义），作答即时判分并展示四语对照。内置「⭐ 我的收藏」与「📕 错题本」。</div>
-    <span class="tag">打开测试器 →</span>
+  <a class="card" href="三语母语习得测试器.html" data-page-node-id="AgqwVcOGgTHaL6bO2crcRu">
+    <div class="emoji" data-page-node-id="vcCEJCfMbrzM8cAmhwLCSd">📝</div>
+    <h2 data-page-node-id="HV1ssQA9C5lB0QSZwEPB7P">四语学习测试器<span class="i18n-bm">Ujian Pembelajaran Empat Bahasa</span></h2>
+    <div class="desc" data-page-node-id="SccImBgGz1FBbyr5aIf6e0">东钢学习词汇单元位置。每个单元一份小测，以选择题为主（含听力辨义），作答即时判分并展示四语对照。内置「⭐ 我的收藏」与「📕 错题本」。<span class="i18n-bm">Lokasi unit vokabulari Donggang. Setiap unit ada kuiz pendek, pilihan ganda (termasuk pendengaran), jawapan dinilai segera dengan paparan empat bahasa. Ada "⭐ Koleksi" dan "📕 Buku Soalan Salah".</span></div>
+    <span class="tag" data-page-node-id="wAZZ9TCQtxObTiShaD3Z8h">打开测试器 →</span>
   </a>
-  <a class="card" href="三语母语习得快速播放器.html">
-    <div class="emoji">🔊</div>
-    <h2>单词快速播放器</h2>
-    <div class="desc">覆盖全部单元，按单元逐词自动朗读。可调间隔/语速/音量，支持屏蔽语种或单语播放，大字号阅读模式。</div>
-    <span class="tag">打开播放器 →</span>
+  <a class="card" href="三语母语习得快速播放器.html" data-page-node-id="l1cHWXdUvGknqL1psncvBq">
+    <div class="emoji" data-page-node-id="HMFb8FmgLpWkDm79fblFGr">🔊</div>
+    <h2 data-page-node-id="DlIba1LQZkImfukeeodKfm">单词快速播放器<span class="i18n-bm">Pemain Pantas Perkataan</span></h2>
+    <div class="desc" data-page-node-id="cULvgXTm9pDFfT0df3qRRW">覆盖全部单元，按单元逐词自动朗读。可调间隔/语速/音量，支持屏蔽语种或单语播放，大字号阅读模式。<span class="i18n-bm">Liputi semua unit, baca automatik setiap perkataan. Boleh ubah jeda/kelantangan/halaju, sokong mod satu bahasa atau font besar.</span></div>
+    <span class="tag" data-page-node-id="0PlW5QsaWHhyHMgodK1wkj">打开播放器 →</span>
   </a>
-  <a class="card" href="三语母语习得闪记.html">
-    <div class="emoji">⚡</div>
-    <h2>闪记（闪卡）</h2>
-    <div class="desc">第四种学习器。每张卡片正面考你一种语言，翻转揭晓其余语种释义；可自定义正反语言、全词朗读、标记认识/模糊/不认识，支持打乱与跳过已掌握。</div>
-    <span class="tag">打开闪记 →</span>
+  <a class="card" href="三语母语习得闪记.html" data-page-node-id="ywdK7cfz7Z0oK45nwtsEQb">
+    <div class="emoji" data-page-node-id="VTZy5BOGGYuYlM5TmdQJLG">⚡</div>
+    <h2 data-page-node-id="pYQVrxiNPKRSSb1FRCJs7t">闪记（闪卡）<span class="i18n-bm">Kad Kilat (Kad Imbas)</span></h2>
+    <div class="desc" data-page-node-id="cudqpjKL0pfv11EORNDCPc">第四种学习方式。每张卡片正面考你一种语言，翻转揭晓其余语种释义；可自定义正反语言、全词朗读、标记认识/模糊/不认识，支持打乱与跳过已掌握。<span class="i18n-bm">Mod pembelajaran keempat. Bahagian depan uji satu bahasa, belakang dedah tiga bahasa lain; boleh suai bahasa depan/belakang, baca keseluruhan, tanda ✓/?/✗, sokong kocok dan langkau yang dikuasai.</span></div>
+    <span class="tag" data-page-node-id="cwyOAKRFQkgCRKwDsweFof">打开闪记 →</span>
   </a>
-  <a class="card" href="三语母语习得复习.html">
-    <div class="emoji">🔁</div>
-    <h2>艾宾浩斯复习</h2>
-    <div class="desc">跨学习器/闪记/错题本/收藏，按 SRS 算法自动排期到今日复习队列。✗ 不认识重置回 1d，? 模糊间隔 ×1.2，✓ 认识按 1d→2d→4d→…→60d 升级。支持 JSON 导入导出。</div>
-    <span class="tag" style="background:rgba(79,209,165,.18);color:var(--ok);border:1px solid var(--ok);">NEW → 打开复习</span>
+  <a class="card" href="三语母语习得复习.html" data-page-node-id="5po5pEH6mTXqaDHdGyiljg">
+    <div class="emoji" data-page-node-id="IG87pMgWTtLwCB39wFJhvK">🔁</div>
+    <h2 data-page-node-id="lSUDTp4wwoahZ4Gc6CWiTc">艾宾浩斯复习<span class="i18n-bm">Ulangkaji Ebbinghaus</span></h2>
+    <div class="desc" data-page-node-id="W4GPESwUKHPCqRaWClBADH">跨学习器/闪记/错题本/收藏，按 SRS 算法自动排期到今日复习队列。✗ 不认识重置回 1d，? 模糊间隔 ×1.2，✓ 认识按 1d→2d→4d→…→60d 升级。支持 JSON 导入导出。<span class="i18n-bm">Rentasi pembelajaran/kad kilat/buku salah/koleksi, auto jadual ikut algoritma SRS. ✗ reset ke 1d, ? kabur ×1.2, ✓ naik 1d→2d→4d→…→60d. Import/eksport JSON.</span></div>
+    <span class="tag" style="background:rgba(79,209,165,.18);color:var(--ok);border:1px solid var(--ok);" data-page-node-id="mihgxGrtif53Q7WQPxgbOF">NEW → 打开复习</span>
   </a>
-  <a class="card" href="三语母语习得错题复习.html">
-    <div class="emoji">📕</div>
-    <h2>错题专练</h2>
-    <div class="desc">从错题本独立出来专门复习。按「错得越多 → 队首」排序，连对 10 自动毕业。学习时长累计、热力图统计、TSV 导入导出全支持。</div>
-    <span class="tag" style="background:rgba(255,107,107,.18);color:#ff6b6b;border:1px solid #ff6b6b;">HOT → 打开错题</span>
+  <a class="card" href="三语母语习得错题复习.html" data-page-node-id="B5Lyv0uNDUmPtG7FK7XpIx">
+    <div class="emoji" data-page-node-id="xvYoiCK0dX83CLjKSqko88">📕</div>
+    <h2 data-page-node-id="tANwcgNDEDi5k6DYVvsS0u">错题专练<span class="i18n-bm">Latihan Soalan Salah</span></h2>
+    <div class="desc" data-page-node-id="mV5kHbBT7vCJftLPL45yPE">从错题本独立出来专门复习。按「错得越多 → 队首」排序，连对 10 自动毕业。学习时长累计、热力图统计、TSV 导入导出全支持。<span class="i18n-bm">Khas ulangkaji dari buku soalan salah. Disusun ikut "lebih banyak salah → di depan", 10 berturut-turut tamat automatik. Masa pembelajaran, statistik peta haba, import/eksport TSV.</span></div>
+    <span class="tag" style="background:rgba(255,107,107,.18);color:#ff6b6b;border:1px solid #ff6b6b;" data-page-node-id="ERp48dgfx32ObXHCyqnJWV">HOT → 打开错题</span>
   </a>
 </div>
 
-<section class="section">
-  <h2>🌏 套件皮肤</h2>
-  <p class="sub">选择整体配色皮肤（含中国风 / 马来西亚国旗配色 · 含节日皮肤🧧春节/🌙开斋/🥮中秋），保存 30 天，全页面同步</p>
-  <div class="theme-chips" id="skinChips">
-    <button data-skin="default" title="默认蓝" style="background:linear-gradient(135deg,#5b8cff,#7aa2ff)"></button>
-    <button data-skin="guofeng" title="中国风" style="background:linear-gradient(135deg,#C8102E,#D4AF37)"></button>
-    <button data-skin="malaysia" title="马来西亚" style="background:linear-gradient(135deg,#010066,#FFCC00)"></button>
-    <button data-skin="chunjie" title="🧧 春节" style="background:linear-gradient(135deg,#D71920,#FFD700)"></button>
-    <button data-skin="kaifa" title="🌙 开斋节" style="background:linear-gradient(135deg,#006233,#FFCC00)"></button>
-    <button data-skin="zhongqiu" title="🥮 中秋" style="background:linear-gradient(135deg,#1a2a4d,#F5C26B)"></button>
+<section class="section" data-page-node-id="p50c0jNZE8MQD6Zw9bnfT1">
+  <h2 data-page-node-id="zUOg9IUMYuIPLSed3VXAB3">🌏 套件皮肤<span class="i18n-bm">Kulit Suite</span></h2>
+  <p class="sub" data-page-node-id="iwoFNSAKJlyzpW2LUGp5tE">选择整体配色皮肤（含中国风 / 马来西亚国旗配色 · 含节日皮肤🧧春节/🌙开斋/🥮中秋），保存 30 天，全页面同步<span class="i18n-bm">Pilih tema warna keseluruhan (termada tema China / Malaysia · tema节日🧧CNY/🌙Hari Raya/🥮中秋), simpan 30 hari, segerak seluruh halaman</span></p>
+  <div class="theme-chips" id="skinChips" data-page-node-id="OORcCiqKHMpbvOw8GOG5BY">
+    <button data-skin="default" title="默认蓝" style="background:linear-gradient(135deg,#5b8cff,#7aa2ff)" data-page-node-id="idJedRd8gJWJXDDTQC9RsC"></button>
+    <button data-skin="guofeng" title="中国风" style="background:linear-gradient(135deg,#C8102E,#D4AF37)" data-page-node-id="zNBZ8SDBn0R9T7T5YeklEa"></button>
+    <button data-skin="malaysia" title="马来西亚" style="background:linear-gradient(135deg,#010066,#FFCC00)" data-page-node-id="K1i7RaO5MJXzrnG5uD47aZ"></button>
+    <button data-skin="chunjie" title="🧧 春节" style="background:linear-gradient(135deg,#D71920,#FFD700)" data-page-node-id="DqY5pfwINOB77OhukGj7hM"></button>
+    <button data-skin="kaifa" title="🌙 开斋节" style="background:linear-gradient(135deg,#006233,#FFCC00)" data-page-node-id="ZVqCJSKuFRPENnwXSM8Q31"></button>
+    <button data-skin="zhongqiu" title="🥮 中秋" style="background:linear-gradient(135deg,#1a2a4d,#F5C26B)" data-page-node-id="CMvJ4Zz3mADTnhLHFHTFJP"></button>
   </div>
 </section>
 
-<section class="install">
-  <div class="badges"><span class="badge">PWA 可安装</span><span class="badge">iOS · 安卓 · 平板</span><span class="badge">扫码即用</span></div>
-  <h2>📲 安装到手机 / 平板</h2>
-  <div class="qrwrap">
-    <img src="扫码安装.png" alt="扫码打开">
-    <ol>
-      <li>用 iPhone/iPad 的 <strong>Safari</strong>，或安卓的 <strong>Chrome</strong> 扫描二维码，打开本页。</li>
-      <li>点击下方卡片进入「学习器」「测试器」「快速播放器」「闪记」「复习」或「错题专练」。</li>
-      <li><strong>添加到主屏幕</strong>：iOS 点底部分享按钮 →「添加到主屏幕」；安卓 Chrome 点菜单 →「安装应用」。</li>
-      <li>之后主屏幕就会出现 App 图标，点开即全屏使用，就像原生 App 一样。</li>
+<section class="install" data-page-node-id="OO04lWxBVspObICDh3CMbc">
+  <div class="badges" data-page-node-id="kcW52FWVXQrlH9esKjHCJ0"><span class="badge" data-page-node-id="oCXCGm5MEPf2AYcHz4snbz">PWA 可安装</span><span class="badge" data-page-node-id="GCmv8hMoAmXwens4HgCFRe">iOS · 安卓 · 平板</span><span class="badge" data-page-node-id="KHf7prKbkl7CR67xsZidEb">扫码即用</span></div>
+  <h2 data-page-node-id="K8FRwGvbK9NFgqMC91NozN">📲 安装到手机 / 平板<span class="i18n-bm">📲 Pasang ke Telefon / Tablet</span></h2>
+  <div class="qrwrap" data-page-node-id="QTFcyBZEbM3l9x0foKGjFW">
+    <img src="扫码安装.png" alt="扫码打开" data-page-node-id="nxZqWa0Q63VgAIQEmuHTkK">
+    <ol data-page-node-id="59EQedwTlcqSgGFbIYgFcQ">
+      <li data-page-node-id="CAcfNpQ3KTDFZpijTv2CRE">用 iPhone/iPad 的 <strong data-page-node-id="j5yVxgcJrRnO1YrqxWOFcY">Safari</strong>，或安卓的 <strong data-page-node-id="BWpa707AEF6VZJgDOoDKdC">Chrome</strong> 扫描二维码，打开本页。<span class="i18n-bm">Guna Safari (iPhone/iPad) atau Chrome (Android) imbas kod QR untuk buka halaman ini.</span></li>
+      <li data-page-node-id="31imAv0743K2lc2CeuPCKj">点击下方卡片进入「学习器」「测试器」「快速播放器」「闪记」「复习」或「错题专练」。<span class="i18n-bm">Klik kad di bawah untuk masuk "Pembelajaran", "Ujian", "Pemain Pantas", "Kad Kilat", "Ulangkaji" atau "Latihan Salah".</span></li>
+      <li data-page-node-id="ncm9VuHpgikynG1rN0cVST"><strong data-page-node-id="EbltjGFRyFD9u0b5pNQTvz">添加到主屏幕</strong>：iOS 点底部分享按钮 →「添加到主屏幕」；安卓 Chrome 点菜单 →「安装应用」。<span class="i18n-bm"><strong>Tambah ke Skrin Utama</strong>: iOS - butang Kongsi → "Tambah ke Skrin Utama"; Android Chrome - menu → "Pasang Aplikasi".</span></li>
+      <li data-page-node-id="HkXgnZGAMSUkjiXqZchXCm">之后主屏幕就会出现 App 图标，点开即全屏使用，就像原生 App 一样。<span class="i18n-bm">Selepas itu ikon aplikasi muncul di skrin utama, buka untuk skrin penuh macam aplikasi asli.</span></li>
     </ol>
   </div>
-  <div class="note">提示：看板数据全部来自本机 localStorage，无网络上传。换设备不会自动同步；如需迁移可在每个 app 内用 ⤴ / ⤵ 按钮导出/导入 JSON。</div>
+  <div class="note" data-page-node-id="uOu1r2CCR4blvuTNSdK3dq">提示：看板数据全部来自本机 localStorage，无网络上传。换设备不会自动同步；如需迁移可在每个 app 内用 ⤴ / ⤵ 按钮导出/导入 JSON。<span class="i18n-bm">Petua: Data papan pemuka disimpan dalam localStorage peranti, tiada muat naik rangkaian. Tidak segerak antara peranti; guna butang ⤴/⤵ dalam setiap app untuk eksport/import JSON.</span></div>
 </section>
 
-<footer>
-  提示：若点击「播放解说 / 测试」听不到声音，请用 Safari 或 Chrome 打开本页面。<br>
-  四语母语习得 · 英语学习库 / 马来语学习库 / 工程主题词库
+<footer data-page-node-id="q2ueCSGheeUmRKrr0kasdJ">
+  提示：若点击「播放解说 / 测试」听不到声音，请用 Safari 或 Chrome 打开本页面。<span class="i18n-bm">Petua: Jika tiada bunyi bila klik "Baca/Ijian", sila buka halaman ini dengan Safari atau Chrome.</span><br data-page-node-id="0PDF3Q8pY81mHQiGGcJdVP">
+  四语母语习得 · 英语学习库 / 马来语学习库 / 工程主题词库<span class="i18n-bm">Perolehan Bahasa Asli Empat Bahasa · Pustaka Bahasa Inggeris / Pustaka Bahasa Melayu / Pustaka Istilah Kejuruteraan</span>
 </footer>
 
 <script src="tril-db.js"></script>
