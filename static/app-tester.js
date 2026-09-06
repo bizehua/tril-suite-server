@@ -208,10 +208,32 @@ if(!window.speechSynthesis){ /* 不强制提示，交给测试按钮 */ }
 
 const nav=document.getElementById("nav");
 function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+/* ===== 钻取式目录（学段→文件→单元），与播放器一致 ===== */
+const navState={level:1,si:-1,fi:-1,hist:[]};
+function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
+function goLevel(level,si,fi){
+  navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
+  navState.level=level; navState.si=si; navState.fi=fi; renderNav();
+}
+function navBack(){
+  if(!navState.hist.length) return;
+  const p=navState.hist.pop();
+  navState.level=p.level; navState.si=p.si; navState.fi=p.fi; renderNav();
+}
+function sortedStages(){
+  /* 东钢岗位词汇 永远在第一位 */
+  const a=DATA.stages.slice();
+  const i=a.findIndex(s=>/东钢岗位词汇/.test(s.name||""));
+  if(i>0){ const x=a.splice(i,1)[0]; a.unshift(x); }
+  return a;
+}
 function renderNav(){
   nav.innerHTML="";
-  /* 我的练习：收藏（来自学习器）+ 错题本 */
-  (function(){
+  if(navState.level===1){
+    const close=document.createElement("button"); close.className="navback"; close.textContent="✕ 关闭目录";
+    close.onclick=()=>document.body.classList.remove("show-sidebar-m");
+    nav.appendChild(close);
+    /* 我的练习（收藏 + 错题本） */
     const sp=document.createElement("div"); sp.className="navstage";
     const h=document.createElement("h3"); h.innerHTML="★ 我的练习"; h.style.cursor="default"; sp.appendChild(h);
     const mk=(id,label,onClick)=>{ const b=document.createElement("button"); b.className="navfile"; b.id=id;
@@ -219,34 +241,57 @@ function renderNav(){
     sp.appendChild(mk("navMarks","⭐ 我的收藏", ()=>openMarksHome()));
     sp.appendChild(mk("navWrong","📕 错题本", ()=>openWrongHome()));
     nav.appendChild(sp);
-  })();
-  DATA.stages.forEach(st=>{
-    const sc=document.createElement("div"); sc.className="navstage";
-    const total=st.files.reduce((a,f)=>a+f.units.length,0);
-    const h=document.createElement("h3");
-    h.innerHTML="▾ "+st.name+' <span class="cnt">('+total+'单元)</span>';
-    h.onclick=()=>{ const col=sc.classList.toggle("collapsed"); h.firstChild.textContent = col?"▸ ":"▾ "; };
-    sc.appendChild(h);
-    st.files.forEach((f,fi)=>{
+    /* 学段列表 */
+    sortedStages().forEach(st=>{
+      const si=DATA.stages.indexOf(st);
+      const total=st.files.reduce((a,f)=>a+f.units.length,0);
       const b=document.createElement("button"); b.className="navfile";
-      const fc=f.units.length;
-      const isRoot = f.units.length>0 && f.units[0].type==="root";
-      b.innerHTML=escapeHtml(f.name)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+fc+'</span>';
-      b.dataset.si=DATA.stages.indexOf(st); b.dataset.fi=fi;
-      b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
-      sc.appendChild(b);
+      b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
+      b.onclick=()=>goLevel(2,si,-1);
+      nav.appendChild(b);
     });
-    nav.appendChild(sc);
-  });
+  } else if(navState.level===2){
+    const st=DATA.stages[navState.si];
+    nav.appendChild(mkBack("◀ 返回学段"));
+    st.files.forEach((f,fi)=>{
+      const isRoot = f.units.length>0 && f.units[0].type==="root";
+      const b=document.createElement("button"); b.className="navfile";
+      b.innerHTML='▸ '+escapeHtml(f.name)+(isRoot?' <span class="rt">🌱</span>':'')+' <span class="fc">'+f.units.length+'</span>';
+      b.onclick=()=>goLevel(3,navState.si,fi);
+      nav.appendChild(b);
+    });
+  } else {
+    /* level===3：单元列表（侧栏里直接开始） */
+    const st=DATA.stages[navState.si]; const f=st.files[navState.fi];
+    nav.appendChild(mkBack("◀ 返回文件"));
+    f.units.forEach((u,ui)=>{
+      const isRoot=u.type==="root";
+      const d=isDone({si:navState.si,fi:navState.fi,ui});
+      const r=progress[uid({si:navState.si,fi:navState.fi,ui})]||{};
+      const cnt=(u.entries?u.entries.length:0)+(isRoot?" 派生词":" 条");
+      const best=r.best!=null?(' 🏆'+r.best):'';
+      const badge=d?' ✓':'·';
+      const b=document.createElement("button"); b.className="navunit";
+      b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(u.title)+' <span class="fc">'+cnt+best+'</span>';
+      if(cur && cur.si===navState.si && cur.fi===navState.fi && cur.ui===ui) b.classList.add("active");
+      b.onclick=()=>openStart(navState.si,navState.fi,ui);
+      nav.appendChild(b);
+    });
+  }
 }
 
 let curSi=-1,curFi=-1;
 function getUnitlist(){ return document.getElementById("unitlist"); }
 function openFile(si,fi){
   curSi=si;curFi=fi;
-  document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".navfile,.navunit").forEach(b=>b.classList.remove("active"));
   const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"]');
   if(nb) nb.classList.add("active");
+  /* 钻取到第 3 级：单元列表展示在侧栏 */
+  if(typeof goLevel === "function"){
+    goLevel(3,si,fi);
+    return;
+  }
   const st=DATA.stages[si], f=st.files[fi];
   let inner='<div class="breadcrumb"><b>'+st.name+'</b> &nbsp;/&nbsp; '+f.name+' &nbsp;·&nbsp; 共 '+f.units.length+' 个测试单元</div>';
   inner+='<div class="unitgrid">';
@@ -282,6 +327,8 @@ const DIRS=[
   {p:"en",a:"bm",label:"英文 → 马来文"},
   {p:"zh",a:"en",label:"中文 → 英文"},
   {p:"bm",a:"en",label:"马来文 → 英文"},
+  {p:"zh",a:"bm",label:"中文 → 马来文"},
+  {p:"bm",a:"zh",label:"马来文 → 中文"},
   {p:"en",a:"th",label:"英文 → 泰文"},
   {p:"th",a:"en",label:"泰文 → 英文"},
   {p:"zh",a:"th",label:"中文 → 泰文"},
@@ -332,6 +379,8 @@ function showStart(u){
       '<span class="chip" data-mode="en_bm">英文→马来文</span>'+
       '<span class="chip" data-mode="zh_en">中文→英文</span>'+
       '<span class="chip" data-mode="bm_en">马来文→英文</span>'+
+      '<span class="chip" data-mode="zh_bm">中文→马来文</span>'+
+      '<span class="chip" data-mode="bm_zh">马来文→中文</span>'+
       '<span class="chip" data-mode="en_th">英文→泰文</span>'+
       '<span class="chip" data-mode="th_en">泰文→英文</span>'+
       '<span class="chip" data-mode="zh_th">中文→泰文</span>'+
@@ -535,6 +584,7 @@ function buildQuestions(){
     /* spell 题型额外存语音用 promptLang */
     if(state.qtype==="listen"){
       q.listen = true;
+      q.audio = c.t[c.p];              /* 朗读用真词；显示前清空 prompt 避免泄露 */
       q.prompt = ""; /* 听写：不显示文字，只播放 */
     } else if(state.qtype==="spell"){
       q.listen = (c.p==="en" || c.p==="bm" || c.p==="th"); /* en/bm/th 自动播放 */
@@ -594,9 +644,10 @@ function renderQuestionChoice(q){
     '</div></div></div>';
   document.getElementById("backBtn").onclick = ()=>openFile(cur.si,cur.fi);
   if(q.listen){
-    document.getElementById("playQ").onclick = ()=>speak(q.prompt,q.promptLang);
-    document.getElementById("replayQ").onclick = ()=>speak(q.prompt,q.promptLang);
-    setTimeout(()=>speak(q.prompt,q.promptLang), 200);
+    const audioText = q.audio || q.prompt || q.answer;
+    document.getElementById("playQ").onclick = ()=>speak(audioText,q.promptLang);
+    document.getElementById("replayQ").onclick = ()=>speak(audioText,q.promptLang);
+    setTimeout(()=>speak(audioText,q.promptLang), 200);
   }
   document.querySelectorAll("#opts .opt").forEach(b=>{ b.onclick = ()=>answerChoice(b); });
 }
@@ -920,7 +971,8 @@ function rebuildIndexes(){
 
 renderNav();
 refreshProgress();
-if(flat.length){ openFile(0,0); }
+/* 自动展开到第一个学段（不开单元），用户从侧栏直接选单元开始 */
+if(flat.length && DATA.stages.length){ goLevel(2,0,-1); }
 
 /* ===== 可折叠面板控制（目录 / 例句 / 顶栏），状态持久化 ===== */
 function toggleLayout(kind){

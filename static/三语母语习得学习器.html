@@ -46,7 +46,14 @@ nav{flex:0 0 250px;background:var(--panel);border-right:1px solid var(--line);ov
 .navfile.active{background:var(--panel2);border-color:var(--accent)}
 .navfile .fc{float:right;color:var(--muted);font-size:11px}
 .navfile .rt{float:right;color:var(--zh);font-size:10px;margin-right:6px}
-.navstage.collapsed .navfile{display:none}
+.navunit{display:block;width:100%;text-align:left;margin:1px 0;padding:6px 12px;font-size:13px;
+  background:transparent;border:1px solid transparent;border-left:3px solid var(--line);border-radius:0 8px 8px 0;color:var(--txt)}
+.navunit:hover{background:var(--panel2)}
+.navunit.active{background:var(--panel2);border-left-color:var(--accent)}
+.navunit .fc{float:right;color:var(--muted);font-size:11px}
+.navback{display:block;width:100%;text-align:left;margin:2px 0 6px;padding:5px 8px;font-size:12px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--muted);cursor:pointer}
+.navback:hover{color:var(--txt)}
 
 main{flex:1;display:flex;flex-direction:column;min-width:0}
 .unitlist{flex:1;overflow-y:auto;padding:18px}
@@ -374,47 +381,84 @@ function pickVoice(lang){
 }
 
 const nav=document.getElementById("nav");
+const navState={level:1,si:-1,fi:-1,hist:[]};
+function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
+function goLevel(level,si,fi){
+  navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
+  navState.level=level; navState.si=si; navState.fi=fi; renderNav();
+}
+function navBack(){
+  if(!navState.hist.length) return;
+  const p=navState.hist.pop();
+  navState.level=p.level; navState.si=p.si; navState.fi=p.fi; renderNav();
+}
+function isCustomStage(){
+  return navState.si === CUSTOM_SI;
+}
+function getStage(si){
+  if(si === CUSTOM_SI) return window.TrilLib ? TrilLib.loadStage() : {name:"📁 我的自定义词库",files:[]};
+  return IDX.stages[si];
+}
+function sortedStages(){
+  /* 东钢岗位词汇 永远在第一位 */
+  const a=IDX.stages.slice();
+  const i=a.findIndex(s=>/东钢岗位词汇/.test(s.name||""));
+  if(i>0){ const x=a.splice(i,1)[0]; a.unshift(x); }
+  return a;
+}
 function renderNav(){
   nav.innerHTML="";
-  IDX.stages.forEach((st,si)=>{
-    const sc=document.createElement("div"); sc.className="navstage";
-    const total=st.files.reduce((a,f)=>a+f.units.length,0);
-    const h=document.createElement("h3");
-    h.innerHTML="▾ "+st.name+' <span class="cnt">('+total+'单元)</span>';
-    h.onclick=()=>{ const col=sc.classList.toggle("collapsed"); h.firstChild.textContent = col?"▸ ":"▾ "; };
-    sc.appendChild(h);
-    st.files.forEach((f,fi)=>{
+  if(navState.level===1){
+    const close=document.createElement("button"); close.className="navback"; close.textContent="✕ 关闭目录";
+    close.onclick=()=>document.body.classList.remove("show-sidebar-m");
+    nav.appendChild(close);
+    /* 学段列表（东钢岗位词汇置顶） */
+    sortedStages().forEach(st=>{
+      const si=IDX.stages.indexOf(st);
+      const total=st.files.reduce((a,f)=>a+f.units.length,0);
       const b=document.createElement("button"); b.className="navfile";
-      const fc=f.units.length;
-      const isRoot = f.units.length>0 && f.units[0].type==="root";
-      b.innerHTML=escapeHtml(f.name)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+fc+'</span>';
-      b.dataset.si=si; b.dataset.fi=fi;
-      b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
-      sc.appendChild(b);
+      b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
+      b.onclick=()=>goLevel(2,si,-1);
+      nav.appendChild(b);
     });
-    nav.appendChild(sc);
-  });
-  /* 自定义词库学段（TrilLib 本地存储） */
-  if(window.TrilLib){
-    const cs = TrilLib.loadStage();
-    if(cs.files.some(f=>f.units && f.units.length)){
-      const sc=document.createElement("div"); sc.className="navstage";
-      const total=cs.files.reduce((a,f)=>a+(f.units||[]).length,0);
-      const h=document.createElement("h3");
-      h.innerHTML="▾ "+escapeHtml(cs.name)+' <span class="cnt">('+total+'单元)</span>';
-      h.onclick=()=>{ const col=sc.classList.toggle("collapsed"); h.firstChild.textContent = col?"▸ ":"▾ "; };
-      sc.appendChild(h);
-      cs.files.forEach((f,fi)=>{
+    /* 自定义词库 */
+    if(window.TrilLib){
+      const cs=TrilLib.loadStage();
+      if(cs.files.some(f=>f.units && f.units.length)){
+        const total=cs.files.reduce((a,f)=>a+(f.units||[]).length,0);
         const b=document.createElement("button"); b.className="navfile";
-        const fc=(f.units||[]).length;
-        const isRoot = (f.units||[]).length>0 && f.units[0].type==="root";
-        b.innerHTML=escapeHtml(f.name)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+fc+'</span>';
-        b.dataset.si=CUSTOM_SI; b.dataset.fi=fi;
-        b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
-        sc.appendChild(b);
-      });
-      nav.appendChild(sc);
+        b.innerHTML='▸ '+escapeHtml(cs.name||"我的自定义词库")+' <span class="fc">'+total+'</span>';
+        b.onclick=()=>goLevel(2,CUSTOM_SI,-1);
+        nav.appendChild(b);
+      }
     }
+  } else if(navState.level===2){
+    const st=getStage(navState.si);
+    nav.appendChild(mkBack("◀ 返回学段"));
+    st.files.forEach((f,fi)=>{
+      const isRoot = f.units && f.units.length>0 && f.units[0].type==="root";
+      const b=document.createElement("button"); b.className="navfile";
+      b.innerHTML='▸ '+escapeHtml(f.name)+(isRoot?' <span class="rt">🌱</span>':'')+' <span class="fc">'+((f.units||[]).length)+'</span>';
+      b.onclick=()=>goLevel(3,navState.si,fi);
+      nav.appendChild(b);
+    });
+  } else {
+    /* level===3：单元列表（点单元直接打开内容） */
+    const st=getStage(navState.si); const f=st.files[navState.fi];
+    nav.appendChild(mkBack("◀ 返回文件"));
+    (f.units||[]).forEach((u,ui)=>{
+      const isRoot=u.type==="root";
+      const d=isDone({si:navState.si,fi:navState.fi,ui});
+      const isCustomUnit = isCustomStage();
+      const cnt = (isCustomUnit ? (u.entries?u.entries.length:0) : (u.n||0))+(isRoot?" 派生词":" 条");
+      const utitle = isCustomUnit ? u.title : u.t;
+      const badge=d?' ✓':'·';
+      const b=document.createElement("button"); b.className="navunit";
+      b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(utitle||"")+' <span class="fc">'+cnt+'</span>';
+      if(cur && cur.si===navState.si && cur.fi===navState.fi && cur.ui===ui) b.classList.add("active");
+      b.onclick=()=>openLesson(navState.si,navState.fi,ui);
+      nav.appendChild(b);
+    });
   }
 }
 function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
@@ -424,7 +468,14 @@ function getUnitlist(){ return document.getElementById("unitlist"); }
 function openFile(si,fi){
   if(window.trilStudy) trilStudy.stop({reason:"openFile"});
   curSi=si;curFi=fi;
-  document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".navfile,.navunit").forEach(b=>b.classList.remove("active"));
+  /* 钻取到第 3 级：单元列表在侧栏（用户点单元 → openLesson） */
+  if(typeof goLevel === "function"){
+    goLevel(3,si,fi);
+    /* 同时同步高亮（navLevel=3 时 find by data-si/fi 已无对应），不再 need 旧 navfile 高亮 */
+    return;
+  }
+  /* ===== 老路径（兜底）：3 级尚未初始化时仍把单元网格写到主区 ===== */
   const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"]');
   if(nb) nb.classList.add("active");
   const isCustom = (si === CUSTOM_SI);
@@ -800,7 +851,8 @@ function toast(msg){
 
 renderNav();
 refreshProgress();
-if(flat.length){ openFile(0,0); }
+/* 自动展开到第一个学段（不开单元），用户从侧栏直接选单元开始 */
+if(flat.length && IDX.stages.length){ goLevel(2,0,-1); }
 
 /* ===== 可折叠面板控制（目录 / 例句 / 顶栏），状态持久化 ===== */
 function toggleLayout(kind){

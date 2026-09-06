@@ -102,36 +102,73 @@ function showTtsBanner(ok){
 }
 if(!window.speechSynthesis) showTtsBanner(false);
 
-/* ===== 目录导航 ===== */
-const nav=document.getElementById("nav");
-const main=document.getElementById("main");
-function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+/* ===== 钻取式目录（学段→文件→单元），与播放器一致 ===== */
+const navState={level:1,si:-1,fi:-1,hist:[]};
+function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
+function goLevel(level,si,fi){
+  navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
+  navState.level=level; navState.si=si; navState.fi=fi; renderNav();
+}
+function navBack(){
+  if(!navState.hist.length) return;
+  const p=navState.hist.pop();
+  navState.level=p.level; navState.si=p.si; navState.fi=p.fi; renderNav();
+}
+function sortedStages(){
+  /* 东钢岗位词汇 永远在第一位 */
+  const a=DATA.stages.slice();
+  const i=a.findIndex(s=>/东钢岗位词汇/.test(s.name||""));
+  if(i>0){ const x=a.splice(i,1)[0]; a.unshift(x); }
+  return a;
+}
 function renderNav(){
   nav.innerHTML="";
-  DATA.stages.forEach(st=>{
-    const sc=document.createElement("div"); sc.className="navstage";
-    const total=st.files.reduce((a,f)=>a+f.units.length,0);
-    const h=document.createElement("h3");
-    h.innerHTML="▾ "+st.name+' <span class="cnt">('+total+'单元)</span>';
-    h.onclick=()=>{ const col=sc.classList.toggle("collapsed"); h.firstChild.textContent = col?"▸ ":"▾ "; };
-    sc.appendChild(h);
+  if(navState.level===1){
+    const close=document.createElement("button"); close.className="navback"; close.textContent="✕ 关闭目录";
+    close.onclick=()=>document.body.classList.remove("show-sidebar-m");
+    nav.appendChild(close);
+    sortedStages().forEach(st=>{
+      const si=DATA.stages.indexOf(st);
+      const total=st.files.reduce((a,f)=>a+f.units.length,0);
+      const b=document.createElement("button"); b.className="navfile";
+      b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
+      b.onclick=()=>goLevel(2,si,-1);
+      nav.appendChild(b);
+    });
+  } else if(navState.level===2){
+    const st=DATA.stages[navState.si];
+    nav.appendChild(mkBack("◀ 返回学段"));
     st.files.forEach((f,fi)=>{
       const b=document.createElement("button"); b.className="navfile";
-      b.innerHTML=escapeHtml(f.name)+'<span class="fc">'+f.units.length+'</span>';
-      b.dataset.si=DATA.stages.indexOf(st); b.dataset.fi=fi;
-      b.onclick=()=>openFile(+b.dataset.si,+b.dataset.fi);
-      sc.appendChild(b);
+      b.innerHTML='▸ '+escapeHtml(f.name)+' <span class="fc">'+f.units.length+'</span>';
+      b.onclick=()=>goLevel(3,navState.si,fi);
+      nav.appendChild(b);
     });
-    nav.appendChild(sc);
-  });
+  } else {
+    const st=DATA.stages[navState.si]; const f=st.files[navState.fi];
+    nav.appendChild(mkBack("◀ 返回文件"));
+    f.units.forEach((u,ui)=>{
+      const d=isDone({si:navState.si,fi:navState.fi,ui});
+      const cnt=(u.entries?u.entries.length:0)+" 张卡片";
+      const badge=d?' ✓':'·';
+      const b=document.createElement("button"); b.className="navunit";
+      b.innerHTML=badge+' '+escapeHtml(u.title||"")+' <span class="fc">'+cnt+'</span>';
+      if(cur && cur.si===navState.si && cur.fi===navState.fi && cur.ui===ui) b.classList.add("active");
+      b.onclick=()=>startStudy(navState.si,navState.fi,ui);
+      nav.appendChild(b);
+    });
+  }
 }
 function getUnitlist(){ return document.getElementById("unitlist"); }
 let curSi=-1,curFi=-1;
 function openFile(si,fi){
   curSi=si;curFi=fi; studyActive=false;
-  document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
-  const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"]');
-  if(nb) nb.classList.add("active");
+  document.querySelectorAll(".navfile,.navunit").forEach(b=>b.classList.remove("active"));
+  if(typeof goLevel === "function"){
+    goLevel(3,si,fi);
+    return;
+  }
+  /* 兜底路径（goLevel 尚未就绪时） */
   const st=DATA.stages[si], f=st.files[fi];
   let inner='<div class="breadcrumb"><b>'+st.name+'</b> &nbsp;/&nbsp; '+f.name+' &nbsp;·&nbsp; 共 '+f.units.length+' 个单元</div>';
   inner+='<div class="unitgrid">';
@@ -421,7 +458,8 @@ applyLayout();
 /* ===== 启动 ===== */
 renderNav();
 refreshProgress();
-if(flat.length){ openFile(0,0); }
+/* 自动展开到第一个学段（不开单元），用户从侧栏直接选单元开始 */
+if(flat.length && DATA.stages.length){ goLevel(2,0,-1); }
 
 /* ===== auth-client 返回键：学习回合逐级回退 ===== */
 window.TrilAppBack = function(){
