@@ -222,6 +222,46 @@ body.hide-sidebar nav{width:0;flex-basis:0;min-width:0;padding-left:0;padding-ri
     </div>
   </main>
 </div>
+<div id="trilDiag" style="position:fixed;left:8px;bottom:60px;z-index:9990;background:rgba(20,28,46,.92);color:#ffd591;border:1px solid #6b4f17;border-radius:9px;padding:6px 10px;font:11px/1.4 system-ui;max-width:380px;box-shadow:0 4px 14px rgba(0,0,0,.5)">诊断中…</div>
+<script>
+(function(){
+  function tick(){
+    var d = document.getElementById('trilDiag');
+    if(!d) return;
+    var DATA = window.__TRIL_DATA__;
+    var IDX = window.__TRIL_INDEX__;
+    var nav = document.getElementById('nav');
+    var navN = nav ? nav.children.length : 0;
+    var renderOK = typeof window.renderNav === 'function';
+    var hasData = !!(DATA && DATA.stages && DATA.stages.length);
+    var hasIDX = !!(IDX && IDX.stages && IDX.stages.length);
+    var msg = '🔧 闪记诊断 · DATA: ' + (hasData ? DATA.stages.length + ' 学段' : '⏳ 加载中')
+      + ' · IDX: ' + (hasIDX ? '✓' : '❌')
+      + ' · nav: ' + navN + ' 项'
+      + ' · renderNav: ' + (renderOK ? '✓' : '❌')
+      + (hasData && navN === 0 ? ' ⚠ 已加载但 nav 空白' : '');
+    d.textContent = msg;
+  }
+  setTimeout(tick, 300);
+  setTimeout(tick, 1500);
+  setTimeout(tick, 4000);
+  setTimeout(tick, 8000);
+  setTimeout(function(){
+    var d = document.getElementById('trilDiag');
+    if(d) d.addEventListener('click', function(){
+      try{
+        // 清空所有 tril 相关缓存
+        var keys = [];
+        for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^tril_/.test(k)) keys.push(k); }
+        keys.forEach(function(k){ localStorage.removeItem(k); });
+        // 清 SW
+        if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}); }
+        alert('已清 ' + keys.length + ' 个 tril_ 缓存 + ' + (navigator.serviceWorker?'SW 已尝试注销':'SW 不可用') + ' — 请刷新');
+      }catch(e){ alert('清缓存失败: '+e.message); }
+    });
+  }, 500);
+})();
+</script>
 
 <div class="overlay" id="overlay">
   <div class="modal">

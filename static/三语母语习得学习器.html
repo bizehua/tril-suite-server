@@ -213,6 +213,35 @@ body.hide-examples .dexample{display:none}
     </div>
   </main>
 </div>
+<div id="trilDiag" style="position:fixed;left:8px;bottom:60px;z-index:9990;background:rgba(20,28,46,.92);color:#ffd591;border:1px solid #6b4f17;border-radius:9px;padding:6px 10px;font:11px/1.4 system-ui;max-width:380px;box-shadow:0 4px 14px rgba(0,0,0,.5)">诊断中…</div>
+<script>
+/* 实时显示加载状态，方便用户无需 DevTools 也能看到 nav 是否渲染 */
+(function(){
+  function tick(){
+    var d = document.getElementById('trilDiag');
+    if(!d) return;
+    var IDX = window.__TRIL_INDEX__;
+    var nav = document.getElementById('nav');
+    var navN = nav ? nav.children.length : 0;
+    var renderOK = typeof window.renderNav === 'function';
+    var hasData = !!(IDX && IDX.stages && IDX.stages.length);
+    var msg = '🔧 学习器诊断 · IDX: ' + (hasData ? IDX.stages.length + ' 学段' : '❌ 未加载')
+      + ' · nav: ' + navN + ' 项'
+      + ' · renderNav: ' + (renderOK ? '✓' : '❌')
+      + (hasData && navN === 0 ? ' ⚠ 已加载但 nav 空白 — 可能是 Service Worker 缓存' : '');
+    d.textContent = msg;
+  }
+  setTimeout(tick, 300);
+  setTimeout(tick, 1500);
+  setTimeout(tick, 4000);
+  setTimeout(function(){
+    var d = document.getElementById('trilDiag');
+    if(d) d.addEventListener('click', function(){
+      try{ localStorage.clear(); alert('localStorage 已清空，请刷新'); }catch(e){}
+    });
+  }, 500);
+})();
+</script>
 
 <div class="overlay" id="overlay">
   <div class="modal">
