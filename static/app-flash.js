@@ -88,6 +88,32 @@ function mkey(u,e){ return uid(u)+"#"+mkKey(e); }
 function getMaster(u,e){ return mastery[mkey(u,e)] || ""; }
 function setMaster(u,e,lv){ mastery[mkey(u,e)] = lv; saveMastery(); }
 
+/* ===== 错题本（闪记 ✗不认识 / ?模糊 自动进错题本，与测试器同形） ===== */
+const LS_WRONG = "tril_wrongbook_v1";
+let wrongbook = {};
+try{ wrongbook = JSON.parse(localStorage.getItem(LS_WRONG) || "{}") || {}; }catch(e){ wrongbook = {}; }
+function saveWrongbook(){
+  try{ localStorage.setItem(LS_WRONG, JSON.stringify(wrongbook)); }
+  catch(e){ if(window.TrilDB){ try{ TrilDB.set("wrongbook", wrongbook); }catch(_){} } }
+}
+function pushWrong(e){
+  if(!e) return;
+  const k = mkKey(e);
+  if(!k || k === "|||") return;
+  if(wrongbook[k]){
+    wrongbook[k].wrong = (wrongbook[k].wrong||0) + 1;
+    wrongbook[k].streak = 0;
+  } else {
+    wrongbook[k] = {
+      en:e.en||"", bm:e.bm||"", zh:e.zh||"", th:e.th||"",
+      en_ipa:e.en_ipa||"", bm_ipa:e.bm_ipa||"", bm_pron:e.bm_pron||"", zh_pinyin:e.zh_pinyin||"", th_pron:e.th_pron||"",
+      level:e.level||"", example:e.example||{},
+      wrong:1, streak:0
+    };
+  }
+  saveWrongbook();
+}
+
 /* ===== 扁平单元索引 ===== */
 let flat = [];
 if(window.TrilLib) TrilLib.mergeStages(DATA);
@@ -437,6 +463,8 @@ function prev(){
 function rate(lv){
   if(!cur) return;
   setMaster(cur,cards[pos],lv);
+  // ✗ 不认识 / ? 模糊 → 同时入错题本，保证错题本非空
+  if(lv==="unknown"||lv==="fuzzy") pushWrong(cards[pos]);
   // 若开启“跳过已掌握”，评分后该卡可能需从本轮移除（下一轮生效）；本张直接前进
   if(settings.autoAdvance){ next(); }
   else { refreshStudyMasterBadge(); }

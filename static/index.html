@@ -126,7 +126,7 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
 .dash-head .meta{margin-left:auto;font-size:11px;color:var(--dash-faint);display:flex;gap:6px;align-items:center}
 .dash-head .meta a{color:var(--dash-chart2);text-decoration:none;font-weight:600}
 
-.dash-hero{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.dash-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin-bottom:16px}
 .dash-hero .sc{
   background:var(--dash-panel);border:1px solid var(--dash-line);border-radius:13px;
   padding:12px 14px 11px;position:relative;overflow:hidden;
@@ -205,6 +205,7 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
     <div class="sc" data-color="muted" data-page-node-id="PBWFHzYZvYQl3mn44pqmOD"><div class="lbl" data-page-node-id="clRtXSEkwKcRHEDRzm0hch">学习进度</div><div class="val" id="mProg" data-page-node-id="Joh9WHjphZIqnjpCrCnM9n">—</div><div class="sub" id="mProgSub" data-page-node-id="FIaqjq7jm5ALBiHBOfUzNu">📕 — · ★ —</div></div>
     <div class="sc" data-color="ok" data-page-node-id="jPo7BbBrBz9C1HkeBwKOPA"><div class="lbl" data-page-node-id="jP1bc3sF27so75dqtRV5NL">⏱ 今日学习</div><div class="val" id="mTodayMin" data-page-node-id="CqwmM5BDcNbmlEhiqnRxNI">—</div><div class="sub" id="mTodayCount" data-page-node-id="wdWT4jbv1Bstq1zK4NtZqq">— 次 · — 词</div></div>
     <div class="sc" data-color="bad" data-page-node-id="yEPFl58rGSJoQhZFBdX8AE"><div class="lbl" data-page-node-id="NADRYenzfZ0KzURr2nu4Gt">📕 错题本</div><div class="val bad" id="mWrong" data-page-node-id="7EfA2bdQK3jUlvXRycJmJV">—</div><div class="sub" id="mWrongSub" data-page-node-id="o9TQlsQUCjoBjo99VHsYAw">— 顽固 · — 接近毕业</div></div>
+    <div class="sc" data-color="ok" data-page-node-id="mLearnedNode"><div class="lbl" data-page-node-id="mLearnedLbl">📚 已学单词<span class="i18n-bm-sm">Perkataan Dipelajari</span></div><div class="val ok" id="mLearned" data-page-node-id="mLearnedVal">—</div><div class="sub" id="mLearnedSub" data-page-node-id="mLearnedSub">学习器已完成单元累计</div></div>
   </div>
 
   <div class="dash-grid" data-page-node-id="5aOsT6QW2x2mi27x3OmfVX">
@@ -495,6 +496,25 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
   el("mWrong").textContent = wkKeys.length;
   el("mWrongSub").textContent = wkHeavy + " 顽固 · " + wkAlmost + " 接近毕业";
 
+  /* 已学单词（学习器已完成的单元 × 单元词数，来自 index） */
+  var learnedWords = 0;
+  if(window.__TRIL_INDEX__ && Array.isArray(window.__TRIL_INDEX__.stages)){
+    Object.keys(progress).forEach(function(k){
+      if(progress[k] && progress[k].done){
+        var parts = (k+"").split("_");
+        if(parts.length >= 3){
+          var si = parseInt(parts[0],10), fi = parseInt(parts[1],10), ui = parseInt(parts[2],10);
+          var stg = window.__TRIL_INDEX__.stages[si];
+          if(stg && stg.files && stg.files[fi] && stg.files[fi].units && stg.files[fi].units[ui]){
+            learnedWords += (stg.files[fi].units[ui].n || 0);
+          }
+        }
+      }
+    });
+  }
+  el("mLearned").textContent = learnedWords;
+  el("mLearnedSub").textContent = "学习器已完成单元累计";
+
   /* ==== ECharts 渲染 ==== */
   function whenEcharts(cb){
     if(window.echarts){ cb(); return; }
@@ -666,43 +686,60 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
       window.addEventListener("resize", function(){ chart.resize(); });
     })();
 
-    /* 4) 各学段完成度（bar） */
+    /* 4) 各学段单元完成度（bar，汇总 学习器 / 闪记 / 测试器 的「已完成单元」） */
     (function(){
       var c = document.getElementById("ctStage");
       if(!c) return;
-      var rows = [];
-      for(var k in progress){
-        if(progress[k] && progress[k].done){
-          var parts = k.split("_");
-          if(parts.length>=3){
-            var si = parseInt(parts[0],10);
-            rows.push(si);
-          }
-        }
+      if(!window.__TRIL_INDEX__ || !Array.isArray(window.__TRIL_INDEX__.stages)){
+        c.innerHTML = '<div class="loading">词库索引未加载</div>'; return;
       }
-      /* 按 si 聚合去重：每个 si 一个单元 done 计数 */
-      var perStage = {};
-      rows.forEach(function(si){ perStage[si] = (perStage[si]||0)+1; });
-      var labels = ["基础","小学","初中","高中","大学","研究生","核心","行业"];
-      var counts = [0,0,0,0,0,0,0,0];
-      Object.keys(perStage).forEach(function(si){
-        var idx = Math.min(7, parseInt(si,10));
-        counts[idx] = perStage[si];
+      /* 汇总所有已完成的单元：key 形如 si_fi_ui */
+      var doneByStage = {};
+      function addDone(prog){
+        if(!prog) return;
+        Object.keys(prog).forEach(function(k){
+          if(prog[k] && prog[k].done){
+            var parts = (k+"").split("_");
+            if(parts.length >= 3){
+              var si = parseInt(parts[0],10);
+              if(!isNaN(si)) doneByStage[si] = (doneByStage[si]||0)+1;
+            }
+          }
+        });
+      }
+      addDone(progress);                          // 学习器 tril_root_progress_v1
+      addDone(flashDone);                         // 闪记 tril_flash_done_v1
+      addDone(load("tril_quiz_progress_v1"));     // 测试器 tril_quiz_progress_v1
+
+      /* 学段顺序：东钢置顶，其余按原序 */
+      var stages = window.__TRIL_INDEX__.stages.slice();
+      var dgIdx = stages.findIndex(function(s){ return /东钢岗位词汇/.test(s.name||""); });
+      if(dgIdx > 0){ var dg = stages.splice(dgIdx,1)[0]; stages.unshift(dg); }
+
+      var labels = [], counts = [], totals = [];
+      stages.forEach(function(st){
+        var si = window.__TRIL_INDEX__.stages.indexOf(st);
+        var totalU = (st.files||[]).reduce(function(a,f){ return a + (f.units||[]).length; }, 0);
+        labels.push(st.name || ("学段"+(si+1)));
+        counts.push(doneByStage[si]||0);
+        totals.push(totalU);
       });
+
       var chart = freshChart(c);
       if(counts.every(function(v){ return v===0; })){
-        c.innerHTML = '<div class="loading">暂无单元完成记录<br><span style="font-size:11px;color:var(--dash-faint)">去「学习器」打开任意单元开始</span></div>';
+        c.innerHTML = '<div class="loading">暂无单元完成记录<br><span style="font-size:11px;color:var(--dash-faint)">去「学习器 / 闪记」打开任意单元开始</span></div>';
         return;
       }
       chart.setOption({
-        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12}},
-        grid:{top:14,left:32,right:14,bottom:22},
-        xAxis:{type:"category",data:labels,...axisCommon()},
+        tooltip:{trigger:"axis",backgroundColor:"rgba(255,255,255,.95)",borderColor:P.line,textStyle:{color:P.txt,fontSize:12},
+          formatter:function(p){ var i=p[0].dataIndex; return labels[i] + '<br>已完成 <b>'+counts[i]+'</b> / '+totals[i]+' 单元'; }},
+        grid:{top:14,left:32,right:14,bottom:54},
+        xAxis:{type:"category",data:labels, axisLabel:{color:P.muted,fontSize:9,interval:0,rotate:(labels.length>6?32:0)}, ...axisCommon()},
         yAxis:{type:"value",minInterval:1,...axisCommon()},
         series:[{
           type:"bar",data:counts,barWidth:"55%",
           itemStyle:{color:{type:"linear",x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:P.chart1},{offset:1,color:P.chart2}]},borderRadius:[6,6,0,0]},
-          label:{show:true,position:"top",color:P.muted,fontSize:10,fontWeight:600}
+          label:{show:true,position:"top",color:P.muted,fontSize:10,fontWeight:600,formatter:function(p){ return counts[p.dataIndex]>0 ? counts[p.dataIndex] : ""; }}
         }]
       });
       window.addEventListener("resize", function(){ chart.resize(); });

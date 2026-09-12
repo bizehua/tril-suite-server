@@ -185,6 +185,13 @@ const STORAGE_FALLBACK_KEYS = [];  // (refreshed from IDB migration below)
 let wrongbook = {};
 try{ wrongbook = JSON.parse(localStorage.getItem(LS_WRONG) || "{}") || {}; }catch(e){ wrongbook = {}; }
 
+/* 收藏（学习器点 ☆ 产生，key 与错题本同形） */
+let marks = {};
+try{ marks = JSON.parse(localStorage.getItem("tril_marks_v1") || "{}") || {}; }catch(e){ marks = {}; }
+
+/* 来源模式：wrong = 错题本 / marks = 我的收藏（用错题本方式查看考试） */
+let srcMode = "wrong";
+
 function saveWrongbook(){
   try{ localStorage.setItem(LS_WRONG, JSON.stringify(wrongbook)); }
   catch(e){
@@ -193,6 +200,25 @@ function saveWrongbook(){
       TrilDB.set("wrongbook", wrongbook).catch(function(){});
     }
   }
+}
+
+/* 把一条词条（同形 key）写入错题本，与测试器/闪记同形 */
+function pushWrong(e){
+  if(!e) return;
+  const k = (e.en||"")+"|"+(e.bm||"")+"|"+(e.zh||"")+"|"+(e.th||"");
+  if(!k || k === "|||") return;
+  if(wrongbook[k]){
+    wrongbook[k].wrong = (wrongbook[k].wrong||0)+1;
+    wrongbook[k].streak = 0;
+  } else {
+    wrongbook[k] = {
+      en:e.en||"", bm:e.bm||"", zh:e.zh||"", th:e.th||"",
+      en_ipa:e.en_ipa||"", bm_ipa:e.bm_ipa||"", bm_pron:e.bm_pron||"", zh_pinyin:e.zh_pinyin||"", th_pron:e.th_pron||"",
+      level:e.level||"", example:e.example||{},
+      wrong:1, streak:0
+    };
+  }
+  saveWrongbook();
 }
 
 function escapeHtml(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
@@ -318,8 +344,15 @@ function unitWrongCounts(){
 }
 
 function sortAndFilter(){
-  let arr = Object.keys(wrongbook).map(k => ({key: k, entry: wrongbook[k]}));
+  let arr;
+  if(srcMode === "marks"){
+    arr = Object.keys(marks).map(k => ({key: k, entry: marks[k]}))
+      .filter(it => it.entry && (it.entry.en||it.entry.bm||it.entry.zh||it.entry.th));
+  } else {
+    arr = Object.keys(wrongbook).map(k => ({key: k, entry: wrongbook[k]}));
+  }
   // 过滤
+  if(srcMode !== "marks"){
   if(filterMode === "unit" && unitFilter){
     const f = unitFilter;
     if(f.si === -1){
@@ -345,6 +378,7 @@ function sortAndFilter(){
     // 连对 ≥ 5、接近毕业的
     arr = arr.filter(it => (it.entry.streak || 0) >= 5);
   }
+  } // srcMode !== "marks"
   // 排序：错得越多越靠前；同样错次数时按连对升序（接近毕业往后挪）
   arr.sort((a, b) => {
     if(sortMode === "recent"){
@@ -372,6 +406,20 @@ function buildQueueAndRender(){
 /* ============ UI 渲染 ============ */
 function renderEmpty(){
   const main = document.getElementById("main");
+  if(srcMode === "marks"){
+    main.innerHTML = '<div class="empty">' +
+      '<h2>⭐ 收藏夹是空的</h2>' +
+      '<p>你还没有收藏任何单词。</p>' +
+      '<div class="hint">' +
+      '<p>在 <b>学习器</b> 表格里点词条前的 ☆ 即可收藏，之后就能在这里「用错题本方式查看考试」。</p>' +
+      '<p>⭐ 收藏的词不会自动消失；在这里评分时，✗ 不认识会同时把它送进错题本。</p>' +
+      '</div>' +
+      '<div style="margin-top:18px"><button class="primary" onclick="srcMode=\'wrong\';buildQueueAndRender()">📕 切回错题本</button></div>' +
+      '</div>';
+    document.getElementById("progFill").style.width = "0%";
+    document.getElementById("footChip").textContent = "无任务";
+    return;
+  }
   main.innerHTML = '<div class="empty">' +
     '<h2>🎉 错题本空空如也</h2>' +
     '<p>所有错词都已掌握。继续保持！</p>' +
@@ -408,13 +456,16 @@ function renderCard(){
 
   const it = queue[pos];
   const e = it.entry;
+  const isMarks = srcMode === "marks";
   const wrong = e.wrong || 0;
   const streak = Math.min(10, e.streak || 0);
-  const danger = wrong >= 3 ? "danger" : "";
+  const danger = (!isMarks && wrong >= 3) ? "danger" : "";
 
   let streakHtml = '';
-  for(let i = 0; i < 10; i++){
-    streakHtml += '<i class="' + (i < streak ? 'on' : '') + '"></i>';
+  if(!isMarks){
+    for(let i = 0; i < 10; i++){
+      streakHtml += '<i class="' + (i < streak ? 'on' : '') + '"></i>';
+    }
   }
 
   const ex = (typeof e.example === "object" && e.example) ? e.example : {};
@@ -432,14 +483,13 @@ function renderCard(){
   card.className = "card " + danger;
   card.innerHTML =
     '<div class="corner">' +
-      '<span class="chip" style="border-color:var(--danger)">' +
-        '错 <strong style="color:#ffd0d0">' + wrong + '</strong>' +
-      '</span>' +
+      (isMarks
+        ? '<span class="chip" style="border-color:var(--warn)"><span style="color:#ffd166">★ 收藏</span></span>'
+        : '<span class="chip" style="border-color:var(--danger)">错 <strong style="color:#ffd0d0">' + wrong + '</strong></span>') +
     '</div>' +
     '<div class="meta">' +
       '<span class="chip">第 ' + (pos+1) + '/' + queue.length + ' 张</span>' +
-      '<span class="chip">连对 ' + streak + '/10</span>' +
-      '<span class="spacer" style="flex:1"></span>' +
+      (isMarks ? '' : '<span class="chip">连对 ' + streak + '/10</span><span class="spacer" style="flex:1"></span>') +
       (e.level ? '<span class="chip">L' + escapeHtml(String(e.level)) + '</span>' : '') +
     '</div>' +
     frontHtmlByLang(e) +
@@ -464,6 +514,9 @@ function renderCard(){
 
   main.innerHTML = '';
   main.appendChild(card);
+  /* 翻面/切卡后保持顶部「来源切换 / 过滤器」条可见 */
+  if(typeof renderSourceToggle === "function") renderSourceToggle();
+  if(typeof renderFilters === "function") renderFilters();
 
   setTimeout(()=>{ autoSpeakFront(e); }, 80);
 
@@ -516,6 +569,11 @@ function renderSummary(){
 }
 
 function updateHeaderStats(){
+  if(srcMode === "marks"){
+    const n = Object.keys(marks).length;
+    document.getElementById("queueChip").innerHTML = '<strong>' + n + '</strong> 收藏';
+    return;
+  }
   const keys = Object.keys(wrongbook);
   const total = keys.length;
   const heavy = keys.filter(k => (wrongbook[k].wrong || 0) >= 3).length;
@@ -553,6 +611,10 @@ function renderFilters(){
     return;
   }
 
+  if(srcMode === "marks"){
+    bar.innerHTML = '<span class="lbl">过滤：</span><span class="chip" style="background:var(--panel2);border:1px solid var(--line);padding:5px 10px;font-size:12px">★ 收藏不支持按错次筛选，显示全部</span>';
+    return;
+  }
   bar.innerHTML = '<span class="lbl">过滤：</span>';
   const filterOpts = [
     {k:"all", t:"📚 全部"},
@@ -769,6 +831,16 @@ function rate(action){
   if(pos < 0 || pos >= queue.length) return;
   const it = queue[pos];
   const e = it.entry;
+
+  /* 收藏模式：把收藏当作「查看/考试」来刷，✗ 不认识 → 同时入错题本 */
+  if(srcMode === "marks"){
+    if(action === "reset"){ pushWrong(e); toast("✗ 已加入错题本（源自收藏）"); }
+    else if(action === "keep"){ toast("? 还在练"); }
+    else if(action === "mastered"){ toast("✓ 已记住"); }
+    flipped = false; pos++; renderCard(); updateHeaderStats();
+    return;
+  }
+
   if(!e.history) e.history = [];
 
   const beforeStreak = e.streak || 0;
@@ -816,6 +888,30 @@ function skip(){
 function render(){
   updateHeaderStats();
   renderFilters();
+  renderSourceToggle();
+}
+
+/* ============ 来源切换：📕 错题本 / ★ 我的收藏 ============ */
+function renderSourceToggle(){
+  let bar = document.querySelector(".srctoggle");
+  if(!bar){
+    const main = document.getElementById("main");
+    bar = document.createElement("div");
+    bar.className = "srctoggle filters";
+    main.insertBefore(bar, main.firstChild);
+  }
+  bar.innerHTML = '<span class="lbl">来源：</span>';
+  const opts = [
+    {k:"wrong", t:"📕 错题本"},
+    {k:"marks", t:"★ 我的收藏"}
+  ];
+  opts.forEach(o => {
+    const b = document.createElement("button");
+    b.textContent = o.t;
+    if(o.k === srcMode) b.classList.add("active");
+    b.onclick = () => { srcMode = o.k; buildQueueAndRender(); };
+    bar.appendChild(b);
+  });
 }
 
 /* ============ 导出 / 导入 ============ */

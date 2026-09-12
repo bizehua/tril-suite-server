@@ -110,6 +110,31 @@ function harvestFromApps(){
 
 harvestFromApps();
 
+/* ============ 错题本聚合：复习里「✗ 不认识 / ? 模糊」也写入，保证错题本非空 ============ */
+let wrongbook = {};
+try{ wrongbook = JSON.parse(localStorage.getItem(LS_WRONG) || "{}") || {}; }catch(e){ wrongbook = {}; }
+function saveWrongbook(){
+  try{ localStorage.setItem(LS_WRONG, JSON.stringify(wrongbook)); }
+  catch(e){ if(window.TrilDB){ try{ TrilDB.set("wrongbook", wrongbook); }catch(_){} } }
+}
+function pushWrong(e){
+  if(!e) return;
+  const k = mkKey(e);
+  if(!k || k === "|||") return;
+  if(wrongbook[k]){
+    wrongbook[k].wrong = (wrongbook[k].wrong||0) + 1;
+    wrongbook[k].streak = 0;
+  } else {
+    wrongbook[k] = {
+      en:e.en||"", bm:e.bm||"", zh:e.zh||"", th:e.th||"",
+      en_ipa:e.en_ipa||"", bm_ipa:e.bm_ipa||"", bm_pron:e.bm_pron||"", zh_pinyin:e.zh_pinyin||"", th_pron:e.th_pron||"",
+      level:e.level||"", example:e.example||{},
+      wrong:1, streak:0
+    };
+  }
+  saveWrongbook();
+}
+
 /* 把所有「有活动」的 entry 拉进 srs；已掌握的（level>=5 且 last_review<30d 前）保留；
    已删/未活动的 key 不主动删，留着不显示即可。 */
 function ensureSrsState(key, seed){
@@ -719,6 +744,8 @@ function rate(rating){
   const before = st.level;
   calcNext(st, rating);
   saveSRS();
+  // ✗ 不认识 / ? 模糊 → 同时入错题本（用户要求：模糊也要进错题本）
+  if(rating==="unknown"||rating==="fuzzy") pushWrong(c.entry);
   // 闪记 mastery 同步（保证跨应用一致）
   try{
     const mast = JSON.parse(localStorage.getItem(LS_FLASHCARD_MASTERY) || "{}") || {};
