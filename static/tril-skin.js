@@ -45,4 +45,11 @@
   var s = read();
   if(s !== 'default'){ clearInlineTheme(); }
   document.documentElement.setAttribute('data-skin', s);
+
+  // 卷轴视差：滚动时更新 --sy（驱动两侧立轴背景位移，营造「展卷」感），rAF 节流
+  var syEl = document.documentElement, syTicking = false;
+  function syncSy(){ syTicking = false; syEl.style.setProperty('--sy', (window.scrollY || window.pageYOffset || 0)); }
+  function onScrollSy(){ if(!syTicking){ syTicking = true; requestAnimationFrame(syncSy); } }
+  window.addEventListener('scroll', onScrollSy, { passive:true });
+  syncSy();
 })();
