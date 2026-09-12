@@ -3,7 +3,7 @@
    ---------------------------------------------------------
    阶段 5+6 · 三套完整主题（整站同步：背景/导航/按钮/卡片/页脚）
    - default  深海蓝调（精致几何点阵 + 玻璃质感）
-   - guofeng  中国风（墨底朱红 · 祥云纹 · 龙鳞纹 · 鎏金边 · 灯笼 · 五角星）
+   - guofeng  中国风（墨底朱红 · 祥云纹 · 龙鳞纹 · 鎏金边 · 灯笼 · 山水立轴 · 中国龙）
    - malaysia 马来西亚（国旗蓝红金 · songket 星格纹 · 新月十四角星 · 条纹）
    附加节日皮肤：chunjie 春节 / kaifa 开斋节 / zhongqiu 中秋
    切换键：localStorage.tril_skin（保留 30 天），由 tril-skin.js 写入 html[data-skin]
@@ -71,8 +71,8 @@ html[data-skin="guofeng"]{
   /* 播放高亮：暖金红调，墨底上对比清晰 */
   --hl-en:rgba(255,122,107,.30); --hl-bm:rgba(255,207,107,.26);
   --hl-zh:rgba(231,196,137,.26); --hl-th:rgba(212,175,55,.28);
-  /* 纹样：祥云团纹 + 五角星（暗金描线） */
-  --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23D4AF37' stroke-width='1.3'%3E%3Cg opacity='.085'%3E%3Ccircle cx='36' cy='38' r='15'/%3E%3Ccircle cx='52' cy='31' r='10'/%3E%3Ccircle cx='60' cy='41' r='7'/%3E%3Cpath d='M22 49q16 7 36 2'/%3E%3C/g%3E%3Cg opacity='.065'%3E%3Ccircle cx='116' cy='112' r='13'/%3E%3Ccircle cx='103' cy='104' r='9'/%3E%3Ccircle cx='124' cy='102' r='6'/%3E%3Cpath d='M100 120q18 5 32 0'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23C8102E' opacity='.10'%3E%3Cpath d='M108 20l1.6 4.1 4.4.3-3.4 2.9 1 4.3-3.6-2.3-3.6 2.3 1-4.3-3.4-2.9 4.4-.3z'/%3E%3C/g%3E%3C/svg%3E");
+  /* 纹样：祥云团纹（暗金描线；已去五角星） */
+  --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23D4AF37' stroke-width='1.3'%3E%3Cg opacity='.10'%3E%3Ccircle cx='36' cy='38' r='15'/%3E%3Ccircle cx='52' cy='31' r='10'/%3E%3Ccircle cx='60' cy='41' r='7'/%3E%3Cpath d='M22 49q16 7 36 2'/%3E%3C/g%3E%3Cg opacity='.075'%3E%3Ccircle cx='116' cy='112' r='13'/%3E%3Ccircle cx='103' cy='104' r='9'/%3E%3Ccircle cx='124' cy='102' r='6'/%3E%3Cpath d='M100 120q18 5 32 0'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   /* 龙鳞纹（卡片暗纹） */
   --pat-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg fill='%23D4AF37' opacity='.05'%3E%3Cpath d='M0 24a12 12 0 0 1 24 0z'/%3E%3Cpath d='M-12 12a12 12 0 0 1 24 0z'/%3E%3Cpath d='M12 12a12 12 0 0 1 24 0z'/%3E%3C/g%3E%3C/svg%3E");
 }
@@ -231,15 +231,21 @@ html[data-skin="default"] .primary:hover{
 }
 
 /* =========================================================
-   主题二 · 中国风「朱砂鎏金」— 祥云 · 龙鳞 · 灯笼 · 五角星
+   主题二 · 中国风「朱砂鎏金」— 祥云 · 龙鳞 · 灯笼 · 山水立轴 · 中国龙
    ========================================================= */
 
-/* 1) 页面背景：祥云团纹 + 朱红/鎏金辉光 */
+/* 1) 页面背景：左右山水立轴 + 祥云团纹 + 朱红/鎏金辉光 */
 html[data-skin="guofeng"] body{
   background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'240'%20height%3D'1000'%20viewBox%3D'0%200%20240%201000'%3E%0A%3Cg%20fill%3D'none'%20stroke%3D'%23E8C9A0'%20stroke-width%3D'2'%3E%0A%3Ccircle%20cx%3D'174'%20cy%3D'118'%20r%3D'44'%20fill%3D'%23E8C9A0'%20opacity%3D'.13'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20322%20L58%20220%20L112%20302%20L162%20208%20L212%20300%20L240%20252%20L240%20372%20L0%20372%20Z'%20fill%3D'%23cdb38a'%20opacity%3D'.10'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20542%20L52%20470%20L104%20544%20L156%20458%20L206%20542%20L240%20500%20L240%20624%20L0%20624%20Z'%20fill%3D'%23b89a78'%20opacity%3D'.15'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20372%20L40%20392%20L80%20376%20L120%20396%20L160%20378%20L200%20398%20L240%20380%20L240%20470%20L0%20470%20Z'%20fill%3D'%23EFE2C8'%20opacity%3D'.05'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20624%20L44%20646%20L92%20628%20L140%20650%20L188%20630%20L240%20648%20L240%20740%20L0%20740%20Z'%20fill%3D'%23EFE2C8'%20opacity%3D'.05'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M152%201000%20L152%20742%20L188%20700%20L236%20742%20L236%201000%20Z'%20fill%3D'%238a6a4a'%20opacity%3D'.20'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M168%20742%20L168%20678%20M168%20700%20L150%20688%20M168%20700%20L186%20690'%20stroke%3D'%238a6a4a'%20stroke-width%3D'3'%20opacity%3D'.22'%2F%3E%0A%3Cpath%20d%3D'M152%20672%20L152%20638%20M152%20656%20L138%20642%20M152%20656%20L168%20644%20M152%20640%20L152%20608'%20stroke%3D'%235f7a4a'%20stroke-width%3D'3'%20opacity%3D'.20'%2F%3E%0A%3Cpath%20d%3D'M0%20858%20q22%20-9%2044%200%20t44%200%20t44%200%20t44%200%20t44%200'%20opacity%3D'.10'%2F%3E%0A%3Cpath%20d%3D'M0%20902%20q22%20-9%2044%200%20t44%200%20t44%200%20t44%200%20t44%200'%20opacity%3D'.10'%2F%3E%0A%3Cpath%20d%3D'M0%20946%20q22%20-9%2044%200%20t44%200%20t44%200%20t44%200%20t44%200'%20opacity%3D'.10'%2F%3E%0A%3Cpath%20d%3D'M44%2090%20l11%20-11%20l11%2011'%20opacity%3D'.14'%2F%3E%0A%3Cpath%20d%3D'M74%2078%20l9%20-9%20l9%209'%20opacity%3D'.14'%2F%3E%0A%3Cpath%20d%3D'M30%20140%20l9%20-9%20l9%209'%20opacity%3D'.12'%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'240'%20height%3D'1000'%20viewBox%3D'0%200%20240%201000'%3E%0A%3Cg%20fill%3D'none'%20stroke%3D'%23E8C9A0'%20stroke-width%3D'2'%3E%0A%3Ccircle%20cx%3D'174'%20cy%3D'118'%20r%3D'44'%20fill%3D'%23E8C9A0'%20opacity%3D'.13'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20322%20L58%20220%20L112%20302%20L162%20208%20L212%20300%20L240%20252%20L240%20372%20L0%20372%20Z'%20fill%3D'%23cdb38a'%20opacity%3D'.10'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20542%20L52%20470%20L104%20544%20L156%20458%20L206%20542%20L240%20500%20L240%20624%20L0%20624%20Z'%20fill%3D'%23b89a78'%20opacity%3D'.15'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20372%20L40%20392%20L80%20376%20L120%20396%20L160%20378%20L200%20398%20L240%20380%20L240%20470%20L0%20470%20Z'%20fill%3D'%23EFE2C8'%20opacity%3D'.05'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M0%20624%20L44%20646%20L92%20628%20L140%20650%20L188%20630%20L240%20648%20L240%20740%20L0%20740%20Z'%20fill%3D'%23EFE2C8'%20opacity%3D'.05'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M152%201000%20L152%20742%20L188%20700%20L236%20742%20L236%201000%20Z'%20fill%3D'%238a6a4a'%20opacity%3D'.20'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M168%20742%20L168%20678%20M168%20700%20L150%20688%20M168%20700%20L186%20690'%20stroke%3D'%238a6a4a'%20stroke-width%3D'3'%20opacity%3D'.22'%2F%3E%0A%3Cpath%20d%3D'M152%20672%20L152%20638%20M152%20656%20L138%20642%20M152%20656%20L168%20644%20M152%20640%20L152%20608'%20stroke%3D'%235f7a4a'%20stroke-width%3D'3'%20opacity%3D'.20'%2F%3E%0A%3Cpath%20d%3D'M0%20858%20q22%20-9%2044%200%20t44%200%20t44%200%20t44%200%20t44%200'%20opacity%3D'.10'%2F%3E%0A%3Cpath%20d%3D'M0%20902%20q22%20-9%2044%200%20t44%200%20t44%200%20t44%200%20t44%200'%20opacity%3D'.10'%2F%3E%0A%3Cpath%20d%3D'M0%20946%20q22%20-9%2044%200%20t44%200%20t44%200%20t44%200%20t44%200'%20opacity%3D'.10'%2F%3E%0A%3Cpath%20d%3D'M44%2090%20l11%20-11%20l11%2011'%20opacity%3D'.14'%2F%3E%0A%3Cpath%20d%3D'M74%2078%20l9%20-9%20l9%209'%20opacity%3D'.14'%2F%3E%0A%3Cpath%20d%3D'M30%20140%20l9%20-9%20l9%209'%20opacity%3D'.12'%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E"),
     radial-gradient(1100px 520px at 85% -8%, rgba(200,16,46,.12), transparent 60%),
     radial-gradient(900px 480px at -10% 108%, rgba(212,175,55,.08), transparent 55%),
     var(--pat-bg);
+  background-repeat:no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  background-position:left center, right center, center, center, left top;
+  background-size:200px 100%, 200px 100%, auto, auto, auto;
+  background-attachment:fixed, fixed, fixed, fixed, fixed;
 }
 
 /* 2) 顶栏：漆器质感 + 回纹（中式雷纹边饰）鎏金饰带 */
@@ -275,12 +281,37 @@ html[data-skin="guofeng"]::after{
   animation:tril-sway-slow 4.2s ease-in-out infinite; animation-delay:.7s;
 }
 
-/* 4) 「龍」字水墨水印（左下） */
-html[data-skin="guofeng"] body::before{
-  content:"龍"; position:fixed; left:-14px; bottom:-30px;
-  font-family:"STKaiti","KaiTi","楷体",serif;
-  font-size:210px; font-weight:700; line-height:1;
-  color:rgba(212,175,55,.05); pointer-events:none; z-index:0;
+/* 4) 中国龙腾云戏珠（背景水印；z-index:-1 置于内容之后，不挡字） */
+html[data-skin="guofeng"] body::after{
+  content:""; position:fixed; top:200px; left:50%; transform:translateX(-50%);
+  width:600px; height:330px; max-width:72vw;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'620'%20height%3D'340'%20viewBox%3D'0%200%20620%20340'%3E%0A%3Cg%20fill%3D'none'%20stroke%3D'%23D4AF37'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%20opacity%3D'.72'%3E%0A%3Cpath%20d%3D'M70%20250%20C%20140%20200%20150%20140%20220%20155%20C%20285%20168%20280%20250%20345%20232%20C%20405%20215%20410%20140%20482%20150'%20stroke-width%3D'13'%20opacity%3D'.95'%2F%3E%0A%3Cpath%20d%3D'M150%20176%20l-11%20-17%20M176%20169%20l-10%20-17%20M202%20166%20l-9%20-16%20M322%20241%20l-9%2017%20M348%20236%20l-8%2017%20M374%20223%20l-7%2017'%20stroke-width%3D'4'%20opacity%3D'.8'%2F%3E%0A%3Cpath%20d%3D'M70%20250%20C%2050%20270%2040%20300%2060%20316%20M70%20250%20C%2046%20246%2026%20262%2032%20286'%20stroke-width%3D'7'%20opacity%3D'.85'%2F%3E%0A%3Cpath%20d%3D'M482%20150%20c%2020%20-11%2041%200%2045%2021%20c%203%2015%20-9%2027%20-23%2027%20c%2013%20-11%209%20-29%20-6%20-33%20c%20-11%20-3%20-21%205%20-23%2015'%20stroke-width%3D'11'%20opacity%3D'.95'%2F%3E%0A%3Cpath%20d%3D'M514%20131%20C%20522%20108%20543%2098%20563%20103%20M514%20138%20C%20527%20121%20551%20117%20569%20128'%20stroke-width%3D'5'%20opacity%3D'.85'%2F%3E%0A%3Cpath%20d%3D'M527%20197%20C%20548%20216%20578%20216%20603%20206%20M523%20201%20C%20543%20227%20571%20237%20599%20237'%20stroke-width%3D'3'%20opacity%3D'.7'%2F%3E%0A%3Cpath%20d%3D'M252%20176%20l-7%2031%20m-15%206%20l15%20-7%20l11%2013%20M257%20207%20l9%20-3%20M305%20233%20l-5%2035%20m-13%208%20l13%20-9%20l13%2011%20M309%20268%20l9%20-5'%20stroke-width%3D'5'%20opacity%3D'.85'%2F%3E%0A%3Ccircle%20cx%3D'566'%20cy%3D'58'%20r%3D'15'%20fill%3D'%23D4AF37'%20opacity%3D'.45'%20stroke%3D'none'%2F%3E%0A%3Cpath%20d%3D'M566%2026%20l7%2015%20M566%2090%20l-7%20-15%20M540%2058%20l15%20-7%20M592%2058%20l-15%207'%20stroke-width%3D'3'%20opacity%3D'.6'%2F%3E%0A%3Cpath%20d%3D'M118%20300%20q13%20-11%2026%200%20q13%20-11%2026%200%20M182%2064%20q11%20-9%2022%200%20q11%20-9%2022%200%20M96%2096%20q10%20-8%2020%200%20q10%20-8%2020%200'%20stroke-width%3D'3'%20opacity%3D'.5'%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E") no-repeat center/contain;
+  opacity:.45; pointer-events:none; z-index:-1;
+}
+/* 4b) 播放高亮：墨底上提升当前词条文字可读性（含内部 .t/.ipa/.wtext/.sword） */
+html[data-skin="guofeng"] table.vid tr.speak-en td,
+html[data-skin="guofeng"] table.vid tr.speak-bm td,
+html[data-skin="guofeng"] table.vid tr.speak-zh td,
+html[data-skin="guofeng"] table.vid tr.speak-th td,
+html[data-skin="guofeng"] table.vid tr.speak-en td *,
+html[data-skin="guofeng"] table.vid tr.speak-bm td *,
+html[data-skin="guofeng"] table.vid tr.speak-zh td *,
+html[data-skin="guofeng"] table.vid tr.speak-th td *,
+html[data-skin="guofeng"] .wrow.speak-en,
+html[data-skin="guofeng"] .wrow.speak-bm,
+html[data-skin="guofeng"] .wrow.speak-zh,
+html[data-skin="guofeng"] .wrow.speak-th,
+html[data-skin="guofeng"] .wrow.speak-en .wtext,
+html[data-skin="guofeng"] .wrow.speak-bm .wtext,
+html[data-skin="guofeng"] .wrow.speak-zh .wtext,
+html[data-skin="guofeng"] .wrow.speak-th .wtext,
+html[data-skin="guofeng"] .single.speak-en .sword,
+html[data-skin="guofeng"] .single.speak-bm .sword,
+html[data-skin="guofeng"] .single.speak-zh .sword,
+html[data-skin="guofeng"] .single.speak-th .sword{
+  color:#fff7ea !important;
+  font-weight:700 !important;
+  text-shadow:0 1px 5px rgba(0,0,0,.8) !important;
 }
 
 /* 5) 卡片：金边 + 龙鳞暗纹 + 朱红顶线 */
@@ -483,6 +514,8 @@ html[data-skin="malaysia"]::after{ pointer-events:none; }
   html[data-skin="guofeng"]::after,
   html[data-skin="malaysia"]::before,
   html[data-skin="malaysia"]::after{ display:none; }
+  html[data-skin="guofeng"] body{ background-image:var(--pat-bg); background-attachment:scroll; }
+  html[data-skin="guofeng"] body::after{ display:none; }
   html[data-skin="guofeng"] body::before{ font-size:130px; }
   html[data-skin="malaysia"] body{ border-left-width:3px; }
 }

@@ -16,7 +16,7 @@
   "use strict";
   var PARTS_TOTAL = 4;
   var PART_PREFIX = "三语母语习得核心词库.part";
-  var cacheStore = "parts_v5";
+  var cacheStore = "parts_v6";
 
   window.__TRIL_PARTS__ = window.__TRIL_PARTS__ || [];
 
