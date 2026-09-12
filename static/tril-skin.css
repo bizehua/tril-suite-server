@@ -53,28 +53,225 @@ html[data-skin="default"]{
 }
 
 /* ===================== 中国风 · 墨底朱红描金 ===================== */
+
+/* =========================================================
+   主题二 · 中国风「宣纸留白」— 宣纸底 + 墨色浓淡 + 朱砂点睛 + 书法字体 + 大块留白
+   （v24 重写：去两侧满屏山水 / 去黑影龙 / 去大灯笼，改宣纸留白 + 书法 + 印章）
+   ========================================================= */
+
 html[data-skin="guofeng"]{
-  --bg:#160d0d; --bg2:#1f1212; --panel:#211414; --panel2:#2c1a1a;
-  --line:#3a2424; --txt:#f6ead6; --muted:#b89a78; --accent:#C8102E;
-  --en:#ff7a6b; --bm:#ffcf6b; --zh:#e7c489; --th:#d4af37; --danger:#ff5252;
-  --ok:#7bbf8a; --glow:0 0 0 2px rgba(200,16,46,.38); --shadow:rgba(0,0,0,.45);
-  --btn-hover:#3a2424; --grad-2:#e23b4e;
-  --ex-en:#ffd0c8; --ex-bm:#ffe7bf; --ex-zh:#f0d9b0; --ex-th:#f0d98a;
-  --skin-primary:#C8102E; --skin-gold:#D4AF37; --skin-name:'中国风';
+  /* —— 宣纸底色（米白暖调，非纯黑）—— */
+  --bg:#f3ead2; --bg2:#ece0c2; --panel:#fbf5e6; --panel2:#f4ead2;
+  --line:#d8c39a; --txt:#3a2a1c; --muted:#8a7458; --accent:#C8102E;
+  /* 四语标签色（传统色系：朱褐/黛金/黛青/紫）—— */
+  --en:#b5402e; --bm:#9a6a1e; --zh:#2f6f5e; --th:#8a5a8f; --danger:#c8382e;
+  --ok:#5a8a5a; --glow:0 0 0 2px rgba(200,16,46,.28); --shadow:rgba(80,60,30,.18);
+  --btn-hover:#efe1c0; --grad-2:#e23b4e;
+  --ex-en:#f3d9d2; --ex-bm:#f0e3c4; --ex-zh:#d6e7df; --ex-th:#e8dce8;
+  --skin-primary:#C8102E; --skin-gold:#b8860b; --skin-name:'中国风';
   --dash-bg:#faf3e3; --dash-bg2:#f5ecd8; --dash-panel:#f5ecd8; --dash-line:#e0d0b0;
   --dash-txt:#3d2b1f; --dash-muted:#7a6650; --dash-faint:#a89878;
-  --dash-stripe:linear-gradient(90deg,#C8102E,#e23b4e 30%,#D4AF37 65%,#8a6a2a 100%);
+  --dash-stripe:linear-gradient(90deg,#C8102E,#e23b4e 30%,#b8860b 65%,#8a6a2a 100%);
   --dash-chart1:#C8102E; --dash-chart2:#8a1a2a;
-  --dash-ok:#7bbf8a; --dash-warn:#d4952a; --dash-bad:#c8382e;
-  --dash-levels:#c8382e,#e06830,#d4952a,#bfa75a,#7bbf8a,#4a9a78,#2a6a8a;
+  --dash-ok:#5a8a5a; --dash-warn:#b8860b; --dash-bad:#c8382e;
+  --dash-levels:#c8382e,#b87430,#b8860b,#9aa75a,#5a8a5a,#4a9a8a,#2a6a8a;
   --dash-heat:#C8102E;
-  /* 播放高亮：暖金红调，墨底上对比清晰 */
-  --hl-en:rgba(255,122,107,.30); --hl-bm:rgba(255,207,107,.26);
-  --hl-zh:rgba(231,196,137,.26); --hl-th:rgba(212,175,55,.28);
-  /* 纹样：祥云团纹（暗金描线；已去五角星） */
-  --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23D4AF37' stroke-width='1.3'%3E%3Cg opacity='.10'%3E%3Ccircle cx='36' cy='38' r='15'/%3E%3Ccircle cx='52' cy='31' r='10'/%3E%3Ccircle cx='60' cy='41' r='7'/%3E%3Cpath d='M22 49q16 7 36 2'/%3E%3C/g%3E%3Cg opacity='.075'%3E%3Ccircle cx='116' cy='112' r='13'/%3E%3Ccircle cx='103' cy='104' r='9'/%3E%3Ccircle cx='124' cy='102' r='6'/%3E%3Cpath d='M100 120q18 5 32 0'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  /* 龙鳞纹（卡片暗纹） */
-  --pat-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg fill='%23D4AF37' opacity='.05'%3E%3Cpath d='M0 24a12 12 0 0 1 24 0z'/%3E%3Cpath d='M-12 12a12 12 0 0 1 24 0z'/%3E%3Cpath d='M12 12a12 12 0 0 1 24 0z'/%3E%3C/g%3E%3C/svg%3E");
+  /* 播放高亮：宣纸上的淡朱砂/黛金/黛青晕染（文字转深墨） */
+  --hl-en:rgba(200,16,46,.15); --hl-bm:rgba(184,134,11,.18);
+  --hl-zh:rgba(47,111,94,.16); --hl-th:rgba(138,90,143,.16);
+  /* 纹样：祥云团纹（暗金描线，极淡，仅作肌理）—— */
+  --pat-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23b8860b' stroke-width='1.3'%3E%3Cg opacity='.07'%3E%3Ccircle cx='36' cy='38' r='15'/%3E%3Ccircle cx='52' cy='31' r='10'/%3E%3Ccircle cx='60' cy='41' r='7'/%3E%3Cpath d='M22 49q16 7 36 2'/%3E%3C/g%3E%3Cg opacity='.05'%3E%3Ccircle cx='116' cy='112' r='13'/%3E%3Ccircle cx='103' cy='104' r='9'/%3E%3Ccircle cx='124' cy='102' r='6'/%3E%3Cpath d='M100 120q18 5 32 0'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  /* 龙鳞纹（卡片暗纹，极淡）—— */
+  --pat-card:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cg fill='%23b8860b' opacity='.04'%3E%3Cpath d='M0 24a12 12 0 0 1 24 0z'/%3E%3Cpath d='M-12 12a12 12 0 0 1 24 0z'/%3E%3Cpath d='M12 12a12 12 0 0 1 24 0z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 1) 页面背景：宣纸暖调 + 朱红/鎏金微辉 + 祥云肌理（大块留白，不糊山水） */
+html[data-skin="guofeng"] body{
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(900px 420px at 88% -10%, rgba(200,16,46,.06), transparent 60%),
+    radial-gradient(800px 420px at -8% 110%, rgba(184,134,11,.07), transparent 55%),
+    var(--pat-bg);
+  background-repeat:no-repeat, no-repeat, repeat;
+  background-position:center, center, left top;
+  background-attachment:fixed, fixed, fixed;
+}
+
+/* 2) 顶栏：漆器深褐匾额 + 鎏金饰带（与宣纸形成对比） */
+html[data-skin="guofeng"] header{
+  background:linear-gradient(180deg, #3a2418 0%, #2a1810 100%);
+  border-bottom:1px solid rgba(212,175,55,.85);
+  box-shadow:0 6px 20px rgba(60,40,20,.28);
+  position:relative; color:#f3e6cf;
+}
+html[data-skin="guofeng"] header h1,
+html[data-skin="guofeng"] header .sub{ color:#f3e6cf; }
+html[data-skin="guofeng"] header::after{
+  content:""; position:absolute; left:0; right:0; bottom:-9px; height:8px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='8' viewBox='0 0 30 8'%3E%3Cpath d='M1 7V1h22v4H9V3h9' fill='none' stroke='%23D4AF37' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x left center / 30px 8px;
+  opacity:.6; pointer-events:none;
+}
+
+/* 3) 朱砂印章（点睛；左下角，不挡操作） */
+html[data-skin="guofeng"]::before{
+  content:""; position:fixed; left:16px; bottom:16px; width:60px; height:60px;
+  background:url("guofeng-seal.svg") no-repeat center/contain;
+  opacity:.92; pointer-events:none; z-index:996;
+  filter:drop-shadow(0 2px 5px rgba(120,20,20,.32));
+}
+
+/* 4) 播放高亮：宣纸上深墨字 + 朱砂/黛金晕染（不再用白字） */
+html[data-skin="guofeng"] table.vid tr.speak-en td,
+html[data-skin="guofeng"] table.vid tr.speak-bm td,
+html[data-skin="guofeng"] table.vid tr.speak-zh td,
+html[data-skin="guofeng"] table.vid tr.speak-th td,
+html[data-skin="guofeng"] table.vid tr.speak-en td *,
+html[data-skin="guofeng"] table.vid tr.speak-bm td *,
+html[data-skin="guofeng"] table.vid tr.speak-zh td *,
+html[data-skin="guofeng"] table.vid tr.speak-th td *,
+html[data-skin="guofeng"] .wrow.speak-en,
+html[data-skin="guofeng"] .wrow.speak-bm,
+html[data-skin="guofeng"] .wrow.speak-zh,
+html[data-skin="guofeng"] .wrow.speak-th,
+html[data-skin="guofeng"] .wrow.speak-en .wtext,
+html[data-skin="guofeng"] .wrow.speak-bm .wtext,
+html[data-skin="guofeng"] .wrow.speak-zh .wtext,
+html[data-skin="guofeng"] .wrow.speak-th .wtext,
+html[data-skin="guofeng"] .single.speak-en .sword,
+html[data-skin="guofeng"] .single.speak-bm .sword,
+html[data-skin="guofeng"] .single.speak-zh .sword,
+html[data-skin="guofeng"] .single.speak-th .sword{
+  color:#3a1a10 !important;
+  font-weight:700 !important;
+  text-shadow:none !important;
+}
+
+/* 5) 卡片：米白底 + 金边 + 朱红顶线 + 龙鳞暗纹 */
+html[data-skin="guofeng"] .qcard,
+html[data-skin="guofeng"] .startpanel,
+html[data-skin="guofeng"] .ucard,
+html[data-skin="guofeng"] .rcard,
+html[data-skin="guofeng"] .bigcard,
+html[data-skin="guofeng"] .flashcard,
+html[data-skin="guofeng"] .derivcard,
+html[data-skin="guofeng"] .expanel,
+html[data-skin="guofeng"] .card{
+  background-color:var(--panel);
+  border:1px solid rgba(184,134,11,.4);
+  border-top:3px solid rgba(200,16,46,.7);
+  background-image:var(--pat-card);
+  box-shadow:0 4px 16px rgba(80,60,30,.14), inset 0 1px 0 rgba(255,255,255,.55);
+}
+html[data-skin="guofeng"] .qcard:hover,
+html[data-skin="guofeng"] .startpanel:hover,
+html[data-skin="guofeng"] .ucard:hover,
+html[data-skin="guofeng"] .card:hover{
+  border-color:rgba(184,134,11,.7);
+  box-shadow:0 6px 22px rgba(80,60,30,.2), 0 0 0 1px rgba(184,134,11,.18), inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+/* 6) 操作栏（lessonbar / unitbar / quizbar）：米白半透 + 金线 */
+html[data-skin="guofeng"] .lessonbar,
+html[data-skin="guofeng"] .unitbar,
+html[data-skin="guofeng"] .quizbar{
+  border:1px solid rgba(184,134,11,.35);
+  border-bottom:2px solid rgba(200,16,46,.45);
+  background:linear-gradient(180deg, #f7eed8, #f1e4c8);
+  color:var(--txt);
+}
+
+/* 7) 主按钮：朱红渐变 + 金边鎏光 */
+html[data-skin="guofeng"] .primary,
+html[data-skin="guofeng"] button.primary{
+  background:linear-gradient(135deg, #d42034, #96101f);
+  border:1px solid rgba(212,175,55,.7);
+  color:#fff5e8;
+  box-shadow:0 4px 14px rgba(200,16,46,.3), inset 0 1px 0 rgba(255,220,150,.25);
+}
+html[data-skin="guofeng"] .primary:hover{
+  background:linear-gradient(135deg, #e23b4e, #ab1425);
+  box-shadow:0 0 0 2px rgba(212,175,55,.3), 0 6px 18px rgba(200,16,46,.4), inset 0 1px 0 rgba(255,220,150,.3);
+}
+
+/* 8) 页脚：鎏金顶线 + 回纹呼应 */
+html[data-skin="guofeng"] footer{
+  border-top:1px solid rgba(184,134,11,.45);
+  color:var(--muted);
+}
+html[data-skin="guofeng"] footer::before{
+  content:""; display:block; height:8px; margin-bottom:6px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='8' viewBox='0 0 30 8'%3E%3Cpath d='M1 7V1h22v4H9V3h9' fill='none' stroke='%23b8860b' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x left center / 30px 8px;
+  opacity:.4;
+}
+
+/* 9) 书法字体（标题/目录）：楷体笔意 */
+html[data-skin="guofeng"] h1,
+html[data-skin="guofeng"] h2,
+html[data-skin="guofeng"] h3,
+html[data-skin="guofeng"] .lt,
+html[data-skin="guofeng"] .ut,
+html[data-skin="guofeng"] .utitle,
+html[data-skin="guofeng"] .navstage>h3,
+html[data-skin="guofeng"] .navfile,
+html[data-skin="guofeng"] .navunit{
+  font-family:"STKaiti","KaiTi","Kaiti SC","楷体","Songti SC",serif;
+  letter-spacing:.5px;
+}
+
+/* 10) 目录（nav）：宣纸底 + 极淡墨山浮水印（不与文字冲突） */
+html[data-skin="guofeng"] nav{
+  position:relative;
+  background:var(--panel);
+}
+html[data-skin="guofeng"] nav::after{
+  content:""; position:absolute; left:0; bottom:0; width:150px; height:210px;
+  background:url("guofeng-ink-nav.png") no-repeat left bottom/contain;
+  opacity:.16; pointer-events:none; z-index:0;
+}
+html[data-skin="guofeng"] nav > *{ position:relative; z-index:1; }
+
+/* 11) 单词背诵界面：全幅山水画 + 半透宣纸字板（学习器 lesson / 闪记页） */
+html[data-skin="guofeng"] .lesson{
+  position:relative;
+  background-color:transparent;
+  background-image:url("guofeng-study.png");
+  background-size:cover; background-position:center; background-attachment:fixed;
+}
+html[data-skin="guofeng"] .lesson .lessonbar{
+  background-color:rgba(251,245,230,.9);
+  border-bottom:2px solid rgba(200,16,46,.5);
+  color:var(--txt);
+}
+html[data-skin="guofeng"] .lesson .tablewrap,
+html[data-skin="guofeng"] .lesson .rootwrap{
+  background-color:rgba(251,245,230,.82);
+  backdrop-filter:blur(2px);
+  border:1px solid rgba(184,134,11,.4);
+  border-radius:14px;
+  box-shadow:0 8px 30px rgba(60,40,20,.18);
+  padding:8px 12px;
+}
+html[data-skin="guofeng"] body.guofeng-study-page{
+  background-color:transparent;
+  background-image:url("guofeng-study.png");
+  background-size:cover; background-position:center; background-attachment:fixed;
+}
+html[data-skin="guofeng"] body.guofeng-study-page #flashcard,
+html[data-skin="guofeng"] body.guofeng-study-page .flashcard{
+  background-color:rgba(251,245,230,.86) !important;
+  backdrop-filter:blur(2px);
+  border:1px solid rgba(184,134,11,.5);
+  border-top:3px solid rgba(200,16,46,.7);
+  box-shadow:0 10px 40px rgba(60,40,20,.25);
+}
+html[data-skin="guofeng"] body.guofeng-study-page nav{
+  background-color:rgba(251,245,230,.92);
+}
+
+/* 12) 看板（浅色区）：宣纸 + 祥云角饰 */
+html[data-skin="guofeng"] .dashboard .cc,
+html[data-skin="guofeng"] .dashboard .sc{
+  background-image:var(--pat-card);
 }
 
 /* ===================== 马来西亚 · 辉煌条纹 ===================== */
@@ -231,158 +428,6 @@ html[data-skin="default"] .primary:hover{
 }
 
 /* =========================================================
-   主题二 · 中国风「朱砂鎏金」— 祥云 · 龙鳞 · 灯笼 · 山水立轴 · 中国龙
-   ========================================================= */
-
-/* 1) 页面背景：左右山水立轴 + 祥云团纹 + 朱红/鎏金辉光 */
-html[data-skin="guofeng"] body{
-  background-image:
-    url("guofeng-landscape-left.png"),
-    url("guofeng-landscape-right.png"),
-    radial-gradient(1100px 520px at 85% -8%, rgba(200,16,46,.12), transparent 60%),
-    radial-gradient(900px 480px at -10% 108%, rgba(212,175,55,.08), transparent 55%),
-    var(--pat-bg);
-  background-repeat:no-repeat, no-repeat, no-repeat, no-repeat, repeat;
-  background-position:left center, right center, center, center, left top;
-  background-size:cover, cover, auto, auto, auto;
-  background-attachment:fixed, fixed, fixed, fixed, fixed;
-}
-
-/* 2) 顶栏：漆器质感 + 回纹（中式雷纹边饰）鎏金饰带 */
-html[data-skin="guofeng"] header{
-  background:linear-gradient(180deg, #331717 0%, #211010 100%);
-  border-bottom:1px solid rgba(212,175,55,.8);
-  box-shadow:0 6px 20px rgba(0,0,0,.5);
-  position:relative;
-}
-html[data-skin="guofeng"] header::after{
-  content:""; position:absolute; left:0; right:0; bottom:-11px; height:10px;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='10' viewBox='0 0 30 10'%3E%3Cpath d='M1 9V2h22v5H9V4h9' fill='none' stroke='%23D4AF37' stroke-width='1.5'/%3E%3C/svg%3E") repeat-x left center / 30px 10px;
-  opacity:.55; pointer-events:none;
-}
-
-/* 3) 悬挂灯笼（大号 + 金绳，位于顶栏下方两侧，不遮挡任何按钮） */
-html[data-skin="guofeng"]::before,
-html[data-skin="guofeng"]::after{
-  content:"🏮"; position:fixed; top:0; z-index:997;
-  pointer-events:none; transform-origin:50% 0;
-  padding-top:104px;
-  background:linear-gradient(180deg, rgba(212,175,55,0) 0%, rgba(212,175,55,.6) 18%, rgba(212,175,55,.75) 100%) top center / 2px 104px no-repeat;
-  filter:drop-shadow(0 4px 10px rgba(200,16,46,.55)) drop-shadow(0 0 14px rgba(212,175,55,.25));
-  animation:tril-sway 3.4s ease-in-out infinite;
-}
-html[data-skin="guofeng"]::before{
-  left:10px; font-size:58px; line-height:1;
-}
-html[data-skin="guofeng"]::after{
-  right:12px; font-size:44px; line-height:1; opacity:.95;
-  padding-top:96px;
-  background:linear-gradient(180deg, rgba(212,175,55,0) 0%, rgba(212,175,55,.55) 18%, rgba(212,175,55,.7) 100%) top center / 2px 96px no-repeat;
-  animation:tril-sway-slow 4.2s ease-in-out infinite; animation-delay:.7s;
-}
-
-/* 4) 中国龙腾云戏珠（背景水印；z-index:-1 置于内容之后，不挡字） */
-html[data-skin="guofeng"] body::after{
-  content:""; position:fixed; top:200px; left:50%; transform:translateX(-50%);
-  width:600px; height:330px; max-width:72vw;
-  background:url("guofeng-dragon.png") no-repeat center/contain;
-  opacity:.5; pointer-events:none; z-index:-1;
-}
-/* 4b) 播放高亮：墨底上提升当前词条文字可读性（含内部 .t/.ipa/.wtext/.sword） */
-html[data-skin="guofeng"] table.vid tr.speak-en td,
-html[data-skin="guofeng"] table.vid tr.speak-bm td,
-html[data-skin="guofeng"] table.vid tr.speak-zh td,
-html[data-skin="guofeng"] table.vid tr.speak-th td,
-html[data-skin="guofeng"] table.vid tr.speak-en td *,
-html[data-skin="guofeng"] table.vid tr.speak-bm td *,
-html[data-skin="guofeng"] table.vid tr.speak-zh td *,
-html[data-skin="guofeng"] table.vid tr.speak-th td *,
-html[data-skin="guofeng"] .wrow.speak-en,
-html[data-skin="guofeng"] .wrow.speak-bm,
-html[data-skin="guofeng"] .wrow.speak-zh,
-html[data-skin="guofeng"] .wrow.speak-th,
-html[data-skin="guofeng"] .wrow.speak-en .wtext,
-html[data-skin="guofeng"] .wrow.speak-bm .wtext,
-html[data-skin="guofeng"] .wrow.speak-zh .wtext,
-html[data-skin="guofeng"] .wrow.speak-th .wtext,
-html[data-skin="guofeng"] .single.speak-en .sword,
-html[data-skin="guofeng"] .single.speak-bm .sword,
-html[data-skin="guofeng"] .single.speak-zh .sword,
-html[data-skin="guofeng"] .single.speak-th .sword{
-  color:#fff7ea !important;
-  font-weight:700 !important;
-  text-shadow:0 1px 5px rgba(0,0,0,.8) !important;
-}
-
-/* 5) 卡片：金边 + 龙鳞暗纹 + 朱红顶线 */
-html[data-skin="guofeng"] .qcard,
-html[data-skin="guofeng"] .startpanel,
-html[data-skin="guofeng"] .ucard,
-html[data-skin="guofeng"] .rcard,
-html[data-skin="guofeng"] .bigcard,
-html[data-skin="guofeng"] .flashcard,
-html[data-skin="guofeng"] .derivcard,
-html[data-skin="guofeng"] .expanel,
-html[data-skin="guofeng"] .card{
-  border:1px solid rgba(212,175,55,.32);
-  border-top:2px solid rgba(200,16,46,.55);
-  background-image:var(--pat-card);
-  box-shadow:0 4px 16px rgba(0,0,0,.38), inset 0 1px 0 rgba(212,175,55,.12);
-}
-html[data-skin="guofeng"] .qcard:hover,
-html[data-skin="guofeng"] .startpanel:hover,
-html[data-skin="guofeng"] .ucard:hover,
-html[data-skin="guofeng"] .card:hover{
-  border-color:rgba(212,175,55,.6);
-  box-shadow:0 6px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(212,175,55,.15), inset 0 1px 0 rgba(212,175,55,.18);
-}
-
-/* 6) 操作栏（lessonbar / unitbar / quizbar）：漆条 + 金线 */
-html[data-skin="guofeng"] .lessonbar,
-html[data-skin="guofeng"] .unitbar,
-html[data-skin="guofeng"] .quizbar{
-  border:1px solid rgba(212,175,55,.28);
-  border-bottom:2px solid rgba(212,175,55,.45);
-  background:linear-gradient(180deg, #2c1616, #231111);
-}
-
-/* 7) 主按钮：朱红渐变 + 金边鎏光 */
-html[data-skin="guofeng"] .primary,
-html[data-skin="guofeng"] button.primary{
-  background:linear-gradient(135deg, #d42034, #96101f);
-  border:1px solid rgba(212,175,55,.6);
-  box-shadow:0 4px 14px rgba(200,16,46,.4), inset 0 1px 0 rgba(255,220,150,.25);
-}
-html[data-skin="guofeng"] .primary:hover{
-  background:linear-gradient(135deg, #e23b4e, #ab1425);
-  box-shadow:0 0 0 2px rgba(212,175,55,.28), 0 6px 18px rgba(200,16,46,.5), inset 0 1px 0 rgba(255,220,150,.3);
-}
-
-/* 8) 页脚：鎏金顶线 + 回纹呼应 */
-html[data-skin="guofeng"] footer{
-  border-top:1px solid rgba(212,175,55,.4);
-}
-html[data-skin="guofeng"] footer::before{
-  content:""; display:block; height:8px; margin-bottom:6px;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='8' viewBox='0 0 30 8'%3E%3Cpath d='M1 7V1h22v4H9V3h9' fill='none' stroke='%23D4AF37' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x left center / 30px 8px;
-  opacity:.35;
-}
-
-/* 9) 顶栏标题徽章（沿用 🏮，加金晕） */
-html[data-skin="guofeng"] h1::before{
-  content:"🏮"; margin-right:8px; font-size:.95em;
-  filter:drop-shadow(0 0 6px rgba(212,175,55,.6)) saturate(1.15);
-}
-
-/* 10) 印章式皮肤角标：已移除，避免遮挡右下角 Dock（用户反馈#8） */
-
-/* 10) 看板（浅色区）：宣纸底 + 祥云角饰 */
-html[data-skin="guofeng"] .dashboard .cc,
-html[data-skin="guofeng"] .dashboard .sc{
-  background-image:var(--pat-card);
-}
-
-/* =========================================================
    主题三 · 马来西亚「辉煌条纹」— songket 星格 · 新月十四角星
    ========================================================= */
 
@@ -504,19 +549,18 @@ html[data-skin="guofeng"]::after,
 html[data-skin="malaysia"]::before,
 html[data-skin="malaysia"]::after{ pointer-events:none; }
 
-/* 中屏以下：灯笼缩小并移到更边缘；小屏隐藏悬垂装饰，保可读性 */
+/* 中屏以下：印章缩小；小屏隐藏悬垂装饰，保可读性 */
 @media (max-width:1180px){
-  html[data-skin="guofeng"]::before{ font-size:40px; padding-top:84px; }
-  html[data-skin="guofeng"]::after{ font-size:30px; padding-top:78px; }
+  html[data-skin="guofeng"]::before{ width:52px; height:52px; }
 }
 @media (max-width:760px){
-  html[data-skin="guofeng"]::before,
-  html[data-skin="guofeng"]::after,
+  html[data-skin="guofeng"]::before{ width:44px; height:44px; left:10px; bottom:10px; }
   html[data-skin="malaysia"]::before,
   html[data-skin="malaysia"]::after{ display:none; }
-  html[data-skin="guofeng"] body{ background-image:var(--pat-bg); background-attachment:scroll; }
+  html[data-skin="guofeng"] body{ background-attachment:scroll; }
   html[data-skin="guofeng"] body::after{ display:none; }
-  html[data-skin="guofeng"] body::before{ font-size:130px; }
+  html[data-skin="guofeng"] .lesson,
+  html[data-skin="guofeng"] body.guofeng-study-page{ background-attachment:scroll; }
   html[data-skin="malaysia"] body{ border-left-width:3px; }
 }
 

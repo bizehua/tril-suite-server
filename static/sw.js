@@ -1,5 +1,5 @@
 // 四语母语习得套件 Service Worker：缓存应用外壳，支持离线使用
-const CACHE_NAME = 'tril-pwa-v23';
+const CACHE_NAME = 'tril-pwa-v24';
 const ASSETS = [
   './',
   './index.html',
@@ -29,9 +29,9 @@ const ASSETS = [
   './tril-csv.js',
   './tril-study.js',
   './tril-skin.css',
-  './guofeng-landscape-left.png',
-  './guofeng-landscape-right.png',
-  './guofeng-dragon.png',
+  './guofeng-seal.svg',
+  './guofeng-study.png',
+  './guofeng-ink-nav.png',
   './tril-skin-widget.js',
   './app-tester.js',
   './app-player.js',
