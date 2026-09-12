@@ -223,12 +223,17 @@ select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);bo
     </div>
   </main>
 </div>
-<div id="trilDiag" style="position:fixed;left:8px;bottom:60px;z-index:9990;background:rgba(20,28,46,.92);color:#ffd591;border:1px solid #6b4f17;border-radius:9px;padding:6px 10px;font:11px/1.4 system-ui;max-width:380px;box-shadow:0 4px 14px rgba(0,0,0,.5)">诊断中…</div>
+  <div id="trilDiagWrap" style="position:fixed;left:8px;bottom:8px;z-index:9990;font:11px/1.4 system-ui;text-align:left">
+    <div id="trilDiag" style="display:none;margin-bottom:6px;max-width:230px;background:rgba(20,28,46,.94);color:#ffd591;border:1px solid #6b4f17;border-radius:9px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.5)">诊断中…</div>
+    <button id="trilDiagBtn" type="button" title="点按查看诊断 · 长按 2 秒清空缓存" style="width:30px;height:30px;line-height:1;border-radius:50%;border:1px solid #6b4f17;background:rgba(20,28,46,.8);color:#ffd591;font-size:14px;cursor:help;box-shadow:0 2px 8px rgba(0,0,0,.4)">🔧</button>
+  </div>
 <script>
 (function(){
+  var panel = document.getElementById('trilDiag');
+  var btn = document.getElementById('trilDiagBtn');
+  var open = false;
   function tick(){
-    var d = document.getElementById('trilDiag');
-    if(!d) return;
+    if(!panel) return;
     var DATA = window.__TRIL_DATA__;
     var IDX = window.__TRIL_INDEX__;
     var nav = document.getElementById('nav');
@@ -236,42 +241,47 @@ select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);bo
     var renderOK = typeof window.renderNav === 'function';
     var hasData = !!(DATA && DATA.stages && DATA.stages.length);
     var hasIDX = !!(IDX && IDX.stages && IDX.stages.length);
-    var msg = '🔧 闪记诊断 · DATA: ' + (hasData ? DATA.stages.length + ' 学段' : '⏳ 加载中')
+    panel.textContent = '🔧 闪记诊断 · DATA: ' + (hasData ? DATA.stages.length + ' 学段' : '⏳ 加载中')
       + ' · IDX: ' + (hasIDX ? '✓' : '❌')
       + ' · nav: ' + navN + ' 项'
       + ' · renderNav: ' + (renderOK ? '✓' : '❌')
       + (hasData && navN === 0 ? ' ⚠ 已加载但 nav 空白' : '');
-    d.textContent = msg;
   }
+  function showPanel(){ if(panel){ panel.style.display='block'; open=true; } }
+  function hidePanel(){ if(panel){ panel.style.display='none'; open=false; } }
   setTimeout(tick, 300);
   setTimeout(tick, 1500);
   setTimeout(tick, 4000);
-  setTimeout(tick, 8000);
-  setTimeout(function(){
-    var d = document.getElementById('trilDiag');
-    if(!d) return;
-    d.style.cursor = 'help';
-    d.title = '长按 2 秒可清空 tril_ 缓存（错题本/收藏/进度/看板等）';
-    var pressTimer = null;
-    function doClear(){
-      var keys = [];
-      for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^tril_/.test(k)) keys.push(k); }
-      if(!confirm('确定要清空 ' + keys.length + ' 项 tril_ 学习数据？\n包括错题本、收藏、学习进度、看板等，不可恢复。')) return;
-      try{
-        keys.forEach(function(k){ localStorage.removeItem(k); });
-        if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}); }
-        alert('已清 ' + keys.length + ' 个 tril_ 缓存 + ' + (navigator.serviceWorker?'SW 已尝试注销':'SW 不可用') + ' — 请刷新');
-      }catch(e){ alert('清缓存失败: '+e.message); }
-    }
-    function start(e){ if(pressTimer) return; pressTimer = setTimeout(function(){ pressTimer = null; doClear(); }, 2000); }
-    function cancel(){ if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; } }
-    d.addEventListener('mousedown', start);
-    d.addEventListener('touchstart', start);
-    d.addEventListener('mouseup', cancel);
-    d.addEventListener('mouseleave', cancel);
-    d.addEventListener('touchend', cancel);
-    d.addEventListener('touchcancel', cancel);
-  }, 500);
+  setTimeout(function(){ tick(); showPanel(); }, 8000);   // 加载完成后自动展开一次
+  setTimeout(hidePanel, 16000);                            // 16 秒后自动收起，避免遮挡
+  if(btn){
+    btn.addEventListener('click', function(){
+      if(longPressed){ longPressed=false; return; }
+      if(open){ hidePanel(); } else { tick(); showPanel(); }
+    });
+  }
+  var pressTimer = null, longPressed = false;
+  function doClear(){
+    longPressed = true;
+    var keys = [];
+    for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^tril_/.test(k)) keys.push(k); }
+    if(!confirm('确定要清空 ' + keys.length + ' 项 tril_ 学习数据？\n包括错题本、收藏、学习进度、看板等，不可恢复。')) return;
+    try{
+      keys.forEach(function(k){ localStorage.removeItem(k); });
+      if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}); }
+      alert('已清 ' + keys.length + ' 个 tril_ 缓存 + ' + (navigator.serviceWorker?'SW 已尝试注销':'SW 不可用') + ' — 请刷新');
+    }catch(e){ alert('清缓存失败: '+e.message); }
+  }
+  function start(e){ if(pressTimer) return; pressTimer = setTimeout(function(){ pressTimer = null; doClear(); }, 2000); }
+  function cancel(){ if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; } }
+  if(btn){
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', start);
+    btn.addEventListener('mouseup', cancel);
+    btn.addEventListener('mouseleave', cancel);
+    btn.addEventListener('touchend', cancel);
+    btn.addEventListener('touchcancel', cancel);
+  }
 })();
 </script>
 
