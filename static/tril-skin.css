@@ -110,7 +110,7 @@ html[data-skin="guofeng"] body{
 html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::before,
 html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::after{
   content:""; position:fixed; top:0;
-  width:clamp(96px, 10vw, 200px); height:100%;
+  width:clamp(120px, 13vw, 300px); height:100%;
   background-repeat:no-repeat; background-size:cover;
   border-top:14px solid; border-bottom:14px solid;
   border-image:linear-gradient(90deg,#7a5a1e,#e7c66a,#7a5a1e) 1;
@@ -119,12 +119,12 @@ html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::after{
   animation:gf-drop 1.1s ease-out both;
 }
 html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::before{
-  left:clamp(4px, 1.5vw, 32px);
+  left:clamp(4px, 2vw, 40px);
   background-image:url("guofeng-landscape-left.png");
   background-position:calc(50% + var(--sy,0) * -0.045px) center;
 }
 html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::after{
-  right:clamp(4px, 1.5vw, 32px);
+  right:clamp(4px, 2vw, 40px);
   background-image:url("guofeng-landscape-right.png");
   background-position:calc(50% + var(--sy,0) * -0.045px) center;
 }
@@ -150,7 +150,7 @@ html[data-skin="guofeng"] body::after{
 
 /* 5) 整页如悬挂卷轴：中央内容区缩进，两侧留出更宽立轴余地（左右对称） */
 html[data-skin="guofeng"]:not(:has(body.guofeng-study-page)) .layout{
-  margin:0 clamp(12px, 12vw, 240px);
+  margin:0 clamp(14px, 15vw, 340px);
   animation:gf-unroll 1.05s cubic-bezier(.2,.8,.2,1) both;
 }
 
@@ -616,17 +616,11 @@ html[data-skin="guofeng"]::after,
 html[data-skin="malaysia"]::before,
 html[data-skin="malaysia"]::after{ pointer-events:none; }
 
-/* 中屏以下：两侧立轴略收窄，仍保持卷轴存在感，小屏彻底隐藏 */
-@media (max-width:1180px){
-  html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::before,
-  html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::after{
-    width:clamp(84px, 9vw, 160px);
-  }
-}
+/* 小屏彻底隐藏两侧立轴/金龙，并把内容边距收回，避免主内容被挤太窄 */
 @media (max-width:760px){
-  /* 窄屏：隐藏两侧立轴/金龙，保文字清晰；宫墙底与祥云仍留 */
   html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::before,
   html[data-skin="guofeng"]:not(:has(body.guofeng-study-page))::after{ display:none; }
+  html[data-skin="guofeng"]:not(:has(body.guofeng-study-page)) .layout{ margin:0 8px; }
   html[data-skin="malaysia"]::before,
   html[data-skin="malaysia"]::after{ display:none; }
   html[data-skin="guofeng"] body{ background-attachment:scroll; }
