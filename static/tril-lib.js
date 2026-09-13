@@ -21,7 +21,7 @@
     return { name: STAGE_NAME, files:[{ name:"自定义单元", units:[] }] };
   }
   function saveStage(st){
-    try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); }catch(e){}
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); return true; }catch(e){ return false; }
   }
   function clearStage(){
     saveStage({ name: STAGE_NAME, files:[{ name:"自定义单元", units:[] }] });
@@ -102,16 +102,26 @@
     draft.push({ en:en, zh:zh, bm:el("trilLibBm").value.trim(), th:el("trilLibTh").value.trim(),
       example: el("trilLibEx").value.trim() ? { zh: el("trilLibEx").value.trim() } : {} });
     ["trilLibEn","trilLibZh","trilLibBm","trilLibTh","trilLibEx"].forEach(function(id){ el(id).value = ""; });
-    el("trilLibEn").focus(); updatePreview(); toast("已加入，可继续添加");
+    el("trilLibEn").focus(); updatePreview(); toast("已加入，可继续添加或点「保存单元」");
   }
   function saveUnit(){
-    var title = el("trilLibUnitTitle").value.trim() || ("自定义单元 " + new Date().toLocaleDateString());
+    // 先把当前表单里的内容自动加入草稿，避免用户以为“保存单元”能直接保存当前词条
+    var formEn = el("trilLibEn").value.trim(), formZh = el("trilLibZh").value.trim();
+    if(formEn || formZh){
+      draft.push({ en:formEn, zh:formZh, bm:el("trilLibBm").value.trim(), th:el("trilLibTh").value.trim(),
+        example: el("trilLibEx").value.trim() ? { zh: el("trilLibEx").value.trim() } : {} });
+      ["trilLibEn","trilLibZh","trilLibBm","trilLibTh","trilLibEx"].forEach(function(id){ el(id).value = ""; });
+      updatePreview(); toast("已把当前词条加入单元");
+    }
     if(!draft.length){ toast("请先添加至少一条词条"); return; }
+    var title = el("trilLibUnitTitle").value.trim() || ("自定义单元 " + new Date().toLocaleDateString());
     var st = loadStage();
     st.files[0].units.push({ title:title, type:"table", langs:["en","bm","zh","th"],
       entries: draft.map(function(d){ return { en:d.en, bm:d.bm, zh:d.zh, th:d.th, example:d.example }; }),
       summary:"", notes:"" });
-    saveStage(st);
+    if(!saveStage(st)){
+      toast("❌ 保存失败：浏览器存储已满或写保护"); return;
+    }
     el("trilLibOverlay").classList.remove("show");
     draft = []; updatePreview();
     if(window.__TRIL_LIB_ONSAVED) window.__TRIL_LIB_ONSAVED();

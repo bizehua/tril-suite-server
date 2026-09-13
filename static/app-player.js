@@ -17,7 +17,7 @@ var LS_SET = "tril_player_settings_v1";
 /* ===== 自定义词库：从 localStorage 读取并合并进导航 ===== */
 const LIB_KEY = "tril_custom_units_v1";
 function loadCustomStage(){ return TrilLib.loadStage(); }
-function saveCustomStage(st){ TrilLib.saveStage(st); }
+function saveCustomStage(st){ return TrilLib.saveStage(st); }
 let customStage = loadCustomStage();
 if(customStage.files[0] && customStage.files[0].units.length){
   DATA.stages = DATA.stages.concat([customStage]);
@@ -498,7 +498,7 @@ document.getElementById("libAdd").onclick=()=>{
     example:document.getElementById("libEx").value.trim()?{zh:document.getElementById("libEx").value.trim()}:{}});
   ["libEn","libZh","libBm","libTh","libEx"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("libEn").focus();
-  updateLibPreview(); toast("已加入，可继续添加");
+  updateLibPreview(); toast("已加入，可继续添加或点「保存单元」");
 };
 function rebuildUnits(){
   units=[];
@@ -509,11 +509,21 @@ function rebuildUnits(){
 }
 document.getElementById("libSave").onclick=()=>{
   const title=document.getElementById("libUnitTitle").value.trim()||("自定义单元 "+new Date().toLocaleDateString());
+  // 当前表单如有内容，自动加入本单元再保存，避免漏存
+  const formEn=document.getElementById("libEn").value.trim(), formZh=document.getElementById("libZh").value.trim();
+  if(formEn || formZh){
+    libDraft.push({en:formEn, zh:formZh, bm:document.getElementById("libBm").value.trim(), th:document.getElementById("libTh").value.trim(),
+      example:document.getElementById("libEx").value.trim()?{zh:document.getElementById("libEx").value.trim()}:{}});
+    ["libEn","libZh","libBm","libTh","libEx"].forEach(id=>document.getElementById(id).value="");
+    updateLibPreview(); toast("已把当前词条加入单元");
+  }
   if(!libDraft.length){ toast("请先添加至少一条词条"); return; }
   if(!customStage) customStage=loadCustomStage();
   customStage.files[0].units.push({title:title, type:"table", langs:["en","bm","zh","th"],
     entries:libDraft.map(d=>({en:d.en,bm:d.bm,zh:d.zh,th:d.th,example:d.example})), summary:"", notes:""});
-  saveCustomStage(customStage);
+  if(!saveCustomStage(customStage)){
+    toast("❌ 保存失败：浏览器存储已满或写保护"); return;
+  }
   DATA.stages=DATA.stages.filter(s=>s!==customStage); DATA.stages=DATA.stages.concat([customStage]);
   rebuildUnits(); libDraft=[]; updateLibPreview(); renderNav();
   libOverlay.classList.remove("show");
