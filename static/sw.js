@@ -1,5 +1,5 @@
 // 四语母语习得套件 Service Worker：缓存应用外壳，支持离线使用
-const CACHE_NAME = 'tril-pwa-v50';
+const CACHE_NAME = 'tril-pwa-v73';
 const ASSETS = [
   './',
   './index.html',
@@ -50,6 +50,7 @@ const ASSETS = [
   './三语母语习得核心词库.part2.js',
   './三语母语习得核心词库.part3.js',
   './三语母语习得核心词库.part4.js',
+  './donggang-pronounce.html',
 ];
 
 self.addEventListener('install', (event) => {
