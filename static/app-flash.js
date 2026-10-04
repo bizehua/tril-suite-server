@@ -402,7 +402,7 @@ function renderFront(e){
     '<div class="langtag">'+L.short+' · '+L.label+'</div>'+
     picF+
     '<div class="word clickable" data-text="'+escapeHtml(txt)+'" data-lang="'+L.k+'">'+escapeHtml(txt||"（无"+L.label+"）")+speakIco+'</div>'+
-    (ipa?'<div class="ipa">'+escapeHtml(ipa)+'</div>':'')+
+    (ipa?'<div class="ipa">'+escapeHtml(ipa)+'</div>':'')+(e.bm_syll?'<div class="ssyll">音节：'+escapeHtml(e.bm_syll)+'</div>':'')+
     (pron?'<div class="pron">'+escapeHtml(pron)+'</div>':'')+
     '<div class="front-hint">想一想它的其他语言怎么说 💡</div>';
   bindSpeak(document.getElementById("faceFront"));
@@ -421,7 +421,7 @@ function renderBack(e,backLangs){
     html+='<div class="ans-block '+L.cls+'">'+
       '<div class="a-head"><span class="master-dot '+getMaster(cur,e)+'"></span>'+L.short+' · '+L.label+' <span class="speak-ico" data-text="'+escapeHtml(txt)+'" data-lang="'+k+'">🔊</span></div>'+
       '<div class="a-word clickable" data-text="'+escapeHtml(txt)+'" data-lang="'+k+'">'+escapeHtml(txt)+'</div>'+(k==="zh"?TrilPinyin.html(txt):"")+
-      (ipa?'<div class="ipa">'+escapeHtml(ipa)+'</div>':'')+
+      (ipa?'<div class="ipa">'+escapeHtml(ipa)+'</div>':'')+(e.bm_syll?'<div class="ssyll">音节：'+escapeHtml(e.bm_syll)+'</div>':'')+
       (pron?'<div class="pron">'+escapeHtml(pron)+'</div>':'')+
       (ex?'<div class="a-ex clickable" data-text="'+escapeHtml(ex)+'" data-lang="'+k+'">📌 '+escapeHtml(ex)+'</div>'+(k==="zh"?TrilPinyin.html(ex):""):'')+
     '</div>';

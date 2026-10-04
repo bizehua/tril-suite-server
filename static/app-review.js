@@ -320,9 +320,9 @@ function frontHtmlByLang(e){
     '<div class="front-ipa lang-' + f.lang + '">' + escapeHtml(f.pron || "") + '</div>';
 }
 /* 渲染背面某语种行（仅当 backLangs 含此语言） */
-function backRowHtml(label, val, phonetic, lang){
+function backRowHtml(label, val, phonetic, lang, syll){
   if(!displaySettings.backLangs.includes(lang)) return '';
-  return rowHtml(label, val, phonetic, lang);
+  return rowHtml(label, val, phonetic, lang, syll);
 }
 function autoSpeakFront(e){
   const map = { en: {val: e.en, lang:"en"}, bm: {val: e.bm, lang:"bm"}, zh: {val: e.zh, lang:"zh"}, th: {val: e.th, lang:"th"} };
@@ -462,7 +462,7 @@ function renderCard(){
     '<div class="levels" style="display:flex;gap:4px;justify-content:center;margin-top:4px">' + levelsHtml + '</div>' +
     '<div class="back ' + (flipped ? '' : 'hidden') + '">' +
       backRowHtml("英文", e.en, e.en_ipa, "en") +
-      backRowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm") +
+      backRowHtml("马来", e.bm, e.bm_pron || e.bm_ipa, "bm", e.bm_syll) +
       backRowHtml("中文", e.zh, e.zh_pinyin, "zh") +
       backRowHtml("泰文", e.th, e.th_pron, "th") +
       (e.example_zh || e.example_en ? '<div class="row examples-row" style="margin-top:4px"><span class="lbl">例句</span><div class="val" style="font-weight:400;font-size:14px">' + escapeHtml(e.example_en || "") + (e.example_zh ? '<br><span style="color:var(--muted);font-size:13px">' + escapeHtml(e.example_zh) + '</span>' : '') + '</div></div>' : '') +
@@ -491,11 +491,12 @@ function renderCard(){
   document.getElementById("footChip").textContent = (pos+1) + " / " + queue.length + " · 待评 " + (queue.length - pos);
 }
 
-function rowHtml(label, val, phonetic, lang){
+function rowHtml(label, val, phonetic, lang, syll){
   if(!val) return '';
   var valEsc = escapeHtml(val);
   /* 中文 fallback：若 e.zh_pinyin 缺失，用 TrilPinyin 运行时生成 */
   var valPron = phonetic ? '<span class="py"> · ' + escapeHtml(phonetic) + '</span>' : '';
+  if(lang === "bm" && syll){ valPron += '<span class="py"> · 音节 ' + escapeHtml(syll) + '</span>'; }
   if(lang === "zh" && !phonetic && window.TrilPinyin){
     valPron = '<span class="py"> · ' + window.TrilPinyin.get(val) + '</span>';
   }

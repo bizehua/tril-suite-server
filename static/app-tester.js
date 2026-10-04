@@ -113,7 +113,7 @@ function wordRow(label,text,lang,ipa){
   return '<span class="rk">'+label+'：</span>'+wordSpan(text,lang,ipa);
 }
 function bmSpan(t){
-  return wordSpan(t.bm,"bm",t.bm_ipa||"")+(t.bm_pron?' <span class="pron">'+escapeHtml(t.bm_pron)+'</span>':'');
+  return wordSpan(t.bm,"bm",t.bm_ipa||"")+(t.bm_pron?' <span class="pron">'+escapeHtml(t.bm_pron)+'</span>':'')+(t.bm_syll?' <span class="ssyll">'+escapeHtml(t.bm_syll)+'</span>':'');
 }
 function bmRow(label,t){
   return '<span class="rk">'+label+'：</span>'+bmSpan(t);

@@ -258,7 +258,7 @@ function renderCard(w){
     html+='<div class="slang">'+LSHORT[L]+' 单语</div>';
     html+='<div class="sword">'+escapeHtml(txt||"—")+'</div>';
     if(L==="en"&&w.en_ipa) html+='<div class="sipa">'+escapeHtml(w.en_ipa)+'</div>';
-    if(L==="bm"){ if(w.bm_ipa) html+='<div class="sipa">'+escapeHtml(w.bm_ipa)+'</div>'; if(w.bm_pron) html+='<div class="spron">中文音译：'+escapeHtml(w.bm_pron)+'</div>'; }
+    if(L==="bm"){ if(w.bm_ipa) html+='<div class="sipa">'+escapeHtml(w.bm_ipa)+'</div>'; if(w.bm_pron) html+='<div class="spron">中文音译：'+escapeHtml(w.bm_pron)+'</div>'; if(w.bm_syll) html+='<div class="ssyll">音节：'+escapeHtml(w.bm_syll)+'</div>'; }
     if(L==="th"&&w.th_pron) html+='<div class="spron">'+escapeHtml(w.th_pron)+'</div>';
     if(settings.singleMeaning==="zh" && L!=="zh" && w.zh){ html+='<div class="smean"><b>中文释义</b>'+escapeHtml(w.zh)+'</div>'; html+=TrilPinyin.html(w.zh); }
     if(settings.singleMeaning==="bm" && L!=="bm" && w.bm) html+='<div class="smean"><b>马来文释义</b>'+escapeHtml(w.bm)+'</div>';
@@ -280,7 +280,7 @@ function renderCard(w){
       html+='<div class="wtext">'+escapeHtml(txt||"—")+'</div>';
       if(L==="zh"&&txt) html+=TrilPinyin.html(txt);
       if(L==="en"&&w.en_ipa) html+='<div class="wipa">'+escapeHtml(w.en_ipa)+'</div>';
-      if(L==="bm"){ if(w.bm_ipa) html+='<div class="wipa">'+escapeHtml(w.bm_ipa)+'</div>'; if(w.bm_pron) html+='<div class="spron">中文音译：'+escapeHtml(w.bm_pron)+'</div>'; }
+      if(L==="bm"){ if(w.bm_ipa) html+='<div class="wipa">'+escapeHtml(w.bm_ipa)+'</div>'; if(w.bm_pron) html+='<div class="spron">中文音译：'+escapeHtml(w.bm_pron)+'</div>'; if(w.bm_syll) html+='<div class="ssyll">音节：'+escapeHtml(w.bm_syll)+'</div>'; }
       if(L==="th"&&w.th_pron) html+='<div class="spron">'+escapeHtml(w.th_pron)+'</div>';
       html+='</div>';
     });
