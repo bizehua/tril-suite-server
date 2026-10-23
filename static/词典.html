@@ -361,5 +361,75 @@ document.getElementById("rateTxt").textContent = (settings.rate||1).toFixed(1);
 document.getElementById("loopBox").checked = !!settings.loop;
 buildIndex();
 </script>
+
+<script>
+/* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
+(function(){
+  var BUILD = 'tril-pwa-v110';
+  function currentSWVersion(){
+    return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(t){
+        var m = t.match(/CACHE_NAME\s*=\s*['"]([^'"]+)['"]/);
+        return m ? m[1] : null;
+      })
+      .catch(function(){ return null; });
+  }
+  function hardReload(){
+    try {
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(function(rs){
+          rs.forEach(function(r){ r.unregister(); });
+        });
+      }
+      if (window.caches && caches.keys) {
+        caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); });
+      }
+    } catch(e){}
+    setTimeout(function(){ location.reload(); }, 350);
+  }
+  function showBar(swVer){
+    if (document.getElementById('trilVerBar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'trilVerBar';
+    bar.setAttribute('style',
+      'position:fixed;left:0;right:0;top:0;z-index:999999;' +
+      'background:linear-gradient(90deg,#ff9f43,#ff6b6b);color:#fff;' +
+      'padding:9px 12px;font-size:13px;line-height:1.5;display:flex;' +
+      'align-items:center;gap:10px;flex-wrap:wrap;' +
+      'box-shadow:0 2px 10px rgba(0,0,0,.35)');
+    var txt = document.createElement('span');
+    txt.style.flex = '1 1 auto';
+    txt.textContent = '⚠️ 检测到网站有新版本（当前 ' + BUILD + ' → 最新 ' + swVer + '），请刷新以使用最新功能。';
+    var btn = document.createElement('button');
+    btn.textContent = '🔄 立即刷新';
+    btn.setAttribute('style',
+      'flex:0 0 auto;padding:7px 14px;background:#fff;color:#d63031;border:none;' +
+      'border-radius:8px;font-size:13px;font-weight:700;cursor:pointer');
+    btn.onclick = hardReload;
+    var close = document.createElement('button');
+    close.textContent = '✕';
+    close.setAttribute('style',
+      'flex:0 0 auto;padding:4px 8px;background:transparent;color:#fff;border:none;' +
+      'font-size:15px;cursor:pointer;opacity:.85');
+    close.onclick = function(){ bar.remove(); };
+    bar.appendChild(txt); bar.appendChild(btn); bar.appendChild(close);
+    document.body.appendChild(bar);
+    /* 顶栏下移，避免遮挡 */
+    var hdr = document.querySelector('header');
+    if (hdr) hdr.style.marginTop = '42px';
+  }
+  function check(){
+    currentSWVersion().then(function(v){
+      if (v && v !== BUILD) showBar(v);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(check, 1500); });
+  } else { setTimeout(check, 1500); }
+  window.__trilHardReload = hardReload;
+})();
+</script>
+
 </body>
 </html>
