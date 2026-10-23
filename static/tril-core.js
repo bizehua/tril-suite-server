@@ -16,6 +16,10 @@
   "use strict";
   var PARTS_TOTAL = 4;
   var PART_PREFIX = "三语母语习得核心词库.part";
+  /* ASCII 别名：Safari 对动态注入的中文文件名脚本可能不触发 onload/onerror，
+     导致 await 永久挂起（点单元毫无反应）。优先用 ASCII 名，失败再回退中文名。 */
+  var PART_PREFIX_ASCII = "tril-part";
+  var PART_PREFIX_CN = PART_PREFIX;
   var cacheStore = "parts_v84";
 
   window.__TRIL_PARTS__ = window.__TRIL_PARTS__ || [];
@@ -27,13 +31,36 @@
   function hasDB(){ return !!window.TrilDB; }
 
   function injectScript(k){
-    return new Promise(function(resolve){
+    return new Promise(function(resolve, reject){
       var s = document.createElement("script");
-      s.src = PART_PREFIX + (k + 1) + ".js";
       s.async = false;
-      s.onload  = function(){ resolve(window.__TRIL_PARTS__[k] || null); };
-      s.onerror = function(){ resolve(null); };
+      var done = false;
+      var timer = null;
+      function finish(ok, err){
+        if (done) return; done = true;
+        if (timer) clearTimeout(timer);
+        var got = window.__TRIL_PARTS__[k];
+        if (got) resolve(got);
+        else if (ok) reject(new Error("分片 " + (k+1) + " 已加载但未注册到 __TRIL_PARTS__"));
+        else reject(err || new Error("分片文件加载失败"));
+      }
+      /* 兜底超时：某些浏览器对动态脚本既不 onload 也不 onerror */
+      timer = setTimeout(function(){ finish(false, new Error("分片加载超时")); }, 20000);
+      s.onload  = function(){ finish(true); };
+      s.onerror = function(){ finish(false, new Error("分片文件加载失败")); };
+      /* 先试 ASCII 名，失败再回退中文名 */
+      s.src = PART_PREFIX_ASCII + (k + 1) + ".js";
       document.head.appendChild(s);
+      s.onerror = function(){
+        if (done) return;
+        /* ASCII 名失败 → 换中文名重试 */
+        var s2 = document.createElement("script");
+        s2.async = false;
+        s2.onload  = function(){ finish(true); };
+        s2.onerror = function(){ finish(false, new Error("分片文件加载失败（ASCII 名与中文名均失败）")); };
+        s2.src = encodeURI(PART_PREFIX_CN + (k + 1) + ".js");
+        document.head.appendChild(s2);
+      };
     });
   }
 
@@ -53,7 +80,7 @@
         fire();
         return cached;
       }
-      // 2) 网络加载
+      // 2) 网络加载（失败会 reject，交给调用方显示错误）
       var data = await injectScript(k);
       if(data && hasDB()){
         try{ await TrilDB.set(cacheStore, "p" + k, data); }catch(e){}

@@ -367,9 +367,18 @@ async function handleApi(req, res, u){
 }
 
 // ---------- 静态资源 ----------
+/* ASCII 别名 → 真实中文文件名（避免 Safari 动态注入中文文件名脚本失败） */
+const ASCII_ALIAS = {
+  '/tril-part1.js': '/三语母语习得核心词库.part1.js',
+  '/tril-part2.js': '/三语母语习得核心词库.part2.js',
+  '/tril-part3.js': '/三语母语习得核心词库.part3.js',
+  '/tril-part4.js': '/三语母语习得核心词库.part4.js',
+};
+
 function serveStatic(req, res, u){
   let rel = decodeURIComponent(u.pathname);
   if(rel==='/' ) rel='/index.html';
+  if (ASCII_ALIAS[rel]) rel = ASCII_ALIAS[rel];
   const filePath = path.join(STATIC_DIR, path.normalize(rel));
   if(!filePath.startsWith(STATIC_DIR)){ res.writeHead(403); return res.end('forbidden'); }
   fs.stat(filePath, (err, st)=>{
