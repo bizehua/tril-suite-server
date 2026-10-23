@@ -401,14 +401,20 @@ window.TrilAppBack = function(){
     for (var i=0;i<hs.length;i++){
       var h = hs[i];
       if (h.querySelector(':scope > .hbtns')) continue;
+      /* 收集 header 内所有可点按钮/链接（排除标题、副标题、进度、chip 等非按钮元素） */
+      var SKIP = { H1:1, H2:1, H3:1, P:1, SPAN:1, DIV:1 };
       var btns = [].slice.call(h.children).filter(function(el){
-        return el.classList && el.classList.contains('laybtn');
+        if (SKIP[el.tagName]) return false;
+        if (el.classList && (el.classList.contains('hbtns'))) return false;
+        return (el.tagName === 'BUTTON' || el.tagName === 'A');
       });
       if (!btns.length) continue;
       var box = document.createElement('div');
       box.className = 'hbtns';
-      // 插到第一个按钮的位置
-      h.insertBefore(box, btns[0]);
+      // 插到标题之后（保证标题始终在第一行）
+      var h1 = h.querySelector('h1');
+      if (h1 && h1.nextSibling) h.insertBefore(box, h1.nextSibling);
+      else h.insertBefore(box, h.children[0]);
       for (var j=0;j<btns.length;j++) box.appendChild(btns[j]);
     }
   }
@@ -419,6 +425,25 @@ window.TrilAppBack = function(){
 
 </script>
 
+
+
+<script>
+/* ===== 移动端：标记 body.has-dock（#layoutDock 为浮动时给内容留底） ===== */
+(function(){
+  function mark(){
+    var d = document.getElementById('layoutDock');
+    if(!d) return;
+    var cs = getComputedStyle(d);
+    var fixed = (cs.position === 'fixed' || cs.position === 'sticky');
+    document.body.classList.toggle('has-dock', fixed);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mark);
+  } else { mark(); }
+  setTimeout(mark, 300); setTimeout(mark, 1200);
+  window.addEventListener('resize', mark);
+})();
+</script>
 
 </body>
 </html>
