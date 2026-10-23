@@ -1,4 +1,5 @@
 # Render.com 一键部署配置（免费版）
+# 注意：STATS_GIST_TOKEN 不写在此文件（敏感），需在 Render Dashboard → Environment 手动添加
 # 部署方式：把 /server 目录作为独立仓库推到 GitHub，在 Render 新建 "Web Service" 选择该仓库，
 # 或在本目录执行 `render蓝图` 导入。Render 会自动执行 start 命令。
 services:
@@ -17,4 +18,17 @@ services:
         value: "10000"
       - key: STATIC_DIR
         value: "./static"
+      # 访问量统计：跨部署持久化（Render 免费实例文件系统临时）
+      - key: STATS_GIST_REPO
+        value: "bizehua/site-stats"
+      - key: STATS_GIST_PATH
+        value: "stats.json"
+      - key: STATS_GIST_BRANCH
+        value: "main"
+      - key: STATS_SITE_KEY
+        value: "tril"
+      - key: VISIT_BASE
+        value: "2000"
+      - key: STATS_FLUSH_MS
+        value: "15000"
     healthCheckPath: /api/health

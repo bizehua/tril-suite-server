@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import { createVisitStore } from './stats-store.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
@@ -358,10 +359,8 @@ async function handleApi(req, res, u){
 
   // 访问量统计（PV）：每次打开/刷新页面都 +1，无需登录
   if(p==='/api/track-visit' && method==='POST'){
-    db.prepare("INSERT INTO site_visits(visited_at) VALUES(datetime('now'))").run();
-    const vTotal = db.prepare('SELECT COUNT(*) c FROM site_visits').get().c;
-    const vToday = db.prepare("SELECT COUNT(*) c FROM site_visits WHERE date(visited_at,'localtime') >= date('now','localtime')").get().c;
-    return sendJSON(res,200,{ok:true, visitTotal:vTotal, visitToday:vToday});
+    const c = visitStore.record();
+    return sendJSON(res,200,{ok:true, visitTotal:c.visitTotal, visitToday:c.visitToday});
   }
 
   return sendJSON(res,404,{ok:false, error:'接口不存在'});
@@ -385,6 +384,12 @@ function serveStatic(req, res, u){
   });
 }
 
+// ---------- 访问量统计（远端持久化，部署/重启不丢） ----------
+const visitStore = createVisitStore(db, { siteKey: 'tril' });
+visitStore.init().then(c=>{
+  console.log(`[stats] 访问量已就绪：累计 ${c.visitTotal} · 今日 ${c.visitToday} · 远端${visitStore.remoteOK?'可用':'不可用(仅本地)'}`);
+}).catch(e=>console.warn('[stats] 初始化异常:', e.message));
+
 const server = http.createServer(async (req,res)=>{
   try{
     const u = new URL(req.url, 'http://localhost');
@@ -404,3 +409,8 @@ server.listen(PORT, ()=>{
   console.log(`[四语套件后端] 监听 http://localhost:${PORT}`);
   console.log(`[静态目录] ${STATIC_DIR}`);
 });
+
+// 退出前把未回写的增量刷到远端（部署重启不丢计数）
+for (const sig of ['SIGTERM','SIGINT','beforeExit']) {
+  process.on(sig, () => { visitStore.shutdown().finally(()=>process.exit(0)); });
+}
