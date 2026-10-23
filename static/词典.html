@@ -171,6 +171,8 @@ async function buildIndex(){
 }
 
 function speak(text, lang, onend){
+  /* 安卓端：原生 speechSynthesis 会忽略 utterance.voice 选择，永远用默认嗓音；改为走 tril-tts 云端引擎，按 🎚 面板所选嗓音发声（服务器 edgeTtsBuffer 尊重 voice）*/
+  if(window.TrilTTS && /Android/i.test(navigator.userAgent||'')){ return TrilTTS.speak(text, lang, onend); }
   if(!text) return;
   if(!window.speechSynthesis){ toast("当前环境无语音合成"); return; }
   const u = new SpeechSynthesisUtterance(text);

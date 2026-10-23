@@ -107,6 +107,8 @@ function pickVoice(lang){
   return v || null;
 }
 function speak(text,lang,onend){
+  /* 安卓端：原生 speechSynthesis 会忽略 utterance.voice 选择，永远用默认嗓音；改为走 tril-tts 云端引擎，按 🎚 面板所选嗓音发声（服务器 edgeTtsBuffer 尊重 voice）*/
+  if(window.TrilTTS && /Android/i.test(navigator.userAgent||'')){ return TrilTTS.speak(text, lang, onend); }
   if(!text){ if(onend) onend(); return; }
   const u=new SpeechSynthesisUtterance(text);
   u.lang = lang==="en"?"en-US":lang==="bm"?"ms-MY":lang==="zh"?"zh-CN":"th-TH";
@@ -594,7 +596,7 @@ function toggleLayout(kind){
 }
 function applyLayout(){
   ["sidebar","examples","topbar","controls"].forEach(kind=>{
-    let v="1"; try{ v=localStorage.getItem("pl_layout_"+kind)||"1"; }catch(e){}
+    let v="1"; try{ v=localStorage.getItem("pl_layout_"+kind); if(v===null) v=(kind==="sidebar"&&window.innerWidth<=820)?"0":"1"; }catch(e){ v="1"; }
     const on=v!=="0";
     if(kind==="sidebar"){ document.body.classList.toggle("hide-sidebar",!on); document.body.classList.toggle("show-sidebar-m",false);
       document.querySelectorAll('[data-layout="sidebar"]').forEach(b=>b.classList.toggle("on",on)); }

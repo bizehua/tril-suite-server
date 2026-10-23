@@ -202,6 +202,8 @@ let voices = [];
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
 if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
 function speak(text, lang, onend){
+  /* 安卓端：原生 speechSynthesis 会忽略 utterance.voice 选择，永远用默认嗓音；改为走 tril-tts 云端引擎，按 🎚 面板所选嗓音发声（服务器 edgeTtsBuffer 尊重 voice）*/
+  if(window.TrilTTS && /Android/i.test(navigator.userAgent||'')){ return TrilTTS.speak(text, lang, onend); }
   if(!text){ if(onend) onend(); return; }
   if(!window.speechSynthesis){ return; }
   const u = new SpeechSynthesisUtterance(text);
@@ -826,7 +828,7 @@ function applyLayout(){
   try{ s=JSON.parse(localStorage.getItem('tril_layout_v1')||'{}'); }catch(e){}
   ['sidebar','topbar'].forEach(kind=>{
     var cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
-    var on = s[kind] !== false;   // 默认显示
+    var on = s[kind] !== false;   if(kind==='sidebar' && window.innerWidth<=820 && !(kind in s)) on=false;  // 默认显示
     document.body.classList.toggle(cls, !on);
     document.querySelectorAll('[data-layout="'+kind+'"]').forEach(b=>b.classList.toggle('on', on));
   });
