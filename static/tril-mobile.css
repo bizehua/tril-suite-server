@@ -1,0 +1,535 @@
+/* =========================================================================
+ * tril-mobile.css —— 全站移动端适配补丁（所有页面共用）
+ * -------------------------------------------------------------------------
+ * 解决的问题（真 Chrome 360/375/412px 视口实测）：
+ *   1. 目录抽屉在 ≤820px 下无法打开（各页 toggleLayout 缺移动端分支）
+ *   2. 词典页搜索按钮被裁切、右侧内容溢出
+ *   3. 发音手册表格固定 1019px 宽，手机上必须横向滚动才能看全
+ *   4. 学习器/复习/错题页的表格列过多，窄屏挤成一团
+ *   5. 复选框/输入框仅 13-19px 高，安卓手指点不准
+ *   6. 部分正文/说明文字 10-11px，安卓上偏小
+ *   7. 底部固定工具条与内容重叠
+ *
+ * 设计原则：
+ *   - 桌面端行为完全不变（所有规则都包在 max-width 断点内）
+ *   - 不删 DOM、不改数据，只用 CSS + 少量 JS 增强
+ *   - 表格用「横向滚动容器」而非强制换行，保证信息不丢
+ * ========================================================================= */
+
+/* 顶栏按钮容器（桌面端：与原来完全一致，只是包了一层） */
+.hbtns{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
+@media (max-width:820px){ .hbtns{gap:6px} }
+
+/* ============================================================
+ * 1. 移动端目录抽屉（各页统一）
+ *    与 播放器保持一致：nav 变 fixed 抽屉，show-sidebar-m 打开
+ * ============================================================ */
+@media (max-width: 820px) {
+
+  /* 抽屉容器：默认滑出屏幕 */
+  body:not(.show-sidebar-m) .layout > nav,
+  body:not(.show-sidebar-m) #nav {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 84%;
+    max-width: 320px;
+    z-index: 41;
+    transform: translateX(-105%) !important;
+    transition: transform .22s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .55);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 打开状态 */
+  body.show-sidebar-m .layout > nav,
+  body.show-sidebar-m #nav {
+    transform: translateX(0) !important;
+  }
+
+  /* 抽屉里的内容要能点（hide-sidebar 会把宽度压成 0，这里覆盖） */
+  body.show-sidebar-m .layout > nav,
+  body.show-sidebar-m #nav {
+    width: 84% !important;
+    max-width: 320px;
+    flex-basis: auto !important;
+    min-width: 0 !important;
+    opacity: 1 !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    border-right-width: 1px !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+  }
+
+  /* 背景遮罩 */
+  #navBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 40;
+    display: none;
+  }
+  body.show-sidebar-m #navBackdrop { display: block; }
+
+  /* 主内容占满整屏 */
+  body .layout > main,
+  body #main {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* 抽屉里的小字放大一点 */
+  body .layout > nav .navfile,
+  body #nav .navfile {
+    font-size: 14px !important;
+    min-height: 40px !important;
+    padding: 9px 10px !important;
+    line-height: 1.45 !important;
+  }
+  body .layout > nav .navunit,
+  body #nav .navunit {
+    min-height: 36px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ============================================================
+ * 2. 顶部/底部固定条不遮挡内容 + 顶栏在窄屏收紧凑
+ *    实测：640px 高的手机，顶栏本身占 359px（56% 屏高），
+ *          内容被完全挤到折叠线以下 → 必须压缩。
+ * ============================================================ */
+@media (max-width: 820px) {
+  body {
+    padding-bottom: 58px !important;   /* 给底部固定条留位 */
+    overflow-x: hidden;                /* 防止个别元素撑出整页 */
+  }
+
+  /* ---- 顶栏：改为两行紧凑布局 ---- */
+  header {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    row-gap: 6px !important;
+    overflow: visible !important;
+  }
+  header h1 {
+    font-size: 15px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* 标题完整显示优先：允许占更多宽度，按钮条已另起一行 */
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    order: 1;
+    line-height: 1.35 !important;
+  }
+  header .sub {
+    display: none !important;          /* 副标题在窄屏隐藏，标题下已有说明 */
+  }
+  header .spacer { display: none !important; }
+
+  /* 进度条另起一行 */
+  header .progwrap,
+  header > span.progwrap {
+    order: 9;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+  }
+
+  /* 按钮条：由脚本包成 .hbtns，窄屏横向滑动一行，不堆成 3 屏 */
+  header .hbtns,
+  header > div.hbtns {
+    order: 8;
+    flex: 1 1 100% !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 1px;
+    max-width: 100%;
+  }
+  header .hbtns::-webkit-scrollbar { display: none; }
+  header .hbtns .laybtn,
+  header > div.hbtns .laybtn {
+    flex: 0 0 auto !important;
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  /* 学习器进度/学习时长 chip：与进度条同一行 */
+  header .studyChip,
+  header > span.studyChip,
+  .studyChip {
+    order: 10;
+    flex: 0 0 auto !important;
+    font-size: 11px !important;
+    min-height: 26px !important;
+    padding: 2px 7px !important;
+    align-self: center;
+  }
+
+  /* ---- 单元工具条（lessonbar）：压缩成一行可滑动 ---- */
+  .lessonbar {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px !important;
+    padding: 7px 10px !important;
+    align-items: center !important;
+  }
+  .lessonbar::-webkit-scrollbar { display: none; }
+  .lessonbar > * {
+    flex: 0 0 auto !important;
+  }
+  .lessonbar .lt {
+    font-size: 12px !important;
+    max-width: 46vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+  .lessonbar button {
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+  .lessonbar .nowlang,
+  .lessonbar .timeline {
+    display: none !important;    /* 窄屏隐藏次要状态元素 */
+  }
+
+  /* 底部固定工具条 */
+  body .bottombar,
+  body .mobbar,
+  body .fabbar {
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* 悬浮诊断按钮：避开底栏 */
+  body #trilDiagBtn {
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+    width: 42px !important;
+    height: 42px !important;
+  }
+}
+
+/* ============================================================
+ * 3. 表格：窄屏改为横向滚动容器，绝不挤压列宽
+ * ============================================================ */
+@media (max-width: 820px) {
+
+  /* 通用：给所有表格套一层可横向滚动的行为 */
+  .tablewrap,
+  .vid-wrap,
+  .tblwrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* 学习器/复习/错题的词表：表格本身可独立横向滚动 */
+  table.vid,
+  table.tbl,
+  .vid table,
+  .tbl table {
+    min-width: 100%;
+    width: max-content;
+    max-width: none;
+  }
+
+  /* 表格容器：允许滚动且不被父级裁切 */
+  .stage,
+  #main,
+  .layout,
+  .card {
+    overflow-x: visible;
+    min-width: 0;
+  }
+
+  /* 表格单元格文字不再被压成一列 */
+  table.vid td,
+  table.vid th,
+  table.tbl td,
+  table.tbl th {
+    white-space: normal;
+    word-break: break-word;
+    padding: 8px 9px !important;
+    font-size: 13px !important;
+  }
+
+  /* 词表里的马来语/中文列给足宽度，不折成竖条 */
+  table.vid td.c-bm,
+  table.vid td.c-zh,
+  table.vid td.c-en {
+    min-width: 88px;
+  }
+}
+
+/* ============================================================
+ * 4. 控件：安卓触摸目标 ≥40px、输入框字号 ≥16px（防 iOS/Android 自动缩放）
+ * ============================================================ */
+@media (max-width: 820px) {
+
+  /* 复选框 / 单选框：视觉放大 + 加大可点区域（安卓手指） */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 3px 6px 3px 0 !important;
+    vertical-align: middle;
+    flex: 0 0 auto;
+    /* 扩大命中区域（不改变视觉大小） */
+    position: relative;
+  }
+  /* 复选框所在标签整体可点 */
+  .lang-toggle input[type="checkbox"],
+  .lang-radio input[type="checkbox"],
+  .lang-toggle input[type="radio"],
+  .lang-radio input[type="radio"] {
+    position: relative;
+  }
+  .lang-toggle,
+  .lang-radio {
+    padding: 9px 12px !important;
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* 文本类输入框：高度与字号（16px 避免移动端聚焦自动放大页面） */
+  input[type="text"],
+  input[type="search"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+    min-height: 40px !important;
+    padding: 9px 10px !important;
+    border-radius: 8px !important;
+    max-width: 100% !important;
+  }
+
+  /* 按钮：可点区域不小于 40px */
+  button,
+  .btn,
+  .laybtn,
+  .chip,
+  .lang-toggle,
+  .lang-radio {
+    min-height: 40px !important;
+    padding: 9px 13px !important;
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    border-radius: 9px !important;
+  }
+
+  /* 顶部栏里的图标按钮：正方形触摸区 */
+  button.iconbtn,
+  .iconbtn {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    padding: 8px 10px !important;
+  }
+
+  /* 语言显示开关（复习/错题页）：整块可点 */
+  .lang-toggle,
+  .lang-radio {
+    min-height: 38px !important;
+    padding: 8px 11px !important;
+    font-size: 13px !important;
+  }
+
+  /* 滑块（语速/音量）：加高便于拖动 */
+  input[type="range"] {
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+}
+
+/* ============================================================
+ * 5. 字号：正文/说明文字在手机上不低于 12px
+ * ============================================================ */
+@media (max-width: 820px) {
+  body {
+    font-size: 14px !important;
+  }
+  /* 原设计里的 10px/11px 微标在手机上放大（统一覆盖各种命名） */
+  .hint, .sub, .note, .meta, .tip, .desc, .sc-sub, .fc, .cnt, .up-n,
+  .crumb, .exbm, .exzh, .ex, .mini, .i18n-bm-sm, .rt, .small, .sm,
+  .muted, .dim, .light, .aux, .label, .lb, .k, .stat-lb,
+  .dash-meta, .cc-sub, .sc-sub, .tril-py, .trilSkinHint {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+  /* 卡片/提示框文字 */
+  .card, .note, .hint, .cc, .sc {
+    font-size: 13px !important;
+  }
+  /* 10px 级极小字：只抬高确实很小的（按实测类名精确挑，不做全局覆盖） */
+  :is(.i18n-bm, .i18n-bm-cta, .i18n-bm-sm, .dash-meta, .cc-sub, .tril-py,
+      .up-n, .fc, .cnt, .rt, .mini, .lbl, .badge, .sr-cnt, .sr-donggang,
+      .ipa, .pron, .kbd, .prov, .warn, .nowlang, .studyChip) {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+  /* 表格内的音标/谐音：12px 起，手机上仍清晰可读 */
+  table.vid .ipa,
+  table.vid .pron {
+    font-size: 12px !important;
+  }
+}
+
+/* ============================================================
+ * 6. 词典页：搜索区在窄屏改为纵向堆叠，按钮不再被裁切
+ * ============================================================ */
+@media (max-width: 820px) {
+  /* 搜索框：输入框一行，模式选择 + 查询按钮一行 */
+  .searchbox {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "q    q"
+      "mode btn" !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px !important;
+  }
+  .searchbox > input[type="text"],
+  .searchbox > #q {
+    grid-area: q !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .searchbox > select,
+  .searchbox > #mode {
+    grid-area: mode !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .searchbox > button,
+  .searchbox > #searchBtn {
+    grid-area: btn !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+  /* 工具条也纵向排布 */
+  .searchbox + .toolbar,
+  .toolbar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  /* 结果卡片占满宽度 */
+  #results .card,
+  #resultList .card,
+  .results .card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  /* 词条里的三语框纵向排列 */
+  .langbox {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+/* ============================================================
+ * 7. 发音手册：表格可横向滚动；小屏隐藏英文列以留出空间
+ * ============================================================ */
+@media (max-width: 820px) {
+  .unit .tablewrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    /* 表格本身按内容宽度，但列内容允许换行，避免无限撑宽 */
+  }
+  .unit table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+  }
+  .unit table th,
+  .unit table td {
+    font-size: 12px !important;
+    padding: 7px 6px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+  /* 窄屏隐藏英文列（桌面端与打印仍完整可见） */
+  @media (max-width: 560px) {
+    .unit table th:nth-child(7),
+    .unit table td:nth-child(7) { display: none !important; }
+  }
+  /* 列宽分配：马来语/谐音/音节 给足空间 */
+  .unit table th:nth-child(2),
+  .unit table td:nth-child(2) { width: 21%; }   /* 马来语 */
+  .unit table th:nth-child(3),
+  .unit table td:nth-child(3) { width: 21%; }   /* 音节拆分 */
+  .unit table th:nth-child(4),
+  .unit table td:nth-child(4) { width: 21%; }   /* 音标 */
+  .unit table th:nth-child(5),
+  .unit table td:nth-child(5) { width: 19%; }   /* 中文谐音 */
+  .unit table th:nth-child(6),
+  .unit table td:nth-child(6) { width: 18%; }   /* 中文 */
+  /* 单元标题别占太多竖向空间 */
+  .unit h2 {
+    font-size: 15px !important;
+    padding: 10px 12px !important;
+    line-height: 1.4 !important;
+  }
+  .unit h2 .cnt { font-size: 11px !important; }
+}
+
+/* ============================================================
+ * 8. 看板（首页）图表在窄屏自适应
+ * ============================================================ */
+@media (max-width: 820px) {
+  .dash-grid,
+  .grid2,
+  .cc-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .cc {
+    padding: 12px 10px !important;
+  }
+  .chart,
+  .ct {
+    width: 100% !important;
+  }
+}
+
+/* ============================================================
+ * 9. 安全区（刘海屏）适配
+ * ============================================================ */
+@media (max-width: 820px) {
+  body {
+    padding-left: env(safe-area-inset-left, 0px) !important;
+    padding-right: env(safe-area-inset-right, 0px) !important;
+  }
+  .topbar,
+  .header,
+  header {
+    padding-left: calc(12px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(12px + env(safe-area-inset-right, 0px)) !important;
+  }
+}

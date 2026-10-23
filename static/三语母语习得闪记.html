@@ -195,6 +195,8 @@ select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);bo
 <link rel="manifest" href="./learner.webmanifest">
 <link rel="apple-touch-icon" href="./icon-learner.png">
 <link rel="icon" type="image/png" href="./favicon-learner.png">
+
+<link rel="stylesheet" href="tril-mobile.css">
 </head>
 <body class="guofeng-study-page">
 <header>
@@ -419,5 +421,103 @@ if ('serviceWorker' in navigator) {
 <script src="tril-pinyin.js"></script>
 <script src="tril-tts.js"></script>
 <script src="tril-ai.js"></script>
+<script>
+
+/* ===== 移动端目录抽屉（统一补丁） ===== */
+(function(){
+  var isMobile = function(){ return window.innerWidth <= 820; };
+  var drawerOpen = function(){ return document.body.classList.contains('show-sidebar-m'); };
+  function setDrawer(on){
+    on = !!on;
+    document.body.classList.toggle('show-sidebar-m', on);
+    try{ localStorage.setItem('tril_drawer_open', on ? '1' : '0'); }catch(e){}
+    if (isMobile()) document.body.style.overflow = on ? 'hidden' : '';
+    else document.body.style.overflow = '';
+  }
+  function ensureBackdrop(){
+    var bd = document.getElementById('navBackdrop');
+    if (!bd) { bd = document.createElement('div'); bd.id = 'navBackdrop'; document.body.appendChild(bd); }
+    bd.onclick = function(){ setDrawer(false); };
+  }
+  function bind(){
+    var btns = document.querySelectorAll('[data-layout="sidebar"]');
+    for (var i=0;i<btns.length;i++){
+      (function(b){
+        if (b.__drawerBound) return;
+        b.__drawerBound = true;
+        var orig = b.onclick;
+        b.onclick = function(ev){
+          if (isMobile()){
+            if (orig) { try{ orig.call(b, ev); }catch(e){} }
+            document.body.classList.remove('hide-sidebar');
+            setDrawer(!drawerOpen());
+            return;
+          }
+          if (orig) orig.call(b, ev);
+        };
+      })(btns[i]);
+    }
+    // 抽屉内的「关闭目录」按钮
+    var cb = document.querySelector('#nav .navback');
+    if (cb && !cb.__drawerBound) {
+      cb.__drawerBound = true;
+      var o2 = cb.onclick;
+      cb.onclick = function(ev){
+        if (o2) { try{ o2.call(cb, ev); }catch(e){} }
+        setDrawer(false);
+      };
+    }
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && drawerOpen()) setDrawer(false);
+  });
+  window.addEventListener('resize', function(){
+    if (!isMobile() && drawerOpen()) setDrawer(false);
+  });
+  // 抽屉内选中单元/文件后自动关闭（事件委托，动态渲染也生效）
+  document.addEventListener('click', function(e){
+    if (!drawerOpen()) return;
+    var t = e.target;
+    if (t && t.closest && t.closest('#nav .navunit, #nav .navfile')) {
+      setTimeout(function(){ setDrawer(false); }, 60);
+    }
+  }, true);
+  ensureBackdrop();
+  setDrawer(false);
+  bind();
+  var iv = setInterval(bind, 300);
+  setTimeout(function(){ clearInterval(iv); bind(); }, 8000);
+  window.__trilDrawer = { open: setDrawer, close: function(){ setDrawer(false); }, isOpen: drawerOpen };
+})();
+
+</script>
+<script>
+
+/* ===== 顶栏按钮横向滑动条（移动端） ===== */
+(function(){
+  function wrap(){
+    var hs = [].slice.call(document.querySelectorAll('header'));
+    for (var i=0;i<hs.length;i++){
+      var h = hs[i];
+      if (h.querySelector(':scope > .hbtns')) continue;
+      var btns = [].slice.call(h.children).filter(function(el){
+        return el.classList && el.classList.contains('laybtn');
+      });
+      if (!btns.length) continue;
+      var box = document.createElement('div');
+      box.className = 'hbtns';
+      // 插到第一个按钮的位置
+      h.insertBefore(box, btns[0]);
+      for (var j=0;j<btns.length;j++) box.appendChild(btns[j]);
+    }
+  }
+  wrap();
+  var iv = setInterval(wrap, 400);
+  setTimeout(function(){ clearInterval(iv); wrap(); }, 6000);
+})();
+
+</script>
+
+
 </body>
 </html>
