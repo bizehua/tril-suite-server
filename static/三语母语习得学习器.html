@@ -323,7 +323,7 @@ body.hide-examples .dexample{display:none}
 <script src="tril-core.js"></script>
 <script src="三语母语习得核心词库.index.js"></script>
 <script src="tril-lib.js"></script>
-<div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
+<div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui;pointer-events:none">⏳ 正在加载词库…</div>
 <script>
 const IDX = window.__TRIL_INDEX__;
 const LS_KEY = "tril_root_progress_v1";
@@ -1019,7 +1019,27 @@ window.TrilAppBack = function(){
 <script src="pinyin-pro.min.js"></script>
 <script src="tril-pinyin.js"></script>
 <script src="tril-ai.js"></script>
-<script>window.addEventListener('load',function(){setTimeout(function(){var s=document.getElementById('trilSpinner');if(s)s.remove();},600);});</script>
+<script>
+/* 加载遮罩兜底：原逻辑只靠 window.load + 600ms 定时移除。
+   词库走网络加载，慢网/安卓上遮罩会长时间盖住整页（z-index 99999），
+   导致所有按钮都点不到 —— 这是「安卓极其不友好」的头号元凶。
+   修法：① 3 秒硬超时必删  ② 遮罩改为可点穿透（pointer-events:none）
+          ③ 词库就绪后再删  ④ 遮罩只覆盖内容区高度，不锁死滚动 */
+(function(){
+  var spinner = document.getElementById('trilSpinner');
+  var removed = false;
+  function rm(){
+    if (removed) return; removed = true;
+    var s = document.getElementById('trilSpinner');
+    if (s) s.remove();
+  }
+  /* 硬超时：3 秒后无论如何移除，绝不让遮罩挡住页面 */
+  setTimeout(rm, 3000);
+  window.addEventListener('load', function(){ setTimeout(rm, 600); });
+  /* 遮罩不拦截点击（仍显示提示文字，但用户可随时操作页面） */
+  if (spinner) spinner.style.pointerEvents = 'none';
+})();
+</script>
 <script>
 /* 学习时长同步与 chip 更新 */
 function updateStudyChip(){
@@ -1045,6 +1065,9 @@ setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 10000);
   function setDrawer(on){
     on = !!on;
     document.body.classList.toggle('show-sidebar-m', on);
+    /* 移动端抽屉开启时必须清掉 hide-sidebar：
+       该 class 会把 nav 宽度压成 0、opacity 0，导致抽屉「开了但看不见」 */
+    if (on && isMobile()) document.body.classList.remove('hide-sidebar');
     try{ localStorage.setItem('tril_drawer_open', on ? '1' : '0'); }catch(e){}
     if (isMobile()) document.body.style.overflow = on ? 'hidden' : '';
     else document.body.style.overflow = '';
@@ -1063,7 +1086,9 @@ setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 10000);
         var orig = b.onclick;
         b.onclick = function(ev){
           if (isMobile()){
-            if (orig) { try{ orig.call(b, ev); }catch(e){} }
+            /* 移动端完全接管：不调用 orig（原 toggleLayout 会切换
+               body.hide-sidebar，与抽屉机制冲突导致抽屉弹不出来） */
+            if (ev && ev.preventDefault) ev.preventDefault();
             document.body.classList.remove('hide-sidebar');
             setDrawer(!drawerOpen());
             return;
@@ -1078,6 +1103,11 @@ setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 10000);
       cb.__drawerBound = true;
       var o2 = cb.onclick;
       cb.onclick = function(ev){
+        if (isMobile()){
+          if (ev && ev.preventDefault) ev.preventDefault();
+          setDrawer(false);
+          return;
+        }
         if (o2) { try{ o2.call(cb, ev); }catch(e){} }
         setDrawer(false);
       };

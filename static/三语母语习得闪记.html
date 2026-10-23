@@ -354,6 +354,12 @@ select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);bo
 (function(){
   var APP = "app-flash.js?v=11"; /* 加版本号，强制浏览器绕过旧 JS 缓存 */
   function done(){ var s = document.getElementById("trilSpinner"); if(s) s.remove(); }
+  /* 兜底：45 秒后仍未加载完就把遮罩降级为「可穿透」，
+     避免慢网/安卓上遮罩永久挡住整页导致所有按钮点不到 */
+  setTimeout(function(){
+    var s = document.getElementById("trilSpinner");
+    if (s && s.parentNode) s.style.pointerEvents = "none";
+  }, 45000);
   function fail(msg){
     var txt = document.getElementById("trilSpinnerTxt");
     if(txt){ txt.textContent = "⚠ 词库加载失败"; txt.style.color = "#ff6b6b"; }
@@ -430,6 +436,9 @@ if ('serviceWorker' in navigator) {
   function setDrawer(on){
     on = !!on;
     document.body.classList.toggle('show-sidebar-m', on);
+    /* 移动端抽屉开启时必须清掉 hide-sidebar：
+       该 class 会把 nav 宽度压成 0、opacity 0，导致抽屉「开了但看不见」 */
+    if (on && isMobile()) document.body.classList.remove('hide-sidebar');
     try{ localStorage.setItem('tril_drawer_open', on ? '1' : '0'); }catch(e){}
     if (isMobile()) document.body.style.overflow = on ? 'hidden' : '';
     else document.body.style.overflow = '';
@@ -448,7 +457,9 @@ if ('serviceWorker' in navigator) {
         var orig = b.onclick;
         b.onclick = function(ev){
           if (isMobile()){
-            if (orig) { try{ orig.call(b, ev); }catch(e){} }
+            /* 移动端完全接管：不调用 orig（原 toggleLayout 会切换
+               body.hide-sidebar，与抽屉机制冲突导致抽屉弹不出来） */
+            if (ev && ev.preventDefault) ev.preventDefault();
             document.body.classList.remove('hide-sidebar');
             setDrawer(!drawerOpen());
             return;
@@ -463,6 +474,11 @@ if ('serviceWorker' in navigator) {
       cb.__drawerBound = true;
       var o2 = cb.onclick;
       cb.onclick = function(ev){
+        if (isMobile()){
+          if (ev && ev.preventDefault) ev.preventDefault();
+          setDrawer(false);
+          return;
+        }
         if (o2) { try{ o2.call(cb, ev); }catch(e){} }
         setDrawer(false);
       };

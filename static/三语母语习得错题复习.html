@@ -168,7 +168,7 @@ main{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12
   <button class="ghost danger" onclick="if(confirm('确定清空错题本？（不可恢复）')){localStorage.removeItem('tril_wrongbook_v1');location.reload();}">🗑</button>
 </div>
 
-<div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui">⏳ 正在加载词库…</div>
+<div id="trilSpinner" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0e1320;color:#93a0bd;z-index:99999;font:14px system-ui;pointer-events:none">⏳ 正在加载词库…</div>
 
 <script src="tril-db.js"></script>
 <script src="tril-migrate.js"></script>
@@ -1130,6 +1130,9 @@ window.addEventListener("beforeunload", function(){
   function setDrawer(on){
     on = !!on;
     document.body.classList.toggle('show-sidebar-m', on);
+    /* 移动端抽屉开启时必须清掉 hide-sidebar：
+       该 class 会把 nav 宽度压成 0、opacity 0，导致抽屉「开了但看不见」 */
+    if (on && isMobile()) document.body.classList.remove('hide-sidebar');
     try{ localStorage.setItem('tril_drawer_open', on ? '1' : '0'); }catch(e){}
     if (isMobile()) document.body.style.overflow = on ? 'hidden' : '';
     else document.body.style.overflow = '';
@@ -1148,7 +1151,9 @@ window.addEventListener("beforeunload", function(){
         var orig = b.onclick;
         b.onclick = function(ev){
           if (isMobile()){
-            if (orig) { try{ orig.call(b, ev); }catch(e){} }
+            /* 移动端完全接管：不调用 orig（原 toggleLayout 会切换
+               body.hide-sidebar，与抽屉机制冲突导致抽屉弹不出来） */
+            if (ev && ev.preventDefault) ev.preventDefault();
             document.body.classList.remove('hide-sidebar');
             setDrawer(!drawerOpen());
             return;
@@ -1163,6 +1168,11 @@ window.addEventListener("beforeunload", function(){
       cb.__drawerBound = true;
       var o2 = cb.onclick;
       cb.onclick = function(ev){
+        if (isMobile()){
+          if (ev && ev.preventDefault) ev.preventDefault();
+          setDrawer(false);
+          return;
+        }
         if (o2) { try{ o2.call(cb, ev); }catch(e){} }
         setDrawer(false);
       };

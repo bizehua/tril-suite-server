@@ -49,6 +49,29 @@
     transform: translateX(0) !important;
   }
 
+  /* 兜底：移动端抽屉打开时，无论 body 是否带 hide-sidebar，
+     抽屉都必须完整可见（hide-sidebar 会把 nav 宽压成 0、opacity 0） */
+  body.show-sidebar-m .layout > nav,
+  body.show-sidebar-m #nav {
+    width: 84% !important;
+    max-width: 320px !important;
+    flex-basis: auto !important;
+    min-width: 0 !important;
+    opacity: 1 !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    border-right-width: 1px !important;
+    pointer-events: auto !important;
+    overflow: hidden auto !important;
+    transform: translateX(0) !important;
+  }
+  /* 抽屉打开时主内容区不被压缩 */
+  body.show-sidebar-m .layout > main,
+  body.show-sidebar-m #main {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
   /* 抽屉里的内容要能点（hide-sidebar 会把宽度压成 0，这里覆盖） */
   body.show-sidebar-m .layout > nav,
   body.show-sidebar-m #nav {
