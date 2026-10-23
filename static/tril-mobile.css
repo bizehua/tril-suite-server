@@ -90,6 +90,11 @@
   /* 背景遮罩 */
   #navBackdrop {
     position: fixed;
+    /* 老浏览器（iOS<14.5 / Chrome<87）不支持 inset，用四边显式声明兜底 */
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     inset: 0;
     background: rgba(0, 0, 0, .5);
     z-index: 40;
@@ -756,7 +761,65 @@
 }
 
 /* ============================================================
- * 13. 主内容区最小高度保障（真机实测缺陷）
+ * 13. 老浏览器降级（iOS Safari < 14.5 / Android Chrome < 84）
+ * -----------------------------------------------------------------
+ *  这些版本不支持 flex 的 gap 属性，横向按钮会「粘在一起」，
+ *  虽不溢出但观感差、易误点。这里用 margin 兜底出一份近似间距。
+ *  新浏览器同时支持 gap 与 margin，最终效果以 gap 为准。
+ * ============================================================ */
+@media (max-width: 820px) {
+  /* 顶栏按钮条 */
+  header .hbtns > *,
+  header > div.hbtns > * {
+    margin-right: 5px;
+  }
+  header .hbtns > *:last-child,
+  header > div.hbtns > *:last-child {
+    margin-right: 0;
+  }
+  /* lessonbar 单元工具条 */
+  .lessonbar > * {
+    margin-right: 5px;
+  }
+  .lessonbar > *:last-child {
+    margin-right: 0;
+  }
+  /* 底部浮动工具条 */
+  #layoutDock > * {
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  #layoutDock > *:nth-child(2n) {
+    margin-right: 0;
+  }
+  #layoutDock > *:nth-last-child(-n+2) {
+    margin-bottom: 0;
+  }
+  /* 显示设置面板的分组 */
+  .display-section > * {
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+  .display-section > *:last-child {
+    margin-right: 0;
+  }
+  /* 底部 .foot 工具条 */
+  .foot > * {
+    margin-right: 8px;
+  }
+  .foot > *:last-child {
+    margin-right: 0;
+  }
+  /* 词典页搜索区 */
+  .searchbox > * {
+    margin-right: 8px;
+  }
+  .searchbox > *:last-child {
+    margin-right: 0;
+  }
+}
+/* ============================================================
+ * 14. 主内容区最小高度保障（真机实测缺陷）
  * -----------------------------------------------------------------
  *  实测（Chrome 360×640 · 复习页）：body 是 height:100vh; overflow:hidden，
  *  若上方「显示设置」面板展开较高，flex:1 的 main 会被压到 28px，
@@ -798,7 +861,7 @@
 }
 
 /* ============================================================
- * 9. 安全区（刘海屏）适配
+ * 15. 安全区（刘海屏）适配
  * ============================================================ */
 @media (max-width: 820px) {
   body {
@@ -808,7 +871,8 @@
   .topbar,
   .header,
   header {
-    padding-left: calc(12px + env(safe-area-inset-left, 0px)) !important;
-    padding-right: calc(12px + env(safe-area-inset-right, 0px)) !important;
+    /* 与第 2 段的 10px 内边距保持一致，避免覆盖后左右不居中 */
+    padding-left: calc(10px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(10px + env(safe-area-inset-right, 0px)) !important;
   }
 }
