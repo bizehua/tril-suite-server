@@ -197,8 +197,6 @@ footer{margin-top:8px;color:var(--muted);font-size:11px;text-align:center;line-h
       <a href="#" onclick="event.preventDefault();location.reload()" data-page-node-id="gwQ9VXwhU2jqj7sXKv8uIQ">🔄 刷新<span class="i18n-bm">Segar Semula</span></a>
       <span data-page-node-id="sSepV">·</span>
       <span id="visitStat" data-page-node-id="sVisitStat">🔢 访问量 —</span>
-      <span data-page-node-id="sSepL">·</span>
-      <span id="loginStat" data-page-node-id="sLoginStat">🔐 后台登录 —</span>
     </div>
   </div>
 
@@ -969,23 +967,11 @@ if ('serviceWorker' in navigator) {
 <script>
 (function(){
   var vEl = document.getElementById('visitStat');
-  var lEl = document.getElementById('loginStat');
-  // 1) 记录本次访问（打开/刷新都 +1，无需登录）
   if(vEl){
     fetch('./api/track-visit', {method:'POST'}).then(function(r){ return r.json(); }).then(function(d){
       if(d && d.ok){ vEl.textContent = '🔢 访问量 累计 ' + d.visitTotal + ' · 今日 ' + d.visitToday; }
       else { vEl.textContent = '🔢 访问量不可用'; }
     }).catch(function(){ vEl.textContent = '🔢 访问量加载失败'; });
-  }
-  // 2) 后台登录统计
-  if(lEl){
-    fetch('./api/login-stats').then(function(r){ return r.json(); }).then(function(d){
-      if(d && d.ok){
-        lEl.textContent = '🔐 后台登录 累计 ' + d.total + ' · 今日 ' + d.today + ' · 在线 ' + d.online;
-      } else {
-        lEl.textContent = '🔐 登录统计不可用';
-      }
-    }).catch(function(){ lEl.textContent = '🔐 登录统计加载失败'; });
   }
 })();
 </script>

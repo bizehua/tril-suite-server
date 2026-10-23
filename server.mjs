@@ -356,15 +356,6 @@ async function handleApi(req, res, u){
     return sendJSON(res,404,{ok:false, error:'未知管理接口'});
   }
 
-  // 登录统计（看板展示，仅聚合数）
-  if(p==='/api/login-stats' && method==='GET'){
-    const total = db.prepare('SELECT COUNT(*) c FROM login_records').get().c;
-    const today = db.prepare("SELECT COUNT(*) c FROM login_records WHERE date(login_at,'localtime') >= date('now','localtime')").get().c;
-    const online = db.prepare('SELECT COUNT(*) c FROM sessions').get().c;
-    const visitTotal = db.prepare('SELECT COUNT(*) c FROM site_visits').get().c;
-    const visitToday = db.prepare("SELECT COUNT(*) c FROM site_visits WHERE date(visited_at,'localtime') >= date('now','localtime')").get().c;
-    return sendJSON(res,200,{ok:true, total, today, online, visitTotal, visitToday});
-  }
   // 访问量统计（PV）：每次打开/刷新页面都 +1，无需登录
   if(p==='/api/track-visit' && method==='POST'){
     db.prepare("INSERT INTO site_visits(visited_at) VALUES(datetime('now'))").run();
