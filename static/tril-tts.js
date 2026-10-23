@@ -3,12 +3,11 @@
  * 作用：为「学习器 / 测试器 / 快速播放器 / 闪记」四器统一提供朗读能力：
  *   - 可隐藏的浮动按钮（左下角），点击展开：朗读引擎 + 每语言男/女多语音 + 语速 + 音量
  *   - 四器自身的逐词朗读 / 自动连读 全部统一走本模块引擎（window.speak 被本模块接管）
- * 朗读引擎（三选一，默认"自动"）：
- *   · 自动     —— 有本机嗓音用本机（桌面可挑男女声，安卓用设备自带声，发音最准）；
- *               本机没有该语言嗓音时（如安卓的马来/泰）自动转云端，保证发音正确
- *   · 浏览器原生 —— 只用本机语音合成（离线可用，部分语言/安卓可能只有默认声）
- *   · 云端朗读  —— 走 Edge TTS 男/女多语音（需联网；联网失败自动降级）
- * 关键：每个语言下拉框"始终列出云端男/女声 + 本机嗓音"，安卓/苹果/电脑通用。
+ * 朗读策略（平台自适应，默认"本机优先、安卓走云端"）：
+ *   · 苹果/电脑 —— 用本机语音合成（iOS Siri 嗓音高质量、语速/音量可调、离线可用）
+ *   · 安卓     —— 默认走同源服务端云端 TTS（Edge 神经男/女声，高质量、跨平台一致，
+ *               规避本机 Pico 失真与马来/泰缺语音包问题）；联网不畅自动回退本机
+ *   · 每个语言下拉框"始终列出云端男/女声 + 本机嗓音"，可手动覆盖（安卓也可改回本机）
  * 约定：window.TrilTTS.speak(text, lang, onend) 可被各应用直接调用
  * ========================================================================= */
 (function () {
@@ -87,6 +86,7 @@
   }
   function defaultCloudVoice(k) { var cv = CLOUD_VOICES[k]; return cv && cv.length ? cv[0].id : null; }
   function googleLangFor(voiceId) { var p = (voiceId || '').split('-')[0]; return (p === 'zh') ? 'zh-CN' : (p || 'en'); }
+  function isAndroid() { try { return /Android/i.test(navigator.userAgent); } catch (e) { return false; } }
 
   /* ---------- 浏览器直连 Edge TTS（云端男/女多语音，跨平台一致） ----------
    * 让浏览器直接连微软 Edge TTS 的 WebSocket，按所选嗓音返回真实男/女声。 */
@@ -155,7 +155,8 @@
     var a = ensureAudio();
     if (!a) { nativeFallback(text, L, onend); return; }
     var useServer = (location.protocol !== 'file:');
-    var serverUrl = '/api/tts?voice=' + encodeURIComponent(voiceId) + '&text=' + encodeURIComponent(text);
+    // 同源服务端 TTS（高质量神经嗓音，出口不被墙，最稳）→ 直连 Edge → Google → 本机
+    var serverUrl = '/api/tts?voice=' + encodeURIComponent(voiceId) + '&text=' + encodeURIComponent(text) + '&lang=' + encodeURIComponent(lang) + '&rate=' + encodeURIComponent(cfg.rate || 1);
     var gl = googleLangFor(voiceId);
     var googleUrl = 'https://translate.google.com/translate_tts?ie=UTF-8&q=' + encodeURIComponent(text) + '&tl=' + encodeURIComponent(gl) + '&client=tw-ob';
     var step = 0;
@@ -170,18 +171,18 @@
       if (step >= 3) { markBroken(); nativeFallback(text, L, onend); return; }
       step = 3; play(googleUrl, function () { nativeFallback(text, L, onend); });
     }
-    function server() {
-      if (step >= 2 || !useServer) { google(); return; }
-      step = 2; play(serverUrl, google);
-    }
     function edge() {
-      if (step >= 1) { server(); return; }
-      step = 1;
+      if (step >= 2) { google(); return; }
+      step = 2;
       browserEdgeTts(text, voiceId, cfg.rate).then(function (blobUrl) {
-        play(blobUrl, server); // 直连成功；万一 blob 播放失败再走服务器
-      }).catch(function () { server(); });
+        play(blobUrl, google); // 直连成功；万一 blob 播放失败再走 Google
+      }).catch(function () { google(); });
     }
-    edge();
+    function server() {
+      if (step >= 1 || !useServer) { edge(); return; }
+      step = 1; play(serverUrl, edge); // 服务端优先（同源、出口干净、稳定）
+    }
+    server();
   }
   // 云端全部失败时，退回本机（尽量出声）
   function nativeFallback(text, L, onend) {
@@ -226,17 +227,20 @@
     var sel = cfg.voice[lang];
 
     // 1) 明确选了「本机嗓音」（下拉框里 📱 开头，含男/女）→ 严格走原生。
-    //    即时出声、语速/音量可调、男声/女声精确生效——无论"朗读引擎"怎么设都尊重用户的具体嗓音选择。
+    //    无论安卓/苹果/桌面，均尊重用户的具体嗓音选择（即时、语速/音量可调）。
     if (sel && !isCloudVoice(sel)) {
       var v = voices.filter(function (x) { return x.name === sel; })[0];
       if (v) { nativeSpeak(text, L, sel, onend, true); return; }
-      // 名字未匹配（该嗓音在本机列表里消失了）→ 落到下方默认逻辑
     }
-    // 2) 明确选了「☁ 云端嗓音」→ 走云端（尝试对应男/女声），失败自动回退本机
+    // 2) 明确选了「☁ 云端嗓音」→ 走云端（对应男/女声），失败自动回退本机
     if (sel && isCloudVoice(sel)) { cloudSpeak(text, sel, lang, onend); return; }
-    // 3) 没选具体声：本机有该语言嗓音 → 原生（即时、语速可调，用本机首个匹配声）
+
+    // 3) 安卓：默认走同源服务端云端 TTS（高质量神经嗓音，规避本机 Pico 失真 / 马来泰缺语音包）。
+    //    苹果/桌面：维持原生（iOS Siri 嗓音已高质量，体验完全不变）。
+    if (isAndroid()) { cloudSpeak(text, defaultCloudVoice(lang), lang, onend); return; }
+
+    // 4) 非安卓且未显式选声：本机有该语言嗓音 → 原生（即时、语速可调）；否则云端兜底
     if (window.speechSynthesis && hasVoiceFor(lang)) { nativeSpeak(text, L, null, onend, true); return; }
-    // 4) 本机完全没有该语言嗓音（如安卓的马来/泰）→ 云端兜底，保证读对语言（含男/女声）
     cloudSpeak(text, defaultCloudVoice(lang), lang, onend);
   }
 
@@ -291,8 +295,14 @@
       (CLOUD_VOICES[L.k] || []).forEach(function (v) {
         var o = document.createElement('option'); o.value = v.id; o.textContent = '☁ ' + v.label; sel.appendChild(o);
       });
-      // 优先恢复用户已保存的选择；无保存则默认本机嗓音（有则）或第一个云端声
-      var choose = saved || (nativeOpts.length ? nativeOpts[0].value : (sel.options.length ? sel.options[0].value : ''));
+      // 默认选择：安卓 → 云端神经嗓音（本机 Pico 失真/马来泰缺包），用户可手动改回本机；
+      //          非安卓 → 本机嗓音（有则）或第一个云端声。优先恢复用户已保存的选择。
+      var choose;
+      if (isAndroid()) {
+        choose = saved || defaultCloudVoice(L.k) || (sel.options.length ? sel.options[0].value : '');
+      } else {
+        choose = saved || (nativeOpts.length ? nativeOpts[0].value : (sel.options.length ? sel.options[0].value : ''));
+      }
       var q = sel.querySelector('option[value="' + choose.replace(/"/g, '\\"') + '"]');
       if (q) { sel.value = choose; cfg.voice[L.k] = choose; save(cfg); }
       // 关键：用户每次在下拉框里选择，立即持久化，否则"选了不生效"
@@ -313,7 +323,7 @@
       '<div class="row"><label>语速</label><input id="ttsRate" type="range" min="0.5" max="1.6" step="0.1" value="' + cfg.rate + '"><span id="ttsRateV" style="width:30px;color:#93a0bd;font-size:11px;text-align:right">' + cfg.rate + '</span></div>' +
       '<div class="row"><label>音量</label><input id="ttsVol" type="range" min="0" max="1" step="0.1" value="' + cfg.volume + '"><span id="ttsVolV" style="width:30px;color:#93a0bd;font-size:11px;text-align:right">' + cfg.volume + '</span></div>' +
       '<button class="speak" id="ttsSpeak">🔊 朗读当前词</button>' +
-      '<div class="hint">每个语言下拉框：📱 本机嗓音（电脑/苹果可挑男/女声，点击即时朗读、语速可调）；☁ 云端男/女声（需联网，用于手机缺本机嗓音的语言如马来/泰）。默认用本机声最自然；选了☁声或本机没有该语言声时才会走云端，联网不畅自动回退本机。</div>' +
+      '<div class="hint">苹果/电脑默认用本机高质量嗓音；安卓默认走云端神经嗓音（高质量、跨平台一致，需联网）。每个语言可手动选 📱 本机 或 ☁ 云端 男/女声；联网不畅自动回退本机。</div>' +
       '</div>';
     document.body.appendChild(panel);
 

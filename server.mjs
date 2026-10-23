@@ -117,6 +117,54 @@ function setSettings(userId, obj){
   return merged;
 }
 
+// ---------- 服务端 Edge TTS（神经嗓音，出口不被墙，供安卓/缺嗓音平台同源调用） ----------
+// 用 Node 全局 WebSocket 直连微软 Edge TTS，返回 MP3 Buffer；失败抛错由调用方回退 Google。
+async function edgeTtsBuffer(voiceId, text, rate){
+  const WS = globalThis.WebSocket;
+  if(!WS) throw new Error('no-websocket');
+  const connId = crypto.randomUUID();
+  const url = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4&ConnectionId=' + connId;
+  const lang = (voiceId || 'en-US').split('-').slice(0,2).join('-');
+  const rateStr = (typeof rate === 'number' && rate > 0) ? String(Math.min(2, Math.max(0.5, rate))) : '1';
+  const ssml = '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="' + lang + '"><voice name="' + voiceId + '"><prosody rate="' + rateStr + '">' + String(text).replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }) + '</prosody></voice></speak>';
+  return await new Promise(function(resolve, reject){
+    let ws;
+    try { ws = new WS(url); } catch(e){ return reject(e); }
+    try { ws.binaryType = 'arraybuffer'; } catch(_){}
+    const parts = [];
+    let ended = false;
+    const timer = setTimeout(function(){ if(!ended){ ended = true; try{ ws.close(); }catch(_){} reject(new Error('edge-timeout')); } }, 9000);
+    function finish(err){
+      if(ended) return; ended = true; clearTimeout(timer);
+      try { ws.close(); } catch(_){}
+      if(err) return reject(err);
+      let total = 0; for(let i=0;i<parts.length;i++) total += parts[i].length;
+      if(!total) return reject(new Error('edge-empty'));
+      const all = Buffer.concat(parts);
+      let start = 0;
+      for(let i=0;i<all.length-1;i++){ if(all[i]===0xFF && (all[i+1]&0xE0)===0xE0){ start = i; break; } }
+      resolve(all.subarray(start));
+    }
+    ws.onopen = function(){
+      try{
+        ws.send('ConnectionId: '+connId+'\r\nVersion: 0.0.0.0\r\nMessageType: SpeechConfig\r\nContent-Type: application/json; charset=utf-8\r\nPath: speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}');
+        setTimeout(function(){
+          ws.send('X-RequestId: '+connId+'\r\nContent-Type: application/json; charset=utf-8\r\nPath: synthesis.context\r\n\r\n{"device":{"os":"Linux","version":"1.0"},"browser":{"name":"Edge","version":"1.0"}}');
+          setTimeout(function(){
+            ws.send('X-RequestId: '+connId+'\r\nContent-Type: application/ssml+xml\r\nPath: ssml\r\n\r\n'+ssml);
+          }, 80);
+        }, 80);
+      }catch(e){ finish(e); }
+    };
+    ws.onmessage = function(ev){
+      if(typeof ev.data === 'string'){ if(ev.data.indexOf('Path:turn.end') !== -1) finish(null); }
+      else if(ev.data){ try{ parts.push(Buffer.from(ev.data instanceof ArrayBuffer ? ev.data : (ev.data.buffer || ev.data))); }catch(_){} }
+    };
+    ws.onerror = function(){ if(!ended) finish(new Error('edge-ws-error')); };
+    ws.onclose = function(){ if(!ended) finish(new Error('edge-ws-closed')); };
+  });
+}
+
 // ---------- 路由 ----------
 const MIME = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'};
 
@@ -128,11 +176,9 @@ async function handleApi(req, res, u){
   // 健康检查
   if(p==='/api/health'){ return sendJSON(res,200,{ok:true, version:'v20260823-browseredge', time:Date.now()}); }
 
-  // 云端朗读代理（同源兜底，无需密钥）
-  // 支持两种模式：
-  //   · 指定 voice（Edge TTS 男/女声，如 en-US-AriaNeural）→ 高质量、多语音、跨平台一致
-  //   · 仅指定 lang → Google 翻译 TTS 单语音兜底
-  // 加 CORS，允许 CloudStudio / 离线包 跨域调用，实现线上线下一致
+  // 云端朗读代理（同源兜底，无需密钥，服务端出口不被墙 → 安卓/国内稳定可用）
+  // 优先级：指定 voice（Edge TTS 神经男/女声）→ Google 翻译 TTS 单语音兜底。
+  // 加 CORS，允许 CloudStudio / 离线包跨域调用，实现线上线下一致。
   if(p==='/api/tts' && method==='OPTIONS'){
     res.writeHead(204, {'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Methods':'GET,OPTIONS'});
     return res.end();
@@ -140,11 +186,21 @@ async function handleApi(req, res, u){
   if(p==='/api/tts' && method==='GET'){
     const text = (q.get('text')||'').slice(0,200).trim();
     const voice = (q.get('voice')||'').trim();
+    const rateRaw = parseFloat(q.get('rate')||'1');
+    const rate = isNaN(rateRaw) ? 1 : rateRaw;
     const langMap = { en:'en', bm:'ms', zh:'zh-CN', th:'th' };
     const lang = langMap[(q.get('lang')||'en').toLowerCase()] || 'en';
     if(!text) return sendJSON(res,400,{ok:false, error:'缺少 text'});
-    // 说明：浏览器端已直连 Edge TTS 输出男/女多语音；此处仅作为兜底代理（Google 单语音，需联网）。
-    // 加 CORS 供 CloudStudio / 离线包跨域调用。
+    // 1) 优先服务端直连 Edge TTS 神经嗓音（高质量、男/女可选、跨平台一致）
+    if(voice){
+      try{
+        const buf = await edgeTtsBuffer(voice, text, rate);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200, {'Content-Type':'audio/mpeg', 'Cache-Control':'public, max-age=86400'});
+        return res.end(buf);
+      }catch(e){ /* Edge 失败 → 回退 Google */ }
+    }
+    // 2) 兜底：Google 翻译 TTS 单语音（需联网）
     try{
       const gl = voice ? voice.split('-')[0] : lang;
       const glang = (gl==='zh') ? 'zh-CN' : (langMap[gl] || gl);
