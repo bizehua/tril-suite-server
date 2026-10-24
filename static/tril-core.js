@@ -20,7 +20,7 @@
      导致 await 永久挂起（点单元毫无反应）。优先用 ASCII 名，失败再回退中文名。 */
   var PART_PREFIX_ASCII = "tril-part";
   var PART_PREFIX_CN = PART_PREFIX;
-  var cacheStore = "parts_v84";
+  var cacheStore = "parts_v85";
 
   window.__TRIL_PARTS__ = window.__TRIL_PARTS__ || [];
 
@@ -48,19 +48,9 @@
       timer = setTimeout(function(){ finish(false, new Error("分片加载超时")); }, 20000);
       s.onload  = function(){ finish(true); };
       s.onerror = function(){ finish(false, new Error("分片文件加载失败")); };
-      /* 先试 ASCII 名，失败再回退中文名 */
-      s.src = PART_PREFIX_ASCII + (k + 1) + ".js";
+      /* 纯静态部署（无服务端别名）：直接用中文名，避免先 404 再回退 */
+      s.src = encodeURI(PART_PREFIX_CN + (k + 1) + ".js");
       document.head.appendChild(s);
-      s.onerror = function(){
-        if (done) return;
-        /* ASCII 名失败 → 换中文名重试 */
-        var s2 = document.createElement("script");
-        s2.async = false;
-        s2.onload  = function(){ finish(true); };
-        s2.onerror = function(){ finish(false, new Error("分片文件加载失败（ASCII 名与中文名均失败）")); };
-        s2.src = encodeURI(PART_PREFIX_CN + (k + 1) + ".js");
-        document.head.appendChild(s2);
-      };
     });
   }
 
