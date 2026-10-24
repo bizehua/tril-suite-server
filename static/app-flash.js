@@ -161,6 +161,13 @@ const navState={level:1,si:-1,fi:-1,hist:[]};
 function mkNavGroup(name){
   const d=document.createElement("div"); d.className="navgroup"; d.textContent=name; return d;
 }
+
+/* 单元标题去掉重复的文件后缀（如「（小学·历史地理）」）—— 分组标题已提供归属信息 */
+function cleanUnitTitle(t, ui){
+  let x = t || ("Unit " + ((ui||0)+1));
+  if (typeof x === 'string') x = x.replace(/[（(][^（()）]{0,24}[）)]$/,'').trim();
+  return x;
+}
 function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
 function goLevel(level,si,fi){
   navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
@@ -238,7 +245,7 @@ function renderNav(){
       const cnt=(u.entries?u.entries.length:0)+" 张卡片";
       const badge=d?' ✓':'·';
       const b=document.createElement("button"); b.className="navunit";
-      b.innerHTML=badge+' '+escapeHtml(u.title||"")+' <span class="fc">'+cnt+'</span>';
+      b.innerHTML=badge+' '+escapeHtml(cleanUnitTitle(u.title,ui))+' <span class="fc">'+cnt+'</span>';
       if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
       b.onclick=()=>startStudy(navState.si,fi,ui);
       nav.appendChild(b);
@@ -271,7 +278,7 @@ function renderNav(){
                 nav.appendChild(b2);
                 (f.units||[]).forEach(function(u,ui){
                   const ub=document.createElement("button"); ub.className="navunit";
-                  ub.innerHTML='· '+escapeHtml(u.title||"")+' <span class="fc">'+(u.entries?u.entries.length:0)+' 张卡片</span>';
+                  ub.innerHTML='· '+escapeHtml(cleanUnitTitle(u.title,ui))+' <span class="fc">'+(u.entries?u.entries.length:0)+' 张卡片</span>';
                   ub.onclick=function(){ if(window.startStudy) startStudy(si,fi,ui); };
                   nav.appendChild(ub);
                 });
@@ -305,7 +312,7 @@ function openFile(si,fi){
     const cnt=(u.entries?u.entries.length:0)+" 张卡片";
     inner+='<div class="ucard'+(d?" done":"")+'" data-ui="'+ui+'">'+
       '<span class="badge">'+(d?"✓ 已学":"未学")+'</span>'+
-      '<div class="ut">'+escapeHtml(u.title)+'</div>'+
+      '<div class="ut">'+escapeHtml(cleanUnitTitle(u.title,ui))+'</div>'+
       '<div class="umeta">'+cnt+'</div>'+
       '<div class="mini"><i style="width:'+(d?100:0)+'%"></i></div></div>';
   });

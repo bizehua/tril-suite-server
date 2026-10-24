@@ -148,6 +148,13 @@ let playTimer=null;
 /* ===== 钻取式目录（学段→单元），懒渲染，避免一次性构建上千按钮 ===== */
 const nav=document.getElementById("nav");
 let navState={level:1,si:-1,fi:-1,hist:[]};
+
+/* 单元标题去掉重复的文件后缀（如「（小学·历史地理）」）—— 分组标题已提供归属信息 */
+function cleanUnitTitle(t, ui){
+  let x = t || ("Unit " + ((ui||0)+1));
+  if (typeof x === 'string') x = x.replace(/[（(][^（()）]{0,24}[）)]$/,'').trim();
+  return x;
+}
 function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
 /* 目录分组标题（取消「文件」层后，用文件名作分隔） */
 function mkNavGroup(name){
@@ -195,7 +202,7 @@ function renderNav(){
       f.units.forEach((u,ui)=>{
         const isRoot=u_isaRoot(u);
         const b=document.createElement("button"); b.className="navfile";
-        b.innerHTML=escapeHtml(u.title)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+(u.entries?u.entries.length:0)+'</span>';
+        b.innerHTML=escapeHtml(cleanUnitTitle(u.title,ui))+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+(u.entries?u.entries.length:0)+'</span>';
         b.dataset.si=navState.si; b.dataset.fi=fi; b.dataset.ui=ui;
         b.onclick=()=>loadUnit(navState.si,fi,ui);
         if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
@@ -216,7 +223,7 @@ function loadUnit(si,fi,ui){
   document.querySelectorAll(".navfile").forEach(b=>b.classList.remove("active"));
   const nb=nav.querySelector('.navfile[data-si="'+si+'"][data-fi="'+fi+'"][data-ui="'+ui+'"]');
   if(nb) nb.classList.add("active");
-  document.getElementById("unitbar").querySelector(".crumb").innerHTML='<b>'+escapeHtml(u.stage)+'</b> &nbsp;/&nbsp; '+escapeHtml(u.file)+' &nbsp;/&nbsp; '+escapeHtml(u.title)+' &nbsp;·&nbsp; '+curWords.length+' 词';
+  document.getElementById("unitbar").querySelector(".crumb").innerHTML='<b>'+escapeHtml(u.stage)+'</b> &nbsp;/&nbsp; '+escapeHtml(u.file)+' &nbsp;/&nbsp; '+escapeHtml(cleanUnitTitle(u.title,ui))+' &nbsp;·&nbsp; '+curWords.length+' 词';
   document.body.classList.remove("show-sidebar-m");
   stopPlay();
   renderStrip();

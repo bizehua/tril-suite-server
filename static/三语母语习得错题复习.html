@@ -723,6 +723,13 @@ function unitFilterLabel(){
 /* ============ 📚 3 级钻取式目录（学段 → 单元，仅显示有错词的范围） ============ */
 const nav = document.getElementById("nav");
 const navState = {level:1, si:-1, fi:-1, hist:[]};
+
+/* 单元标题去掉重复的文件后缀 —— 分组标题已提供归属信息 */
+function wbUnitTitle2(u, ui){
+  let t = u.title || ("Unit " + (ui+1));
+  if (typeof t === 'string') t = t.replace(/[（(][^（()）]{0,24}[）)]$/,'').trim();
+  return t;
+}
 function mkBack(txt){
   const b = document.createElement("button");
   b.className = "navback";
@@ -833,7 +840,7 @@ function renderNav(){
         if(!uc) return;
         const b = document.createElement("button");
         b.className = "navunit";
-        b.innerHTML = "📕 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc" style="color:var(--danger)">' + uc + ' 错词</span>';
+        b.innerHTML = "📕 " + escapeHtml(wbUnitTitle2(u, ui)) + ' <span class="fc" style="color:var(--danger)">' + uc + ' 错词</span>';
         b.onclick = () => pickUnit(navState.si, fi, ui);
         nav.appendChild(b);
       });
@@ -1266,7 +1273,7 @@ window.addEventListener("beforeunload", function(){
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v118';
+  var BUILD = 'tril-pwa-v119';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

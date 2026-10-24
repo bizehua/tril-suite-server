@@ -641,6 +641,13 @@ const navState = {level:1, si:-1, fi:-1, hist:[]};
 function mkNavGroup(name){
   const d=document.createElement("div"); d.className="navgroup"; d.textContent=name; return d;
 }
+
+/* 单元标题去掉重复的文件后缀（如「（小学·历史地理）」）—— 分组标题已提供归属信息 */
+function wbUnitTitle(u, ui){
+  let t = u.title || ("Unit " + (ui+1));
+  if (typeof t === 'string') t = t.replace(/[（(][^（()）]{0,24}[）)]$/,'').trim();
+  return t;
+}
 function mkBack(txt){
   const b = document.createElement("button");
   b.className = "navback";
@@ -709,7 +716,7 @@ function renderNav(){
         const n = (u.entries || []).length;
         const b = document.createElement("button");
         b.className = "navunit";
-        b.innerHTML = "📚 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc">' + n + ' 词</span>';
+        b.innerHTML = "📚 " + escapeHtml(wbUnitTitle(u, ui)) + ' <span class="fc">' + n + ' 词</span>';
         b.onclick = () => pickUnit(navState.si, fi, ui);
         nav.appendChild(b);
       });

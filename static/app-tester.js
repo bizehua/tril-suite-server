@@ -217,6 +217,13 @@ const navState={level:1,si:-1,fi:-1,hist:[]};
 function mkNavGroup(name){
   const d=document.createElement("div"); d.className="navgroup"; d.textContent=name; return d;
 }
+
+/* 单元标题去掉重复的文件后缀（如「（小学·历史地理）」）—— 分组标题已提供归属信息 */
+function cleanUnitTitle(t, ui){
+  let x = t || ("Unit " + ((ui||0)+1));
+  if (typeof x === 'string') x = x.replace(/[（(][^（()）]{0,24}[）)]$/,'').trim();
+  return x;
+}
 function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
 function goLevel(level,si,fi){
   navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
@@ -273,7 +280,7 @@ function renderNav(){
       const best=r.best!=null?(' 🏆'+r.best):'';
       const badge=d?' ✓':'·';
       const b=document.createElement("button"); b.className="navunit";
-      b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(u.title)+' <span class="fc">'+cnt+best+'</span>';
+      b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(cleanUnitTitle(u.title,ui))+' <span class="fc">'+cnt+best+'</span>';
       if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
       b.onclick=()=>openStart(navState.si,fi,ui);
       nav.appendChild(b);
@@ -305,7 +312,7 @@ function openFile(si,fi){
     const best = r.best!=null ? (' ⟂ 最佳 '+r.best) : '';
     inner+='<div class="ucard'+(d?" done":"")+'" data-ui="'+ui+'">'+
       '<span class="badge">'+(d?"✓ 满分":"未测")+'</span>'+
-      '<div class="ut">'+(isRoot?"🌱 ":"")+escapeHtml(u.title)+'</div>'+
+      '<div class="ut">'+(isRoot?"🌱 ":"")+escapeHtml(cleanUnitTitle(u.title,ui))+'</div>'+
       '<div class="umeta">'+cnt+best+'</div>'+
       '<div class="mini"><i style="width:'+(d?100:0)+'%"></i></div></div>';
   });
@@ -366,9 +373,9 @@ function showStart(u){
     : '';
   main.innerHTML='<div class="quiz"><div class="quizbar">'+
     '<button class="back" id="backBtn">← 返回</button>'+
-    '<span class="lt">'+escapeHtml(u.stage)+' · '+escapeHtml(u.file)+' · '+escapeHtml(u.title)+'</span>'+
+    '<span class="lt">'+escapeHtml(u.stage)+' · '+escapeHtml(u.file)+' · '+escapeHtml(cleanUnitTitle(u.title,ui))+'</span>'+
     '</div><div class="qwrap"><div class="startpanel">'+
-    '<h2>'+escapeHtml(u.title)+'</h2>'+
+    '<h2>'+escapeHtml(cleanUnitTitle(u.title,ui))+'</h2>'+
     '<div class="desc">本单元共 '+ (u.entries?u.entries.length:0) +' 个'+(isRoot?"派生词":"词条")+'。选择题型、方向与题量后开始自测。</div>'+
     '<div class="field"><div class="lab">题型</div><div class="chips" id="qtypeChips">'+
       '<span class="chip active" data-qtype="choice" title="看词选义，4 选 1">🔘 选择</span>'+
