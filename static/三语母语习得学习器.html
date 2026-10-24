@@ -40,14 +40,24 @@ nav{flex:0 0 250px;background:var(--panel);border-right:1px solid var(--line);ov
 .navstage{margin-bottom:6px}
 .navstage>h3{font-size:13px;margin:8px 6px 4px;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px}
 .navstage .cnt{font-size:11px;color:var(--muted);font-weight:400}
+/* 目录分组标题（取消「文件」层后，用文件名作分隔） */
+.navgroup{padding:9px 8px 5px;font-size:11px;font-weight:700;color:var(--muted);
+  letter-spacing:.3px;opacity:.85;display:flex;align-items:center;gap:6px;
+  border-top:1px solid var(--line);margin-top:6px}
+.navgroup:first-of-type{border-top:none;margin-top:0}
+.navgroup::after{content:"";flex:1;height:1px;background:var(--line);opacity:.5}
 .navfile{display:block;width:100%;text-align:left;margin:2px 0;padding:7px 10px;font-size:13px;
   background:transparent;border:1px solid transparent;border-radius:8px;color:var(--txt)}
 .navfile:hover{background:var(--panel2)}
 .navfile.active{background:var(--panel2);border-color:var(--accent)}
 .navfile .fc{float:right;color:var(--muted);font-size:11px}
 .navfile .rt{float:right;color:var(--zh);font-size:10px;margin-right:6px}
-.navunit{display:block;width:100%;text-align:left;margin:1px 0;padding:6px 12px;font-size:13px;
+.navunit{display:flex;align-items:baseline;gap:8px;width:100%;text-align:left;margin:1px 0;padding:6px 12px;font-size:13px;
   background:transparent;border:1px solid transparent;border-left:3px solid var(--line);border-radius:0 8px 8px 0;color:var(--txt)}
+/* 单元标题过长时允许换行，右侧计数保持单行不换 */
+.navunit > .fc, .navunit .fc{flex:0 0 auto;white-space:nowrap;float:none}
+.navunit > span:not(.fc), .navunit > b{flex:1 1 auto;min-width:0}
+
 .navunit:hover{background:var(--panel2)}
 .navunit.active{background:var(--panel2);border-left-color:var(--accent)}
 .navunit .fc{float:right;color:var(--muted);font-size:11px}
@@ -527,7 +537,7 @@ function renderNav(){
       const total=st.files.reduce((a,f)=>a+f.units.length,0);
       const b=document.createElement("button"); b.className="navfile";
       b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
-      b.onclick=()=>goLevel(2,si,-1);
+      b.onclick=()=>goLevel(3,si,-1);
       nav.appendChild(b);
     });
     /* 自定义词库 */
@@ -537,36 +547,40 @@ function renderNav(){
         const total=cs.files.reduce((a,f)=>a+(f.units||[]).length,0);
         const b=document.createElement("button"); b.className="navfile";
         b.innerHTML='▸ '+escapeHtml(cs.name||"我的自定义词库")+' <span class="fc">'+total+'</span>';
-        b.onclick=()=>goLevel(2,CUSTOM_SI,-1);
+        b.onclick=()=>goLevel(3,CUSTOM_SI,-1);
         nav.appendChild(b);
       }
     }
-  } else if(navState.level===2){
-    const st=getStage(navState.si);
-    nav.appendChild(mkBack("◀ 返回学段"));
-    st.files.forEach((f,fi)=>{
-      const isRoot = f.units && f.units.length>0 && f.units[0].type==="root";
-      const b=document.createElement("button"); b.className="navfile";
-      b.innerHTML='▸ '+escapeHtml(f.name)+(isRoot?' <span class="rt">🌱</span>':'')+' <span class="fc">'+((f.units||[]).length)+'</span>';
-      b.onclick=()=>goLevel(3,navState.si,fi);
-      nav.appendChild(b);
-    });
   } else {
-    /* level===3：单元列表（点单元直接打开内容） */
-    const st=getStage(navState.si); const f=st.files[navState.fi];
-    nav.appendChild(mkBack("◀ 返回文件"));
+    /* level===3：单元列表（已取消「文件」这一层，点学段直达单元）
+       多个文件时用「文件名」作分组标题分隔，保留内容归属信息 */
+    const st=getStage(navState.si);
+    const files = st.files||[];
+    const showGroup = files.length>1;   /* 单文件时不显示分组标题 */
+    nav.appendChild(mkBack("◀ 返回学段"));
+    files.forEach((f,fi)=>{
+    if(showGroup){
+      const gh=document.createElement("div"); gh.className="navgroup";
+      gh.textContent = f.name;
+      nav.appendChild(gh);
+    }
     (f.units||[]).forEach((u,ui)=>{
       const isRoot=u.type==="root";
-      const d=isDone({si:navState.si,fi:navState.fi,ui});
+      const d=isDone({si:navState.si,fi:fi,ui});
       const isCustomUnit = isCustomStage();
       const cnt = (isCustomUnit ? (u.entries?u.entries.length:0) : (u.n||0))+(isRoot?" 派生词":" 条");
-      const utitle = isCustomUnit ? u.title : u.t;
+      /* 标题去掉重复的文件后缀（如「（小学·历史地理）」）—— 已有分组标题提供归属信息 */
+      let utitle = isCustomUnit ? u.title : u.t;
+      if(!isCustomUnit && typeof utitle === 'string'){
+        utitle = utitle.replace(/[（(][^（()）]{0,24}[）)]$/,'').trim();
+      }
       const badge=d?' ✓':'·';
       const b=document.createElement("button"); b.className="navunit";
       b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(utitle||"")+' <span class="fc">'+cnt+'</span>';
-      if(cur && cur.si===navState.si && cur.fi===navState.fi && cur.ui===ui) b.classList.add("active");
-      b.onclick=()=>{ Promise.resolve(openLesson(navState.si,navState.fi,ui)).catch(function(){}); };
+      if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
+      b.onclick=()=>{ Promise.resolve(openLesson(navState.si,fi,ui)).catch(function(){}); };
       nav.appendChild(b);
+    });
     });
   }
 }
@@ -1234,7 +1248,7 @@ setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 10000);
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v115';
+  var BUILD = 'tril-pwa-v116';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

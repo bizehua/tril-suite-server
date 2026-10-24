@@ -123,6 +123,14 @@ html {
   }
 }
 </style>
+<style>
+/* 目录分组标题（取消「文件」层后，用文件名作分隔） */
+.navgroup{padding:9px 8px 5px;font-size:11px;font-weight:700;color:var(--muted);
+  letter-spacing:.3px;opacity:.85;display:flex;align-items:center;gap:6px;
+  border-top:1px solid var(--line);margin-top:6px}
+.navgroup:first-of-type{border-top:none;margin-top:0}
+.navgroup::after{content:"";flex:1;height:1px;background:var(--line);opacity:.5}
+</style>
 </head>
 <body>
 
@@ -790,6 +798,7 @@ function renderNav(){
       nav.appendChild(ph);
     }
   } else if(navState.level === 2){
+    /* 已取消「文件」这一层：点学段直接列出各文件的单元（文件名作分组标题） */
     const st = libStages[navState.si];
     if(!st){ navBack(); return; }
     nav.appendChild(mkBack("◀ 返回学段"));
@@ -801,10 +810,17 @@ function renderNav(){
     allBtn.innerHTML = "🔁 专练整个学段 <span class='fc' style='color:var(--danger)'>" + sc + " 错词</span>";
     allBtn.onclick = () => pickUnit(navState.si, null, null);
     nav.appendChild(allBtn);
-    /* 文件列表 */
-    (st.files || []).forEach((f, fi) => {
+    const wbFiles = st.files || [];
+    const wbShowGroup = wbFiles.length > 1;
+    wbFiles.forEach((f, fi) => {
       const fc = cnt.perFile[navState.si + "|" + fi] || 0;
       if(!fc) return;
+      if(wbShowGroup){
+        const gh = document.createElement("div");
+        gh.className = "navgroup";
+        gh.textContent = f.name;
+        nav.appendChild(gh);
+      }
       const b = document.createElement("button");
       b.className = "navfile";
       b.innerHTML = "▸ " + escapeHtml(f.name) + ' <span class="fc" style="color:var(--danger)">' + fc + ' 错词</span>';
@@ -1264,7 +1280,7 @@ window.addEventListener("beforeunload", function(){
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v115';
+  var BUILD = 'tril-pwa-v116';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
