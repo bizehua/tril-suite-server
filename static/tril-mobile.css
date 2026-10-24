@@ -26,7 +26,11 @@
  * ============================================================ */
 @media (max-width: 820px) {
 
-  /* 抽屉容器：默认滑出屏幕 */
+  /* 抽屉容器：固定定位 + 满高（默认滑出屏幕）
+     ⚠️ 关键：position:fixed 必须对「打开态」也生效。
+     之前只在 body:not(.show-sidebar-m) 下声明了 fixed，
+     打开时选择器不匹配 → nav 退回 static → 高度由内容决定（实测仅 111px）
+     → 目录条目挤在一小块、且 overflow 不可滚 → 用户只能缩小页面才看全。 */
   body:not(.show-sidebar-m) .layout > nav,
   body:not(.show-sidebar-m) #nav {
     position: fixed !important;
@@ -35,7 +39,7 @@
     bottom: 0;
     width: 84%;
     max-width: 320px;
-    z-index: 41;
+    z-index: 60;
     transform: translateX(-105%) !important;
     transition: transform .22s ease;
     box-shadow: 0 0 40px rgba(0, 0, 0, .55);
@@ -43,14 +47,23 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 打开状态 */
+  /* 打开状态：同样是固定定位 + 满高（与关闭态共用几何，只有 transform 不同） */
   body.show-sidebar-m .layout > nav,
   body.show-sidebar-m #nav {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 84%;
+    max-width: 320px;
+    z-index: 60;
     transform: translateX(0) !important;
+    transition: transform .22s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .55);
   }
 
   /* 兜底：移动端抽屉打开时，无论 body 是否带 hide-sidebar，
-     抽屉都必须完整可见（hide-sidebar 会把 nav 宽压成 0、opacity 0） */
+     抽屉都必须完整可见且可滚动（hide-sidebar 会把 nav 宽压成 0、opacity 0） */
   body.show-sidebar-m .layout > nav,
   body.show-sidebar-m #nav {
     width: 84% !important;
@@ -62,7 +75,10 @@
     padding-right: 10px !important;
     border-right-width: 1px !important;
     pointer-events: auto !important;
-    overflow: hidden auto !important;
+    /* 纵向必须可滚动：目录条目多时（东钢站 level3 有 4+ 项、词根学段 41 项）要能滑 */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     transform: translateX(0) !important;
   }
   /* 抽屉打开时主内容区不被压缩 */
@@ -70,6 +86,59 @@
   body.show-sidebar-m #main {
     flex: 1 1 auto !important;
     min-width: 0 !important;
+  }
+
+  /* 抽屉打开时，底部浮动工具条要隐藏 ——
+     它 z-index(45) > 抽屉(41)，会浮在抽屉上面挡住目录条目；
+     而且抽屉打开时用户要操作的是目录，工具条此刻用不上。 */
+  body.show-sidebar-m #layoutDock {
+    display: none !important;
+  }
+  /* 同理，悬浮诊断按钮也避开抽屉 */
+  body.show-sidebar-m #trilDiagWrap,
+  body.show-sidebar-m #trilDiagBtn {
+    display: none !important;
+  }
+
+  /* ==========================================================
+   * 1b. 覆盖 tril-skin.css 的窄屏旧规则（真机实测的隐藏元凶）
+   * -------------------------------------------------------------
+   * tril-skin.css 第 854 行：
+   *   @media (max-width:560px){ .layout{flex-direction:column}
+   *                            .layout > nav,#nav{flex:0 0 auto;max-height:38vh} }
+   * 这条旧规则是为了「窄屏把侧栏改成顶部横条」而写的，
+   * 但它与新的「固定抽屉」机制冲突：
+   *   · max-height:38vh → 抽屉只有视口的 38%（实测 844px 屏上仅 321px 高）
+   *   · flex-direction:column → .layout 变竖排，抽屉不再是覆盖式浮层
+   * 结果：手机上点开目录，抽屉只占顶部一小块、条目挤在一起、
+   *      溢出部分无法滚动 → 用户只能双指缩小页面才看全。
+   *
+   * 修法：移动端一律用「固定抽屉 + 满高 + 可滚动」，覆盖旧规则。
+   * ========================================================== */
+  @media (max-width: 820px) {
+    .layout,
+    body .layout {
+      flex-direction: row !important;
+    }
+    .layout > nav,
+    #nav,
+    body .layout > nav,
+    body #nav {
+      max-height: none !important;
+      height: auto !important;
+      min-height: 0 !important;
+      flex: 0 0 auto !important;
+      border-bottom: none !important;
+      border-right: 1px solid var(--line) !important;
+    }
+    /* 抽屉打开时强制满高（top:0 + bottom:0 → 视口全高） */
+    body.show-sidebar-m .layout > nav,
+    body.show-sidebar-m #nav {
+      height: auto !important;
+      max-height: none !important;
+      bottom: 0 !important;
+      top: 0 !important;
+    }
   }
 
   /* 抽屉里的内容要能点（hide-sidebar 会把宽度压成 0，这里覆盖） */
@@ -84,7 +153,12 @@
     padding-right: 10px !important;
     border-right-width: 1px !important;
     pointer-events: auto !important;
-    overflow: visible !important;
+    /* ⚠️ 必须是 auto（可滚动），不能是 visible ——
+       目录条目多时（词根学段 41 项、行业主题词库等）内容超出高度就滚不动了。
+       此规则在上面的兜底规则之后、特异性相同，故最终生效。 */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   /* 背景遮罩 */
@@ -97,18 +171,24 @@
     left: 0;
     inset: 0;
     background: rgba(0, 0, 0, .5);
-    z-index: 40;
+    z-index: 58;
     display: none;
   }
   body.show-sidebar-m #navBackdrop { display: block; }
 
-  /* 主内容占满整屏 */
+  /* 主内容占满整屏（抽屉是浮层，主内容始终占满，不被挤到抽屉下面） */
   body .layout > main,
   body #main {
     width: 100% !important;
     max-width: 100% !important;
     flex: 1 1 100% !important;
     min-width: 0 !important;
+  }
+  /* 抽屉打开时主内容仍在原位（浮层之上由遮罩覆盖），不被推走 */
+  body.show-sidebar-m .layout > main,
+  body.show-sidebar-m #main {
+    flex: 1 1 100% !important;
+    width: 100% !important;
   }
 
   /* 抽屉里的小字放大一点 */
