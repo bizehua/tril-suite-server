@@ -247,7 +247,7 @@ html {
   <main id="main">
     <div class="unitbar" id="unitbar">
       <button id="backBtn" class="navbtn" title="返回上一级">◀ 返回</button>
-      <div class="crumb">← 从左侧选择 学段 / 文件 / 单元 开始</div>
+      <div class="crumb">← 从左侧选择 学段 → 单元 开始</div>
       <div class="idx" id="idx"></div>
     </div>
     <div class="bigcard" id="bigcard"><div class="loadhint"><div class="spinner"></div>⏳ 正在加载词库…<br>数据较大（约 5.7 万词），请稍候</div></div>
@@ -594,7 +594,7 @@ html {
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v117';
+  var BUILD = 'tril-pwa-v118';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

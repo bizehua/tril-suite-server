@@ -624,7 +624,7 @@ function showWelcome(){
 
 /* 供 auth-client 返回键逐级回退： unit -> file list -> selection */
 window.TrilAppBack = function(){
-  if(cur){ cur=null; curWords=[]; pos=0; stopPlay(); showWelcome(); updateIdx(); renderStrip(); document.getElementById("unitbar").querySelector(".crumb").innerHTML='← 从左侧选择 学段 / 文件 / 单元 开始'; return true; }
+  if(cur){ cur=null; curWords=[]; pos=0; stopPlay(); showWelcome(); updateIdx(); renderStrip(); document.getElementById("unitbar").querySelector(".crumb").innerHTML='← 从左侧选择 学段 → 单元 开始'; return true; }
   if(navState.hist.length){ navBack(); return true; }
   return false;
 };
