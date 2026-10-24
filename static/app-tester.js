@@ -210,8 +210,13 @@ if(!window.speechSynthesis){ /* 不强制提示，交给测试按钮 */ }
 
 const nav=document.getElementById("nav");
 function escapeHtml(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
-/* ===== 钻取式目录（学段→文件→单元），与播放器一致 ===== */
+/* ===== 钻取式目录（学段→单元），与播放器一致 ===== */
 const navState={level:1,si:-1,fi:-1,hist:[]};
+
+/* 目录分组标题（取消「文件」层后，用文件名作分隔） */
+function mkNavGroup(name){
+  const d=document.createElement("div"); d.className="navgroup"; d.textContent=name; return d;
+}
 function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
 function goLevel(level,si,fi){
   navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
@@ -249,35 +254,31 @@ function renderNav(){
       const total=st.files.reduce((a,f)=>a+f.units.length,0);
       const b=document.createElement("button"); b.className="navfile";
       b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
-      b.onclick=()=>goLevel(2,si,-1);
-      nav.appendChild(b);
-    });
-  } else if(navState.level===2){
-    const st=DATA.stages[navState.si];
-    nav.appendChild(mkBack("◀ 返回学段"));
-    st.files.forEach((f,fi)=>{
-      const isRoot = f.units.length>0 && f.units[0].type==="root";
-      const b=document.createElement("button"); b.className="navfile";
-      b.innerHTML='▸ '+escapeHtml(f.name)+(isRoot?' <span class="rt">🌱</span>':'')+' <span class="fc">'+f.units.length+'</span>';
-      b.onclick=()=>goLevel(3,navState.si,fi);
+      b.onclick=()=>goLevel(3,si,-1);
       nav.appendChild(b);
     });
   } else {
     /* level===3：单元列表（侧栏里直接开始） */
-    const st=DATA.stages[navState.si]; const f=st.files[navState.fi];
-    nav.appendChild(mkBack("◀ 返回文件"));
-    f.units.forEach((u,ui)=>{
+    const st=DATA.stages[navState.si];
+    const __files=(st.files||[]);
+    const __showGroup=__files.length>1;
+    nav.appendChild(mkBack("◀ 返回学段"));
+    __files.forEach((f,fi)=>{
+      if(__showGroup){ nav.appendChild(mkNavGroup(f.name)); }
+      f.units.forEach((u,ui)=>{
       const isRoot=u.type==="root";
-      const d=isDone({si:navState.si,fi:navState.fi,ui});
-      const r=progress[uid({si:navState.si,fi:navState.fi,ui})]||{};
+      const d=isDone({si:navState.si,fi:fi,ui});
+      const r=progress[uid({si:navState.si,fi:fi,ui})]||{};
       const cnt=(u.entries?u.entries.length:0)+(isRoot?" 派生词":" 条");
       const best=r.best!=null?(' 🏆'+r.best):'';
       const badge=d?' ✓':'·';
       const b=document.createElement("button"); b.className="navunit";
       b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(u.title)+' <span class="fc">'+cnt+best+'</span>';
-      if(cur && cur.si===navState.si && cur.fi===navState.fi && cur.ui===ui) b.classList.add("active");
-      b.onclick=()=>openStart(navState.si,navState.fi,ui);
+      if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
+      b.onclick=()=>openStart(navState.si,fi,ui);
       nav.appendChild(b);
+    
+      });
     });
   }
 }
@@ -983,7 +984,7 @@ refreshProgress();
     const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
     if(isNaN(si) || si < 0) return;
     if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); return; }
-    if(!isNaN(si)){ goLevel(2, si, -1); return; }
+    if(!isNaN(si)){ goLevel(3,si,-1); return; }
   }catch(e){}
 })();
 /* 首页保持 level 1 学段列表，不自动展开 */

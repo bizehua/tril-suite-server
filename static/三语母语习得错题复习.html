@@ -720,7 +720,7 @@ function unitFilterLabel(){
   return name;
 }
 
-/* ============ 📚 3 级钻取式目录（学段 → 文件 → 单元，仅显示有错词的范围） ============ */
+/* ============ 📚 3 级钻取式目录（学段 → 单元，仅显示有错词的范围） ============ */
 const nav = document.getElementById("nav");
 const navState = {level:1, si:-1, fi:-1, hist:[]};
 function mkBack(txt){
@@ -779,7 +779,7 @@ function renderNav(){
       const b = document.createElement("button");
       b.className = "navfile";
       b.innerHTML = "▸ " + escapeHtml(st.name) + ' <span class="fc" style="color:var(--danger)">' + sc + ' 错词</span>';
-      b.onclick = () => goLevel(2, si, -1);
+      b.onclick = () => goLevel(3, si, -1);
       nav.appendChild(b);
     });
     /* 未匹配词库的错词 */
@@ -797,7 +797,7 @@ function renderNav(){
       ph.innerHTML = "📭 词库中未找到任何错词的归属单元。<br><span style='font-size:11px'>（错词可能来自自定义词库或导入）</span>";
       nav.appendChild(ph);
     }
-  } else if(navState.level === 2){
+  } else {
     /* 已取消「文件」这一层：点学段直接列出各文件的单元（文件名作分组标题） */
     const st = libStages[navState.si];
     if(!st){ navBack(); return; }
@@ -821,36 +821,22 @@ function renderNav(){
         gh.textContent = f.name;
         nav.appendChild(gh);
       }
-      const b = document.createElement("button");
-      b.className = "navfile";
-      b.innerHTML = "▸ " + escapeHtml(f.name) + ' <span class="fc" style="color:var(--danger)">' + fc + ' 错词</span>';
-      b.onclick = () => goLevel(3, navState.si, fi);
-      nav.appendChild(b);
-    });
-  } else {
-    /* level===3：单元列表 */
-    const st = libStages[navState.si];
-    if(!st){ navBack(); return; }
-    const f = st.files[navState.fi];
-    if(!f){ navBack(); return; }
-    nav.appendChild(mkBack("◀ 返回文件"));
-    const cnt = unitWrongCounts();
-    const fc = cnt.perFile[navState.si + "|" + navState.fi] || 0;
-    /* 整个文件专练 */
-    const allBtn = document.createElement("button");
-    allBtn.className = "navunit";
-    allBtn.innerHTML = "🔁 专练整个文件 <span class='fc' style='color:var(--danger)'>" + fc + " 错词</span>";
-    allBtn.onclick = () => pickUnit(navState.si, navState.fi, null);
-    nav.appendChild(allBtn);
-    /* 单元列表 */
-    (f.units || []).forEach((u, ui) => {
-      const uc = cnt.perUnit[navState.si + "|" + navState.fi + "|" + ui] || 0;
-      if(!uc) return;
-      const b = document.createElement("button");
-      b.className = "navunit";
-      b.innerHTML = "📕 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc" style="color:var(--danger)">' + uc + ' 错词</span>';
-      b.onclick = () => pickUnit(navState.si, navState.fi, ui);
-      nav.appendChild(b);
+      /* 整个文件专练 */
+      const fb = document.createElement("button");
+      fb.className = "navunit";
+      fb.innerHTML = "🔁 专练整个文件 <span class='fc' style='color:var(--danger)'>" + fc + " 错词</span>";
+      fb.onclick = () => pickUnit(navState.si, fi, null);
+      nav.appendChild(fb);
+      /* 该文件的单元列表（只显示有错词的） */
+      (f.units || []).forEach((u, ui) => {
+        const uc = cnt.perUnit[navState.si + "|" + fi + "|" + ui] || 0;
+        if(!uc) return;
+        const b = document.createElement("button");
+        b.className = "navunit";
+        b.innerHTML = "📕 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc" style="color:var(--danger)">' + uc + ' 错词</span>';
+        b.onclick = () => pickUnit(navState.si, fi, ui);
+        nav.appendChild(b);
+      });
     });
   }
 }
@@ -1144,7 +1130,7 @@ window.addEventListener("load", function(){
       const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
       if(!isNaN(si) && si >= 0 && libStages && libStages[si]){
         if(!isNaN(fi) && fi >= 0 && libStages[si].files[fi]){ goLevel(3, si, fi); }
-        else { goLevel(2, si, -1); }
+        else { goLevel(3, si, -1); }
       }
     }
   }catch(e){}
@@ -1280,7 +1266,7 @@ window.addEventListener("beforeunload", function(){
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v116';
+  var BUILD = 'tril-pwa-v117';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

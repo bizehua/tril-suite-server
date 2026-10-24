@@ -145,10 +145,14 @@ let pos=0;             // 当前词索引
 let playing=false;
 let playTimer=null;
 
-/* ===== 钻取式目录（学段→文件→单元），懒渲染，避免一次性构建上千按钮 ===== */
+/* ===== 钻取式目录（学段→单元），懒渲染，避免一次性构建上千按钮 ===== */
 const nav=document.getElementById("nav");
 let navState={level:1,si:-1,fi:-1,hist:[]};
 function mkBack(txt){ const b=document.createElement("button"); b.className="navback"; b.textContent=txt; b.onclick=navBack; return b; }
+/* 目录分组标题（取消「文件」层后，用文件名作分隔） */
+function mkNavGroup(name){
+  const d=document.createElement("div"); d.className="navgroup"; d.textContent=name; return d;
+}
 function goLevel(level,si,fi){
   navState.hist.push({level:navState.level,si:navState.si,fi:navState.fi});
   navState.level=level; navState.si=si; navState.fi=fi; renderNav();
@@ -177,29 +181,26 @@ function renderNav(){
       const total=st.files.reduce((a,f)=>a+f.units.length,0);
       const b=document.createElement("button"); b.className="navfile";
       b.innerHTML='▸ '+escapeHtml(st.name)+' <span class="fc">'+total+'</span>';
-      b.onclick=()=>goLevel(2,si,-1);
-      nav.appendChild(b);
-    });
-  } else if(navState.level===2){
-    const st=DATA.stages[navState.si];
-    nav.appendChild(mkBack("◀ 返回学段"));
-    st.files.forEach((f,fi)=>{
-      const b=document.createElement("button"); b.className="navfile";
-      b.innerHTML='▸ '+escapeHtml(f.name)+' <span class="fc">'+f.units.length+'</span>';
-      b.onclick=()=>goLevel(3,navState.si,fi);
+      b.onclick=()=>goLevel(3,si,-1);
       nav.appendChild(b);
     });
   } else {
-    const st=DATA.stages[navState.si]; const f=st.files[navState.fi];
-    nav.appendChild(mkBack("◀ 返回文件"));
-    f.units.forEach((u,ui)=>{
-      const isRoot=u_isaRoot(u);
-      const b=document.createElement("button"); b.className="navfile";
-      b.innerHTML=escapeHtml(u.title)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+(u.entries?u.entries.length:0)+'</span>';
-      b.dataset.si=navState.si; b.dataset.fi=navState.fi; b.dataset.ui=ui;
-      b.onclick=()=>loadUnit(navState.si,navState.fi,ui);
-      if(cur && cur.si===navState.si && cur.fi===navState.fi && cur.ui===ui) b.classList.add("active");
-      nav.appendChild(b);
+    /* 已取消「文件」这一层：点学段直接列出各文件的单元（文件名作分组标题） */
+    const st=DATA.stages[navState.si];
+    const __files=(st.files||[]);
+    const __showGroup=__files.length>1;
+    nav.appendChild(mkBack("◀ 返回学段"));
+    __files.forEach((f,fi)=>{
+      if(__showGroup){ nav.appendChild(mkNavGroup(f.name)); }
+      f.units.forEach((u,ui)=>{
+        const isRoot=u_isaRoot(u);
+        const b=document.createElement("button"); b.className="navfile";
+        b.innerHTML=escapeHtml(u.title)+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+(u.entries?u.entries.length:0)+'</span>';
+        b.dataset.si=navState.si; b.dataset.fi=fi; b.dataset.ui=ui;
+        b.onclick=()=>loadUnit(navState.si,fi,ui);
+        if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
+        nav.appendChild(b);
+      });
     });
   }
   const ub=document.getElementById("backBtn");
@@ -618,7 +619,7 @@ function toast(msg){
 function showWelcome(){
   const card=document.getElementById("bigcard");
   if(cur) return;
-  card.innerHTML='<div class="empty">🔊 四语单词快速播放器<br>覆盖学习器全部单元（'+units.length+' 单元 / '+totalCount+' 词）<br>从左侧选择 <b>学段 → 文件 → 单元</b> 即可开始逐词朗读</div>';
+  card.innerHTML='<div class="empty">🔊 四语单词快速播放器<br>覆盖学习器全部单元（'+units.length+' 单元 / '+totalCount+' 词）<br>从左侧选择 <b>学段 → 单元</b> 即可开始逐词朗读</div>';
 }
 
 /* 供 auth-client 返回键逐级回退： unit -> file list -> selection */
@@ -639,7 +640,7 @@ requestAnimationFrame(()=>{
       const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
       if(!isNaN(si) && si >= 0){
         if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); }
-        else { goLevel(2, si, -1); }
+        else { goLevel(3, si, -1); }
       }
     }
   }catch(e){}

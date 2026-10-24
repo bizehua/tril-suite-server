@@ -7,6 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>英语学习工作台</title>
 <style>
+/* 目录分组标题（取消「文件」层后，用文件名作分隔） */
+.navgroup{padding:9px 8px 5px;font-size:11px;font-weight:700;color:var(--muted);
+  letter-spacing:.3px;opacity:.85;display:flex;align-items:center;gap:6px;
+  border-top:1px solid var(--line);margin-top:6px}
+.navgroup:first-of-type{border-top:none;margin-top:0}
+.navgroup::after{content:"";flex:1;height:1px;background:var(--line);opacity:.5}
+
 :root{--bg:#0e1320;--panel:#1a2238;--line:#2c3756;--txt:#e8edf7;--muted:#93a0bd;--accent:#5b8cff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,var(--bg),#151c2e);color:var(--txt);font:14px system-ui,"PingFang SC",sans-serif;padding:24px}
 h1{font-size:20px;margin:0 0 4px}h2{font-size:15px;margin:18px 0 8px;color:var(--accent)}
@@ -127,7 +134,7 @@ window.addEventListener('load',function(){ setTimeout(sync,500); });
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v116';
+  var BUILD = 'tril-pwa-v117';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

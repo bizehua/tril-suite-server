@@ -1029,7 +1029,7 @@ refreshProgress();
     const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
     if(isNaN(si) || si < 0) return;
     if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); return; }
-    if(!isNaN(si)){ goLevel(2, si, -1); return; }
+    if(!isNaN(si)){ goLevel(3, si, -1); return; }
   }catch(e){}
 })();
 /* 首页保持 level 1 学段列表，不自动展开 */
@@ -1248,7 +1248,7 @@ setInterval(function(){ try{ updateStudyChip(); }catch(_){} }, 10000);
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v116';
+  var BUILD = 'tril-pwa-v117';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

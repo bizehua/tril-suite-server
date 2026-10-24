@@ -617,7 +617,7 @@ function renderFilters(){
   bar.appendChild(collapseBtn);
 }
 
-/* ============ 📚 3 级钻取式目录（学段 → 文件 → 单元，与学习器一致） ============ */
+/* ============ 📚 3 级钻取式目录（学段 → 单元，与学习器一致） ============ */
 function unitWordCount(st){
   let n = 0;
   (st.files||[]).forEach(f => (f.units||[]).forEach(u => { n += (u.entries||[]).length; }));
@@ -637,6 +637,10 @@ function sortedStages(){
 }
 const nav = document.getElementById("nav");
 const navState = {level:1, si:-1, fi:-1, hist:[]};
+/* 目录分组标题（取消「文件」层后，用文件名作分隔） */
+function mkNavGroup(name){
+  const d=document.createElement("div"); d.className="navgroup"; d.textContent=name; return d;
+}
 function mkBack(txt){
   const b = document.createElement("button");
   b.className = "navback";
@@ -676,10 +680,11 @@ function renderNav(){
       const b = document.createElement("button");
       b.className = "navfile";
       b.innerHTML = "▸ " + escapeHtml(st.name) + ' <span class="fc">' + total + ' 词</span>';
-      b.onclick = () => goLevel(2, si, -1);
+      b.onclick = () => goLevel(3, si, -1);
       nav.appendChild(b);
     });
-  } else if(navState.level === 2){
+  } else {
+    /* 已取消「文件」这一层：点学段直接列出各文件的单元（文件名作分组标题） */
     const st = DATA.stages[navState.si];
     if(!st){ navBack(); return; }
     nav.appendChild(mkBack("◀ 返回学段"));
@@ -689,35 +694,25 @@ function renderNav(){
     allBtn.innerHTML = "🔁 复习整个学段 <span class='fc'>" + unitWordCount(st) + " 词</span>";
     allBtn.onclick = () => pickUnit(navState.si, null, null);
     nav.appendChild(allBtn);
-    /* 文件列表 */
-    (st.files || []).forEach((f, fi) => {
-      const b = document.createElement("button");
-      b.className = "navfile";
-      b.innerHTML = "▸ " + escapeHtml(f.name) + ' <span class="fc">' + (f.units || []).length + ' 单元</span>';
-      b.onclick = () => goLevel(3, navState.si, fi);
-      nav.appendChild(b);
-    });
-  } else {
-    /* level===3：单元列表 */
-    const st = DATA.stages[navState.si];
-    if(!st){ navBack(); return; }
-    const f = st.files[navState.fi];
-    if(!f){ navBack(); return; }
-    nav.appendChild(mkBack("◀ 返回文件"));
-    /* 整个文件复习按钮 */
-    const allBtn = document.createElement("button");
-    allBtn.className = "navunit";
-    allBtn.innerHTML = "🔁 复习整个文件 <span class='fc'>" + fileWordCount(f) + " 词</span>";
-    allBtn.onclick = () => pickUnit(navState.si, navState.fi, null);
-    nav.appendChild(allBtn);
-    /* 单元列表 */
-    (f.units || []).forEach((u, ui) => {
-      const n = (u.entries || []).length;
-      const b = document.createElement("button");
-      b.className = "navunit";
-      b.innerHTML = "📚 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc">' + n + ' 词</span>';
-      b.onclick = () => pickUnit(navState.si, navState.fi, ui);
-      nav.appendChild(b);
+    const __files = (st.files || []);
+    const __showGroup = __files.length > 1;
+    __files.forEach((f, fi) => {
+      if(__showGroup){ nav.appendChild(mkNavGroup(f.name)); }
+      /* 整个文件复习按钮 */
+      const fb = document.createElement("button");
+      fb.className = "navunit";
+      fb.innerHTML = "🔁 复习整个文件 <span class='fc'>" + fileWordCount(f) + " 词</span>";
+      fb.onclick = () => pickUnit(navState.si, fi, null);
+      nav.appendChild(fb);
+      /* 该文件的单元列表 */
+      (f.units || []).forEach((u, ui) => {
+        const n = (u.entries || []).length;
+        const b = document.createElement("button");
+        b.className = "navunit";
+        b.innerHTML = "📚 " + escapeHtml(u.title || ("Unit " + (ui+1))) + ' <span class="fc">' + n + ' 词</span>';
+        b.onclick = () => pickUnit(navState.si, fi, ui);
+        nav.appendChild(b);
+      });
     });
   }
 }
@@ -860,7 +855,7 @@ function bootReview(){
       const si = parseInt(p.si, 10), fi = parseInt(p.fi, 10);
       if(!isNaN(si) && si >= 0){
         if(!isNaN(fi) && fi >= 0){ goLevel(3, si, fi); }
-        else { goLevel(2, si, -1); }
+        else { goLevel(3, si, -1); }
       }
     }
   }catch(e){}
