@@ -139,7 +139,7 @@ html {
 }
 </style>
 </head>
-<body>
+<body class="app-page">
 
 <header>
   <button class="ghost" onclick="goHome()" title="返回上一页 / 首页">← 返回</button>
@@ -404,7 +404,7 @@ html {
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v119';
+  var BUILD = 'tril-pwa-v120';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
@@ -471,5 +471,73 @@ html {
 })();
 </script>
 
+<script>
+/* ===== 手机端浮层菜单开关（2026-10-25） =====
+   顶栏 9 个功能按钮在手机上被拆成多行、且与右下角浮层完全重复。
+   → 手机上顶栏不再显示按钮条，功能统一收进右下角「☰ 菜单」。 */
+(function(){
+  if(window.__trilDockMenu) return;
+  window.__trilDockMenu = true;
+  function isMobile(){ return window.innerWidth <= 820; }
+  function ensure(){
+    var dock = document.getElementById('layoutDock');
+    if(!dock) return;
+    if(dock.querySelector('#dockToggleBtn')) return;
+    var b = document.createElement('button');
+    b.id = 'dockToggleBtn';
+    b.type = 'button';
+    b.setAttribute('aria-label','打开功能菜单');
+    b.innerHTML = '☰';
+    b.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      document.body.classList.toggle('dock-open');
+      b.setAttribute('aria-label', document.body.classList.contains('dock-open') ? '关闭功能菜单' : '打开功能菜单');
+    });
+    dock.appendChild(b);
+  }
+
+/* 把顶栏的「返回 / 登录 / 皮肤」也搬进菜单（手机上顶栏已隐藏这些按钮） */
+function moveHeaderActions(){
+  var dock = document.getElementById('layoutDock');
+  if(!dock || dock.querySelector('.dockMoved')) return;
+  var host = document.createElement('div');
+  host.className = 'dockMoved';
+  host.style.cssText = 'display:contents';
+  var picks = [
+    document.querySelector('header #tril-backbtn'),
+    document.querySelector('header .tril-backbtn'),
+    document.querySelector('header #tril-loginbtn'),
+    document.querySelector('header .tril-loginbtn'),
+    document.querySelector('header button[data-skin]')
+  ];
+  var added = 0;
+  picks.forEach(function(src){
+    if(!src) return;
+    var c = src.cloneNode(true);
+    c.removeAttribute('id');
+    c.classList.remove('tril-backbtn','tril-loginbtn');
+    c.style.display = '';
+    host.appendChild(c);
+    added++;
+  });
+  if(added){ dock.appendChild(host); }
+}
+  function ready(){ if(isMobile()){ ensure(); moveHeaderActions(); } }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);
+  else ready();
+  window.addEventListener('resize', function(){
+    if(isMobile()){ ensure(); }
+    else { document.body.classList.remove('dock-open'); }
+  });
+  /* 点击菜单外部关闭 */
+  document.addEventListener('click', function(e){
+    if(!isMobile()) return;
+    if(!document.body.classList.contains('dock-open')) return;
+    var dock = document.getElementById('layoutDock');
+    if(dock && (dock.contains(e.target) || e.target.id === 'dockToggleBtn')) return;
+    document.body.classList.remove('dock-open');
+  });
+})();
+</script>
 </body>
 </html>

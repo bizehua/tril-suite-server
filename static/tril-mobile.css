@@ -231,22 +231,25 @@
     height: auto !important;
     min-height: 0 !important;
   }
-  header h1 {
-    font-size: 15px !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    /* 标题完整显示优先：允许占更多宽度，按钮条已另起一行 */
+  body.app-page header h1 {
+    font-size: 14px !important;
+    /* ⚠️ 手机端标题必须单行省略，否则 flex 容器会把中文压成竖排、
+       header 撑到 300+px（真机实测）。这里改成 nowrap + ellipsis。 */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     max-width: 100% !important;
-    flex: 1 1 100% !important;
+    flex: 1 1 auto !important;   /* 不再独占一行 */
+    width: auto !important;
+    min-width: 0 !important;
     order: -1 !important;          /* 标题永远排第一行 */
-    line-height: 1.35 !important;
-    word-break: break-word;
+    line-height: 1.3 !important;
+    word-break: normal;
   }
   header .sub {
     display: none !important;          /* 副标题在窄屏隐藏，标题下已有说明 */
   }
-  header .spacer { display: none !important; }
+  body.app-page header .spacer { display: none !important; }
 
   /* 进度条另起一行 */
   header .progwrap,
@@ -258,7 +261,12 @@
     font-size: 11px !important;
   }
 
-  /* 按钮条：由脚本包成 .hbtns，窄屏横向滑动一行，不堆成 3 屏 */
+  /* 按钮条：由脚本包成 .hbtns。
+     ⚠️ 2026-10-25 真机实测：手机端这条「横向滑动按钮条」会把 header 撑成 3~4 行
+        （标题独占一行 + 按钮条独占一行 + 进度 + 今日），占 180px，首屏看不到内容。
+        且按钮条与右下角浮层菜单功能完全重复。
+        → 手机端改为「完全隐藏，功能统一进右下角 ☰ 菜单」。
+        桌面端（>820px）不受影响，规则写在上面的基础段里。 */
   header .hbtns,
   header > div.hbtns {
     order: 8;
@@ -272,6 +280,15 @@
     scrollbar-width: none;
     padding-bottom: 1px;
     max-width: 100%;
+  }
+  /* 手机端：隐藏整条按钮条（含其内部所有按钮） */
+  @media (max-width: 820px) {
+    header .hbtns,
+    header > div.hbtns,
+    header .hbtns > *,
+    header > div.hbtns > * {
+      display: none !important;
+    }
   }
   header .hbtns::-webkit-scrollbar { display: none; }
   header .hbtns .laybtn,
@@ -801,7 +818,15 @@
  *  修法：窄屏标题允许换行、不裁切；header 与面板之间留出间距。
  * ============================================================ */
 @media (max-width: 820px) {
-  header h1,
+  /* ⚠️ 手机端标题改为单行省略（否则中文被压成竖排、header 撑到 300+px）。
+     .title 保留换行（那是设置面板的标题，不是页面主标题）。 */
+  body.app-page header h1 {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.3 !important;
+    word-break: normal;
+  }
   header .title {
     white-space: normal !important;
     overflow: visible !important;
@@ -955,4 +980,230 @@
     padding-left: calc(10px + env(safe-area-inset-left, 0px)) !important;
     padding-right: calc(10px + env(safe-area-inset-right, 0px)) !important;
   }
+}
+
+/* =========================================================================
+ * 手机端子页面顶栏紧凑化（2026-10-25）
+ * -------------------------------------------------------------------------
+ * 问题：手机上 header 被拆成 3~4 行（标题+副标题 / 皮肤·返回·登录 /
+ *       9 个功能按钮滑动条 / 总进度 / 今日时长）→ 占 180px，首屏看不到内容。
+ * 方案：顶栏只留「标题 + 进度」一行；功能按钮全部收进右下角浮层菜单
+ *       （#layoutDock 原本就有，与顶栏按钮完全重复）。
+ * ========================================================================= */
+@media (max-width: 820px) {
+
+  /* ① 顶栏压成一行：标题左、进度右，隐藏副标题 */
+  body.app-page header {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    min-height: 0 !important;
+  }
+  body.app-page header h1 {
+    font-size: 14px !important;
+    margin: 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    line-height: 1.3;
+  }
+  body.app-page header .sub,
+  body.app-page header .spacer { display: none !important; }
+
+  /* ② 进度信息压缩成一行小字（放在标题行右侧） */
+  body.app-page header .progwrap {
+    flex: 0 0 auto !important;
+    font-size: 10px !important;
+    white-space: nowrap;
+    order: 9;
+  }
+  header .progwrap .progbar { width: 44px !important; height: 3px !important; }
+
+  /* ③ 顶栏那条按钮滑动条：功能已移入浮层菜单，手机上直接隐藏 */
+  header .hbtns { display: none !important; }
+
+  /* ④ 皮肤 / 返回 / 登录：保留但缩小（登录与返回是主操作） */
+  body.app-page header .laybtn,
+  body.app-page header .iconbtn { height: 30px !important; padding: 0 9px !important; font-size: 12px !important; }
+
+  /* ⑤ 今日学习时长 chip：并入进度行，不单独占一行 */
+  body.app-page header .studyChip {
+    order: 10;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* ⑥ 开发者内部工具（🔧 诊断按钮）在用户界面隐藏 */
+  #trilDiagWrap { display: none !important; }
+  #trilDiagBtn { display: none !important; }
+
+  /* ⑦ 右下角浮层：收成 1 个「☰ 菜单」按钮，点开才展开面板 */
+  #layoutDock {
+    right: 8px !important;
+    bottom: 10px !important;
+    display: block !important;
+    max-width: min(92vw, 320px);
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  /* dock 里的按钮是裸 <button>（无 class），要按元素选择器隐藏 */
+  #layoutDock > button:not(#dockToggleBtn) {
+    display: none !important;
+  }
+  /* 展开态：由 JS 给 body 加 .dock-open */
+  body.dock-open #layoutDock {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .45);
+  }
+  body.dock-open #layoutDock > button:not(#dockToggleBtn) {
+    display: inline-flex !important;
+    justify-content: center;
+    align-items: center;
+    height: 34px !important;
+    padding: 0 6px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap;
+  }
+  /* 菜单开关按钮（由 JS 注入） */
+  #dockToggleBtn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--txt);
+    font-size: 17px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
+    cursor: pointer;
+  }
+  #dockToggleBtn:active { transform: scale(.94); }
+  body.dock-open #dockToggleBtn { display: none !important; }
+
+  /* ⑧ 主内容区上移：顶栏矮了，多留一点给内容 */
+  main, #main { min-height: 0 !important; }
+
+  /* ⑨ 内容底部留出浮层按钮的空间，避免最后一行被遮 */
+  #main { padding-bottom: 62px !important; }
+}
+
+/* =========================================================================
+ * 手机端 header 最终覆盖（2026-10-25，放在文件最后确保优先级最高）
+ * -------------------------------------------------------------------------
+ * 真机实测问题：header 内多个元素带 `flex:1 1 100%`（hbtns / progwrap），
+ * 在窄 flex 容器里会互相挤压 → 标题被压成 12px 竖条、按钮竖排、header 反而变高。
+ * 修法：手机上 header 只保留「标题 + 进度 + 今日」三件套，
+ *       其余（.hbtns 按钮条 / 皮肤切换 / 返回 / 登录）交给右下角 ☰ 菜单。
+ * ========================================================================= */
+@media (max-width: 820px) {
+  body.app-page header {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 7px 10px !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  /* 标题：占剩余空间，单行省略
+     ⚠️ 只作用于 app 子页面（body 有 .app-page 标记）。
+        首页的 <header class="hero"> 也叫 header，其 h1 是大标题，必须保持居中大字。 */
+  body.app-page header h1 {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 13.5px !important;
+    line-height: 1.25 !important;
+    order: 1 !important;
+  }
+  /* 首页 hero 的大标题：保持原样（居中、渐变、clamp 字号） */
+  header.hero h1 {
+    flex: none !important;
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: clamp(20px, 6vw, 26px) !important;
+    line-height: 1.25 !important;
+    order: 0 !important;
+  }
+  /* 进度条：固定不换行 */
+  body.app-page header .progwrap {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    order: 2 !important;
+  }
+  header .progwrap .progbar { width: 40px !important; }
+  /* 今日时长 */
+  body.app-page header .studyChip {
+    flex: 0 0 auto !important;
+    order: 3 !important;
+    font-size: 10px !important;
+    padding: 2px 7px !important;
+    white-space: nowrap !important;
+  }
+  /* 顶栏按钮条：手机上完全隐藏（功能在右下角 ☰ 菜单里）
+     ⚠️ 用更狠的选择器：JS 注入的 .hbtns 带 inline style 或后定义样式，
+        单靠 header .hbtns 会被覆盖 → 这里加 :not(#dockToggleBtn) 兜底 + 隐藏所有子元素 */
+  body.app-page header .hbtns,
+  body.app-page header .hbtns > * {
+    display: none !important;
+  }
+  /* 皮肤切换 / 返回 / 登录：手机上收进菜单，隐藏本体 */
+  body.app-page header .laybtn,
+  body.app-page header .iconbtn,
+  body.app-page header button[data-skin],
+  body.app-page header #trilSkinBtn,
+  body.app-page header #trilBack,
+  body.app-page header .tril-backbtn,
+  body.app-page header #trilLoginBtn,
+  body.app-page header .tril-loginbtn {
+    display: none !important;
+  }
+  /* 副标题与占位 */
+  body.app-page header .sub,
+  body.app-page header .spacer { display: none !important; }
+}
+
+/* 复习页 / 错题复习页的 .chip（到期/周内/掌握 统计）：
+   真机实测它会 flex 换行占 58px，把顶栏撑到 73px。
+   → 改成单行紧凑显示。 */
+body.app-page header .chip {
+  flex: 0 1 auto !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 10.5px !important;
+  padding: 2px 8px !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  max-width: 46% !important;
+  order: 2 !important;
+}
+body.app-page header .chip > * {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
 }
