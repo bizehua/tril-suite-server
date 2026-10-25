@@ -512,7 +512,7 @@ window.TrilAppBack = function(){
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v123';
+  var BUILD = 'tril-pwa-v124';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
@@ -622,6 +622,7 @@ function moveHeaderActions(){
   picks.forEach(function(src){
     if(!src) return;
     var c = src.cloneNode(true);
+    c.onclick = src.onclick; /* cloneNode 不复制 onclick 属性，不补这行菜单里的返回/登录/皮肤克隆点了没反应 */
     c.removeAttribute('id');
     c.classList.remove('tril-backbtn','tril-loginbtn');
     c.style.display = '';

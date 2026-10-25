@@ -1052,7 +1052,9 @@
     padding: 0;
   }
   /* dock 里的按钮是裸 <button>（无 class），要按元素选择器隐藏 */
-  #layoutDock > button:not(#dockToggleBtn) {
+  /* 注意：dockMoved 克隆在 display:contents 的 div 里（孙级），必须用后代选择器
+     才能一并隐藏，否则收起态会漏出「返回/登录」两个克隆、dock 高达 126px */
+  #layoutDock button:not(#dockToggleBtn) {
     display: none !important;
   }
   /* 展开态：由 JS 给 body 加 .dock-open */
@@ -1066,7 +1068,7 @@
     border-radius: 12px;
     box-shadow: 0 8px 26px rgba(0, 0, 0, .45);
   }
-  body.dock-open #layoutDock > button:not(#dockToggleBtn) {
+  body.dock-open #layoutDock button:not(#dockToggleBtn) {
     display: inline-flex !important;
     justify-content: center;
     align-items: center;
@@ -1175,11 +1177,31 @@
   body.app-page header .iconbtn,
   body.app-page header button[data-skin],
   body.app-page header #trilSkinBtn,
-  body.app-page header #trilBack,
-  body.app-page header .tril-backbtn,
   body.app-page header #trilLoginBtn,
   body.app-page header .tril-loginbtn {
     display: none !important;
+  }
+  /* ⑩ 竖屏顶栏保留「← 返回」可见按钮（真机反馈：收进菜单后找不到返回，
+        且菜单里的克隆此前不复制 onclick 是死按钮 —— 等于完全没有返回）。
+        排到标题左侧、紧凑 30px 高；☰ 菜单里的返回保留作第二入口。 */
+  body.app-page header #trilBack,
+  body.app-page header .tril-backbtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    order: -1 !important;
+    flex: 0 0 auto !important;
+    height: 30px !important;
+    padding: 0 10px !important;
+    margin: 0 6px 0 0 !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 8px !important;
+    background: var(--panel) !important;
+    color: var(--txt) !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
   }
   /* 副标题与占位 */
   body.app-page header .sub,
@@ -1278,8 +1300,11 @@ body.app-page header .chip > * {
     display: block !important;
     height: auto !important;
     min-height: 100dvh !important;
-    overflow-y: visible !important;
-    overflow-x: hidden !important;
+    /* ⚠️ 必须两轴都 visible：overflow-x:hidden + overflow-y:visible 会让 y
+       被规范强制计算成 auto → body 变成「内容刚好撑满、滚不动」的滚动容器，
+       吃掉整个触摸/滚轮手势链（真机实测首页滑不动）。横向溢出由 html 的
+       overflow-x:hidden 兜底裁剪，不设 body 级裁剪。 */
+    overflow: visible !important;
     align-items: stretch !important;
   }
   /* 双保险：任何子项都不许被弹性收缩（header 本来就有 0 0 auto） */
