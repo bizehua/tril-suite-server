@@ -1230,3 +1230,33 @@ body.app-page header .chip > * {
     font-size: 22px !important;
   }
 }
+
+/* ============================================================
+ * 17b 段：工具栏小控件放大（任务#18 真机审计：复选框 22x22 低于触控下限）
+ *   影响页：词典（循环朗读复选框）、发音手册等带 .toolbar 的页面。
+ *   修法：≤820px 复选框/单选放大到 26px，标签行补足触控高度。
+ * ============================================================ */
+@media (max-width: 820px) {
+  /* ⚠️ 实测结论（agent-browser Chromium）：checkbox/radio 的 width/height
+     会被原生 widget 完全忽略（内联 40px 仍渲染 22x22，div 却正常）。
+     zoom 是按新尺寸重绘控件（清晰、改布局、hit-area 同步变大），
+     transform:scale 只是视觉放大（发虚且 hit-area 在部分场景不一致），
+     故首选 zoom；不支持的旧浏览器保持 22px 原样，无回退风险。 */
+  .toolbar input[type="checkbox"],
+  .toolbar input[type="radio"] {
+    zoom: 1.55;              /* 22px → 约34px，超过 26px 触控下限 */
+    accent-color: var(--accent, #5b8cff);
+    margin: 0 6px 0 0;
+    flex: none;
+    vertical-align: middle;
+  }
+  /* label 包裹着 input，点文字等同点选框 —— 触控区实际是 label，加到 38px 高 */
+  .toolbar label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+}

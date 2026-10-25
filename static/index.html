@@ -55,7 +55,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   .herochips{gap:5px 6px}
   .hchip{padding:4px 9px}
   .hchip b{font-size:11.5px}
-  .hchip i{font-size:9px}
+  .hchip i{font-size:10px}
 }
 .topbar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:flex-end;gap:10px;padding:14px 4px}
 .btn-icon{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--txt);font-size:13px;cursor:pointer;transition:.15s;backdrop-filter:blur(6px)}
@@ -1068,7 +1068,7 @@ if ('serviceWorker' in navigator) {
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v121';
+  var BUILD = 'tril-pwa-v122';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
