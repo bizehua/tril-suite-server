@@ -385,6 +385,8 @@ window.TrilAppBack = function(){
     /* 移动端抽屉开启时必须清掉 hide-sidebar：
        该 class 会把 nav 宽度压成 0、opacity 0，导致抽屉「开了但看不见」 */
     if (on && isMobile()) document.body.classList.remove('hide-sidebar');
+    /* 抽屉打开时同步收起右下角 ☰ 浮层菜单（它此时被抽屉完全盖住，留着干扰视线） */
+    if (on) document.body.classList.remove('dock-open');
     try{ localStorage.setItem('tril_drawer_open', on ? '1' : '0'); }catch(e){}
     if (isMobile()) document.body.style.overflow = on ? 'hidden' : '';
     else document.body.style.overflow = '';
@@ -440,7 +442,7 @@ window.TrilAppBack = function(){
   document.addEventListener('click', function(e){
     if (!drawerOpen()) return;
     var t = e.target;
-    if (t && t.closest && t.closest('#nav .navunit, #nav .navfile')) {
+    if (t && t.closest && t.closest('#nav [data-navunit]')) {
       setTimeout(function(){ setDrawer(false); }, 60);
     }
   }, true);
@@ -449,7 +451,7 @@ window.TrilAppBack = function(){
   bind();
   var iv = setInterval(bind, 300);
   setTimeout(function(){ clearInterval(iv); bind(); }, 8000);
-  window.__trilDrawer = { open: setDrawer, close: function(){ setDrawer(false); }, isOpen: drawerOpen };
+  window.__trilDrawer = { open: function(){ setDrawer(true); }, close: function(){ setDrawer(false); }, isOpen: drawerOpen };
 })();
 
 </script>
@@ -510,7 +512,7 @@ window.TrilAppBack = function(){
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v120';
+  var BUILD = 'tril-pwa-v121';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})

@@ -697,7 +697,7 @@ function renderNav(){
     nav.appendChild(mkBack("◀ 返回学段"));
     /* 整个学段复习按钮 */
     const allBtn = document.createElement("button");
-    allBtn.className = "navunit";
+    allBtn.className = "navunit"; allBtn.dataset.navunit = "1";
     allBtn.innerHTML = "🔁 复习整个学段 <span class='fc'>" + unitWordCount(st) + " 词</span>";
     allBtn.onclick = () => pickUnit(navState.si, null, null);
     nav.appendChild(allBtn);
@@ -707,7 +707,7 @@ function renderNav(){
       if(__showGroup){ nav.appendChild(mkNavGroup(f.name)); }
       /* 整个文件复习按钮 */
       const fb = document.createElement("button");
-      fb.className = "navunit";
+      fb.className = "navunit"; fb.dataset.navunit = "1";
       fb.innerHTML = "🔁 复习整个文件 <span class='fc'>" + fileWordCount(f) + " 词</span>";
       fb.onclick = () => pickUnit(navState.si, fi, null);
       nav.appendChild(fb);
@@ -715,7 +715,7 @@ function renderNav(){
       (f.units || []).forEach((u, ui) => {
         const n = (u.entries || []).length;
         const b = document.createElement("button");
-        b.className = "navunit";
+        b.className = "navunit"; b.dataset.navunit = "1";
         b.innerHTML = "📚 " + escapeHtml(wbUnitTitle(u, ui)) + ' <span class="fc">' + n + ' 词</span>';
         b.onclick = () => pickUnit(navState.si, fi, ui);
         nav.appendChild(b);
@@ -815,6 +815,15 @@ function importSRS(ev){
 
 /* ============ 顶栏 / 目录 显示切换（与学习器 / 测试器统一） ============ */
 function toggleLayout(kind){
+  /* 手机端：目录是浮层抽屉（body.show-sidebar-m），必须走统一补丁。
+     旧版这里只切 hide-sidebar，手机上抽屉根本不弹 —— 安卓「目录打不开」的根因。
+     补丁缺失（极端情况）时直接切 class 兜底。 */
+  if(kind==='sidebar' && window.innerWidth<=820){
+    if(window.__trilDrawer){ window.__trilDrawer.isOpen() ? window.__trilDrawer.close() : window.__trilDrawer.open(); return; }
+    document.body.classList.toggle('show-sidebar-m');
+    document.body.classList.remove('hide-sidebar');
+    return;
+  }
   const cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
   if(!cls) return;
   document.body.classList.toggle(cls);

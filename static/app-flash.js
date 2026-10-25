@@ -244,7 +244,7 @@ function renderNav(){
       const d=isDone({si:navState.si,fi:fi,ui});
       const cnt=(u.entries?u.entries.length:0)+" 张卡片";
       const badge=d?' ✓':'·';
-      const b=document.createElement("button"); b.className="navunit";
+      const b=document.createElement("button"); b.className="navunit"; b.dataset.navunit="1";
       b.innerHTML=badge+' '+escapeHtml(cleanUnitTitle(u.title,ui))+' <span class="fc">'+cnt+'</span>';
       if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
       b.onclick=()=>startStudy(navState.si,fi,ui);
@@ -573,6 +573,15 @@ function toast(msg){
 
 /* ===== 可折叠面板 ===== */
 function toggleLayout(kind){
+  /* 手机端：目录是浮层抽屉（body.show-sidebar-m），必须走统一补丁。
+     旧版这里只切 hide-sidebar，手机上抽屉根本不弹 —— 安卓「目录打不开」的根因。
+     补丁缺失（极端情况）时直接切 class 兜底。 */
+  if(kind==='sidebar' && window.innerWidth<=820){
+    if(window.__trilDrawer){ window.__trilDrawer.isOpen() ? window.__trilDrawer.close() : window.__trilDrawer.open(); return; }
+    document.body.classList.toggle('show-sidebar-m');
+    document.body.classList.remove('hide-sidebar');
+    return;
+  }
   const cls={sidebar:'hide-sidebar',topbar:'hide-topbar'}[kind];
   if(!cls) return;
   document.body.classList.toggle(cls);

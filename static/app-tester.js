@@ -250,7 +250,7 @@ function renderNav(){
     /* 我的练习（收藏 + 错题本） */
     const sp=document.createElement("div"); sp.className="navstage";
     const h=document.createElement("h3"); h.innerHTML="★ 我的练习"; h.style.cursor="default"; sp.appendChild(h);
-    const mk=(id,label,onClick)=>{ const b=document.createElement("button"); b.className="navfile"; b.id=id;
+    const mk=(id,label,onClick)=>{ const b=document.createElement("button"); b.className="navfile"; b.id=id; b.dataset.navunit="1";
       b.innerHTML=escapeHtml(label)+'<span class="fc">'+(id==="navMarks"?Object.keys(marks).length:Object.keys(wrongbook).length)+'</span>'; b.onclick=onClick; return b; };
     sp.appendChild(mk("navMarks","⭐ 我的收藏", ()=>openMarksHome()));
     sp.appendChild(mk("navWrong","📕 错题本", ()=>openWrongHome()));
@@ -279,7 +279,7 @@ function renderNav(){
       const cnt=(u.entries?u.entries.length:0)+(isRoot?" 派生词":" 条");
       const best=r.best!=null?(' 🏆'+r.best):'';
       const badge=d?' ✓':'·';
-      const b=document.createElement("button"); b.className="navunit";
+      const b=document.createElement("button"); b.className="navunit"; b.dataset.navunit="1";
       b.innerHTML=(isRoot?"🌱 ":"")+badge+' '+escapeHtml(cleanUnitTitle(u.title,ui))+' <span class="fc">'+cnt+best+'</span>';
       if(cur && cur.si===navState.si && cur.fi===fi && cur.ui===ui) b.classList.add("active");
       b.onclick=()=>openStart(navState.si,fi,ui);
@@ -998,6 +998,14 @@ refreshProgress();
 
 /* ===== 可折叠面板控制（目录 / 例句 / 顶栏），状态持久化 ===== */
 function toggleLayout(kind){
+  /* 手机端：目录是浮层抽屉（body.show-sidebar-m），必须走统一补丁。
+     旧版这里只切 hide-sidebar，手机上抽屉根本不弹 —— 安卓「目录打不开」的根因。 */
+  if(kind==='sidebar' && window.innerWidth<=820){
+    if(window.__trilDrawer){ window.__trilDrawer.isOpen() ? window.__trilDrawer.close() : window.__trilDrawer.open(); return; }
+    document.body.classList.toggle('show-sidebar-m');
+    document.body.classList.remove('hide-sidebar');
+    return;
+  }
   const cls={sidebar:'hide-sidebar',examples:'hide-examples',topbar:'hide-topbar'}[kind];
   if(!cls) return;
   document.body.classList.toggle(cls);
@@ -1007,7 +1015,7 @@ function toggleLayout(kind){
 }
 function applyLayout(){
   ['sidebar','examples','topbar'].forEach(kind=>{
-    let v='1'; try{ v=localStorage.getItem('layout_'+kind); if(v===null) v=(kind==='sidebar'&&window.innerWidth<=820)?'0':'1'; }catch(e){ v='1'; }
+    let v='1'; try{ v=localStorage.getItem('layout_'+kind); if(v===null) v=(window.innerWidth<=820 && kind!=='topbar')?'0':'1'; }catch(e){ v='1'; }
     const on = v!=='0';
     const cls={sidebar:'hide-sidebar',examples:'hide-examples',topbar:'hide-topbar'}[kind];
     document.body.classList.toggle(cls, !on);

@@ -922,6 +922,9 @@ body.hide-sidebar #main .stage{
 .display-panel-header{padding:8px 14px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--txt)}
 .display-panel-header:hover{background:var(--panel2)}
 .display-panel-body{padding:10px 14px;display:flex;flex-wrap:wrap;gap:14px;border-top:1px solid var(--line);background:var(--bg2)}
+/* hidden 属性必须生效：上面这条作者样式的 display:flex 会覆盖 UA 的
+   [hidden]{display:none}，导致「显示设置」面板永远展开（手机端占 384px）。 */
+.display-panel-body[hidden]{display:none}
 .display-section{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:12px}
 .display-section .sec-label{color:var(--muted);font-size:11px;min-width:auto;margin-right:2px}
 .lang-toggle,.lang-radio{display:flex;align-items:center;gap:4px;padding:4px 9px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;cursor:pointer;margin:0}

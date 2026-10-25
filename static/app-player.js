@@ -201,7 +201,7 @@ function renderNav(){
       if(__showGroup){ nav.appendChild(mkNavGroup(f.name)); }
       f.units.forEach((u,ui)=>{
         const isRoot=u_isaRoot(u);
-        const b=document.createElement("button"); b.className="navfile";
+        const b=document.createElement("button"); b.className="navfile"; b.dataset.navunit="1";
         b.innerHTML=escapeHtml(cleanUnitTitle(u.title,ui))+'<span class="rt">'+(isRoot?"🌱":"")+'</span><span class="fc">'+(u.entries?u.entries.length:0)+'</span>';
         b.dataset.si=navState.si; b.dataset.fi=fi; b.dataset.ui=ui;
         b.onclick=()=>loadUnit(navState.si,fi,ui);
@@ -585,7 +585,11 @@ document.addEventListener("keydown",e=>{
 /* ===== 可折叠面板（目录 / 例句 / 顶栏 / 控制面板），状态持久化 ===== */
 function toggleLayout(kind){
   if(kind==="sidebar"){
-    if(window.innerWidth<=820){ document.body.classList.toggle("show-sidebar-m"); const on=document.body.classList.contains("show-sidebar-m");
+    if(window.innerWidth<=820){
+      /* 统一走抽屉补丁（遮罩 + 锁滚动 + 持久化）；补丁缺失时直接切 class 兜底 */
+      if(window.__trilDrawer){ window.__trilDrawer.isOpen() ? window.__trilDrawer.close() : window.__trilDrawer.open(); }
+      else { document.body.classList.toggle("show-sidebar-m"); document.body.classList.remove("hide-sidebar"); }
+      const on=document.body.classList.contains("show-sidebar-m");
       document.querySelectorAll('[data-layout="sidebar"]').forEach(b=>b.classList.toggle("on",on)); try{localStorage.setItem("pl_layout_sidebar",on?"1":"0");}catch(e){} return; }
     document.body.classList.toggle("hide-sidebar"); const on=!document.body.classList.contains("hide-sidebar");
     document.querySelectorAll('[data-layout="sidebar"]').forEach(b=>b.classList.toggle("on",on)); try{localStorage.setItem("pl_layout_sidebar",on?"1":"0");}catch(e){}
@@ -604,9 +608,9 @@ function toggleLayout(kind){
 }
 function applyLayout(){
   ["sidebar","examples","topbar","controls"].forEach(kind=>{
-    let v="1"; try{ v=localStorage.getItem("pl_layout_"+kind); if(v===null) v=(kind==="sidebar"&&window.innerWidth<=820)?"0":"1"; }catch(e){ v="1"; }
+    let v="1"; try{ v=localStorage.getItem("pl_layout_"+kind); if(v===null) v=(window.innerWidth<=820 && kind!=="topbar")?"0":"1"; }catch(e){ v="1"; }
     const on=v!=="0";
-    if(kind==="sidebar"){ document.body.classList.toggle("hide-sidebar",!on); document.body.classList.toggle("show-sidebar-m",false);
+    if(kind==="sidebar"){ document.body.classList.toggle("hide-sidebar",!on); if(window.innerWidth>820) document.body.classList.toggle("show-sidebar-m",false);
       document.querySelectorAll('[data-layout="sidebar"]').forEach(b=>b.classList.toggle("on",on)); }
     else if(kind==="controls"){ document.body.classList.toggle("hide-controls",!on);
       document.querySelectorAll('[data-layout="controls"]').forEach(b=>b.classList.toggle("on",on)); }
