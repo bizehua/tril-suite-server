@@ -300,7 +300,9 @@ function openFile(si,fi){
   /* 钻取到第 3 级：单元列表展示在侧栏 */
   if(typeof goLevel === "function"){
     goLevel(3,si,fi);
-    return;
+    /* 移动端(≤820px)侧栏是抽屉：不 return，继续走兜底路径把单元网格渲染到主区
+       —— 否则从测试面板点「返回」后主区停在原面板、看似无响应（2026-10-26） */
+    if(window.innerWidth>820) return;
   }
   const st=DATA.stages[si], f=st.files[fi];
   let inner='<div class="breadcrumb"><b>'+st.name+'</b> &nbsp;/&nbsp; '+f.name+' &nbsp;·&nbsp; 共 '+f.units.length+' 个测试单元</div>';
@@ -373,9 +375,9 @@ function showStart(u){
     : '';
   main.innerHTML='<div class="quiz"><div class="quizbar">'+
     '<button class="back" id="backBtn">← 返回</button>'+
-    '<span class="lt">'+escapeHtml(u.stage)+' · '+escapeHtml(u.file)+' · '+escapeHtml(cleanUnitTitle(u.title,ui))+'</span>'+
+    '<span class="lt">'+escapeHtml(u.stage)+' · '+escapeHtml(u.file)+' · '+escapeHtml(cleanUnitTitle(u.title,u.ui))+'</span>'+
     '</div><div class="qwrap"><div class="startpanel">'+
-    '<h2>'+escapeHtml(cleanUnitTitle(u.title,ui))+'</h2>'+
+    '<h2>'+escapeHtml(cleanUnitTitle(u.title,u.ui))+'</h2>'+
     '<div class="desc">本单元共 '+ (u.entries?u.entries.length:0) +' 个'+(isRoot?"派生词":"词条")+'。选择题型、方向与题量后开始自测。</div>'+
     '<div class="field"><div class="lab">题型</div><div class="chips" id="qtypeChips">'+
       '<span class="chip active" data-qtype="choice" title="看词选义，4 选 1">🔘 选择</span>'+

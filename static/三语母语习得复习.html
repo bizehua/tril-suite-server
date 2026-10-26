@@ -406,7 +406,7 @@ html {
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v124';
+  var BUILD = 'tril-pwa-v126';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
@@ -501,12 +501,14 @@ html {
 /* 把顶栏的「返回 / 登录 / 皮肤」也搬进菜单（手机上顶栏已隐藏这些按钮） */
 function moveHeaderActions(){
   var dock = document.getElementById('layoutDock');
-  if(!dock || dock.querySelector('.dockMoved')) return;
+  if(!dock) return;
+  var _olds = dock.querySelectorAll('.dockMoved');
+  for(var _i=0;_i<_olds.length;_i++){ _olds[_i].remove(); }
   var host = document.createElement('div');
   host.className = 'dockMoved';
   host.style.cssText = 'display:contents';
   var picks = [
-    document.querySelector('header #tril-backbtn'),
+    document.querySelector('header #trilBack'),
     document.querySelector('header .tril-backbtn'),
     document.querySelector('header #tril-loginbtn'),
     document.querySelector('header .tril-loginbtn'),
@@ -525,6 +527,8 @@ function moveHeaderActions(){
   });
   if(added){ dock.appendChild(host); }
 }
+  /* auth-client 注入返回键/登录按钮后重试克隆（DOMContentLoaded 时序兜底） */
+  document.addEventListener('tril:authready', function(){ if(isMobile()) moveHeaderActions(); });
   function ready(){ if(isMobile()){ ensure(); moveHeaderActions(); } }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);
   else ready();

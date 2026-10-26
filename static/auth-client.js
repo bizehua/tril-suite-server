@@ -449,6 +449,24 @@
         if(hdr2){ hdr2.appendChild(b); }
         else { b.style.cssText='position:fixed;right:10px;top:46px;z-index:99992;padding:6px 12px;border:none;border-radius:18px;background:rgba(37,99,235,.9);color:#fff;font:13px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)'; document.body.appendChild(b); }
       })();
+      // 移动端「☰ 目录」顶栏快捷按钮：一步打开目录抽屉（真机反馈测试器找不到目录入口，
+      // 原来要点右下☰展开浮层、再点面板里的目录，路径太深）。仅注入有 #nav 的 app 页。
+      (function(){
+        if(!document.body.classList.contains('app-page')) return;
+        if(!document.getElementById('nav')) return;
+        if(document.getElementById('trilMenuBtn')) return;
+        var mb=h('button',{id:'trilMenuBtn',class:'tril-menubtn',type:'button'});
+        mb.innerHTML='☰'; mb.title='打开目录'; mb.setAttribute('aria-label','打开目录');
+        mb.onclick=function(ev){
+          ev.preventDefault(); ev.stopPropagation();
+          try{ if(window.__trilDrawer && window.__trilDrawer.open){ window.__trilDrawer.open(); return; } }catch(_){}
+          var t=document.querySelector('#layoutDock button[data-layout="sidebar"]')||document.querySelector('header .laybtn[data-layout="sidebar"]');
+          if(t){ t.click(); return; }
+          document.body.classList.add('show-sidebar-m');
+        };
+        var hdr3=document.querySelector('header');
+        if(hdr3) hdr3.appendChild(mb);
+      })();
       state._nav=[]; window.TrilAuth.pushNav=function(fn){ state._nav.push(fn); };
 
       // 通用词条提取: 管理员打开模块面板时, 点击任意词条卡片自动载入当前词条
@@ -498,6 +516,8 @@
       }
       // 词条变化时刷新模块
       window.addEventListener('tril:entry', function(){ if(state.role==='admin') modulesUI(); });
+      // 通知外部脚本（dock 克隆等）：顶栏按钮注入完成（时序兜底）
+      try{ document.dispatchEvent(new Event('tril:authready')); }catch(_){}
     },
     showLogin: showLogin,
     back: back,
@@ -526,4 +546,58 @@
 
   if(document.readyState!=='loading') window.TrilAuth.init();
   else document.addEventListener('DOMContentLoaded', function(){ window.TrilAuth.init(); });
+})();
+
+/* ===== 移动端落地体验增强（2026-10-26）=====
+   竖屏打开测试器/学习器/播放器/闪记时，主区只有一行「← 从左侧选择…」提示，
+   目录却藏在抽屉里 —— 用户看到的是一张白页（真机反馈「点开没有内容」）。
+   本增强：落地态自动弹出目录抽屉（=桌面端常驻侧栏的内容）；选中内容后自动收起；
+   落地提示卡变成可点卡片（点了即开目录）。仅移动端(≤820px)+有抽屉的 app 页生效。 */
+(function(){
+  function isMobile(){ return window.innerWidth<=820; }
+  function mainEl(){ return document.getElementById('main')||document.querySelector('main'); }
+  function navEl(){ return document.getElementById('nav'); }
+  function findLanding(){
+    var m=mainEl(); if(!m) return null;
+    var es=m.querySelectorAll('.empty');
+    for(var i=0;i<es.length;i++){ if((es[i].textContent||'').indexOf('从左侧')>=0) return es[i]; }
+    return null;
+  }
+  function enhanceCard(e){
+    if(e.getAttribute('data-tril-tap')) return;
+    e.setAttribute('data-tril-tap','1');
+    e.classList.add('empty-tap');
+    var hint=document.createElement('div');
+    hint.className='empty-tap-hint';
+    hint.textContent='👆 点这里打开目录';
+    e.appendChild(hint);
+    e.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      document.body.classList.add('show-sidebar-m');
+    });
+  }
+  var wasLanding=null;
+  function check(initial){
+    if(!isMobile()||!navEl()||!document.body.classList.contains('app-page')) return;
+    var e=findLanding(), landing=!!e;
+    if(e) enhanceCard(e);
+    /* 落地态出现（首次 或 从内容态返回）→ 自动开抽屉；内容态出现 → 自动收起 */
+    if(landing && (initial||wasLanding===false)) document.body.classList.add('show-sidebar-m');
+    if(!landing && wasLanding) document.body.classList.remove('show-sidebar-m');
+    wasLanding=landing;
+  }
+  function start(){
+    if(!document.body.classList.contains('app-page')) return;
+    if(!navEl()) return;
+    check(true);
+    var m=mainEl();
+    if(m && window.MutationObserver){
+      new MutationObserver(function(){ check(false); })
+        .observe(m,{childList:true,subtree:true,characterData:true});
+    } else {
+      setInterval(function(){ check(false); }, 800);
+    }
+  }
+  if(document.readyState!=='loading') setTimeout(start,300);
+  else document.addEventListener('DOMContentLoaded', function(){ setTimeout(start,300); });
 })();

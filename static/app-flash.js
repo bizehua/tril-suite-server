@@ -301,7 +301,8 @@ function openFile(si,fi){
   document.querySelectorAll(".navfile,.navunit").forEach(b=>b.classList.remove("active"));
   if(typeof goLevel === "function"){
     goLevel(3,si,fi);
-    return;
+    /* 移动端(≤820px)侧栏是抽屉：不 return，继续走兜底路径把单元网格渲染到主区（2026-10-26） */
+    if(window.innerWidth>820) return;
   }
   /* 兜底路径（goLevel 尚未就绪时） */
   const st=DATA.stages[si], f=st.files[fi];
