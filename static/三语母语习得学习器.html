@@ -1358,7 +1358,10 @@ function moveHeaderActions(){
     document.querySelector('header #tril-loginbtn'),
     document.querySelector('header .tril-loginbtn'),
     document.querySelector('header button[data-skin]')
-  ];
+  ].filter(function(x){ return !!x; });
+  /* 去重：#trilBack 同时带 tril-backbtn 类，id 与 class 两选择器会选中同一元素 */
+  var _seen = new Set();
+  picks = picks.filter(function(el){ if(_seen.has(el)) return false; _seen.add(el); return true; });
   var added = 0;
   picks.forEach(function(src){
     if(!src) return;
