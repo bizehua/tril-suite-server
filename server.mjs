@@ -127,29 +127,49 @@ async function mmTranslateRetry(text, fromCode, toCode){
   }
   throw lastErr;
 }
-/* 英文音标：Render 出口 IP 常被 dictionaryapi.dev 返回 HTML 拦截页，
-   故失败时改走同项目的 Cloudflare Pages Function（边缘 IP 可用）。 */
+/* 英文音标：多源兜底。Render 出口 IP 常被 dictionaryapi.dev 返回 HTML 拦截页、
+   访问 CF Pages 也可能被挡，故再加维基词典 API（对机房 IP 友好）。 */
+async function fetchTextTimeout(url, opts, ms){
+  const r = await fetch(url, Object.assign({ signal: AbortSignal.timeout(ms || 8000) }, opts || {}));
+  return { status:r.status, ct:r.headers.get('content-type') || '', txt: await r.text() };
+}
 async function lookupIpa(word){
+  const w = word.toLowerCase();
+  // 1) Free Dictionary API
   try{
-    const rr = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word.toLowerCase()),
-      { headers:{ 'user-agent':'Mozilla/5.0' } });
-    const txt = await rr.text();
-    const ct = rr.headers.get('content-type') || '';
-    if(!ct.includes('json')) throw new Error('upstream not json');
-    const j = JSON.parse(txt);
+    const x = await fetchTextTimeout('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(w),
+      { headers:{ 'user-agent':'Mozilla/5.0' } }, 6000);
+    if(!x.ct.includes('json')) throw new Error('upstream not json');
+    const j = JSON.parse(x.txt);
     if(Array.isArray(j)){
       for(const entry of j){
-        for(const ph of (entry.phonetics||[])){ if(ph && ph.text) return String(ph.text); }
+        for(const ph of (entry.phonetics||[])){
+          if(ph && ph.text) return { ipa:String(ph.text), src:'dictionaryapi' };
+        }
       }
     }
-  }catch(e){ /* 落到下方兜底 */ }
-  try{
-    const r2 = await fetch('https://tril-suite-cf.pages.dev/api/ipa?word='+encodeURIComponent(word),
-      { headers:{ 'user-agent':'Mozilla/5.0' } });
-    const j2 = await r2.json();
-    if(j2 && j2.ok && j2.ipa) return String(j2.ipa);
   }catch(e){}
-  return '';
+  // 2) Wiktionary MediaWiki API（wikitext 中 {{IPA|en|/.../}}）
+  try{
+    const url='https://en.wiktionary.org/w/api.php?action=parse&page='+encodeURIComponent(w)
+      +'&prop=wikitext&format=json&formatversion=2';
+    const x = await fetchTextTimeout(url, { headers:{ 'user-agent':'Mozilla/5.0 (tril-suite)' } }, 9000);
+    const j = JSON.parse(x.txt);
+    const wikitext = (j.parse && j.parse.wikitext) || '';
+    const m = wikitext.match(/\{\{IPA\|en\|([^}|]+)/);
+    if(m && m[1]){
+      let ipa = m[1].trim().replace(/^\/|\/$/g,'');
+      if(ipa) return { ipa:'/'+ipa+'/', src:'wiktionary' };
+    }
+  }catch(e){}
+  // 3) 同项目 Cloudflare Pages Function
+  try{
+    const x = await fetchTextTimeout('https://tril-suite-cf.pages.dev/api/ipa?word='+encodeURIComponent(w),
+      { headers:{ 'user-agent':'Mozilla/5.0' } }, 9000);
+    const j = JSON.parse(x.txt);
+    if(j && j.ok && j.ipa) return { ipa:String(j.ipa), src:'cf-pages' };
+  }catch(e){}
+  return null;
 }
 
 function getIp(req){
@@ -262,9 +282,9 @@ async function handleApi(req, res, u){
     if(method==='POST'){ const b = await readBody(req); word = ((b.word||b.text||'')+'').trim(); }
     else { word = (q.get('word')||q.get('text')||'').trim(); }
     if(!word) return sendJSON(res,400,{ok:false, error:'empty word'});
-    const ipa = await lookupIpa(word);
-    if(!ipa) return sendJSON(res,404,{ok:false, error:'no ipa'});
-    return sendJSON(res,200,{ok:true, word, ipa});
+    const hit = await lookupIpa(word);
+    if(!hit) return sendJSON(res,404,{ok:false, error:'no ipa'});
+    return sendJSON(res,200,{ok:true, word, ipa:hit.ipa, src:hit.src});
   }
 
   // 云端朗读代理（同源兜底，无需密钥，服务端出口不被墙 → 安卓/国内稳定可用）
