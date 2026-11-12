@@ -127,6 +127,30 @@ async function mmTranslateRetry(text, fromCode, toCode){
   }
   throw lastErr;
 }
+/* 英文音标：Render 出口 IP 常被 dictionaryapi.dev 返回 HTML 拦截页，
+   故失败时改走同项目的 Cloudflare Pages Function（边缘 IP 可用）。 */
+async function lookupIpa(word){
+  try{
+    const rr = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word.toLowerCase()),
+      { headers:{ 'user-agent':'Mozilla/5.0' } });
+    const txt = await rr.text();
+    const ct = rr.headers.get('content-type') || '';
+    if(!ct.includes('json')) throw new Error('upstream not json');
+    const j = JSON.parse(txt);
+    if(Array.isArray(j)){
+      for(const entry of j){
+        for(const ph of (entry.phonetics||[])){ if(ph && ph.text) return String(ph.text); }
+      }
+    }
+  }catch(e){ /* 落到下方兜底 */ }
+  try{
+    const r2 = await fetch('https://tril-suite-cf.pages.dev/api/ipa?word='+encodeURIComponent(word),
+      { headers:{ 'user-agent':'Mozilla/5.0' } });
+    const j2 = await r2.json();
+    if(j2 && j2.ok && j2.ipa) return String(j2.ipa);
+  }catch(e){}
+  return '';
+}
 
 function getIp(req){
   const x = req.headers['x-forwarded-for'];
@@ -238,21 +262,9 @@ async function handleApi(req, res, u){
     if(method==='POST'){ const b = await readBody(req); word = ((b.word||b.text||'')+'').trim(); }
     else { word = (q.get('word')||q.get('text')||'').trim(); }
     if(!word) return sendJSON(res,400,{ok:false, error:'empty word'});
-    try{
-      const rr = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word.toLowerCase()),
-        { headers:{ 'user-agent':'Mozilla/5.0' } });
-      if(rr.status===404) return sendJSON(res,404,{ok:false, error:'not found'});
-      const j = await rr.json();
-      let ipa='';
-      if(Array.isArray(j)){
-        for(const entry of j){
-          for(const ph of (entry.phonetics||[])){ if(ph && ph.text){ ipa = ph.text; break; } }
-          if(ipa) break;
-        }
-      }
-      if(!ipa) return sendJSON(res,404,{ok:false, error:'no ipa'});
-      return sendJSON(res,200,{ok:true, word, ipa});
-    }catch(e){ return sendJSON(res,502,{ok:false, error:'ipa failed: '+e.message}); }
+    const ipa = await lookupIpa(word);
+    if(!ipa) return sendJSON(res,404,{ok:false, error:'no ipa'});
+    return sendJSON(res,200,{ok:true, word, ipa});
   }
 
   // 云端朗读代理（同源兜底，无需密钥，服务端出口不被墙 → 安卓/国内稳定可用）
