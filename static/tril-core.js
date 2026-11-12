@@ -14,7 +14,8 @@
  */
 (function(){
   "use strict";
-  var PARTS_TOTAL = 4;
+  function partsTotal(){ return (window.__TRIL_INDEX__ && window.__TRIL_INDEX__.partRanges && window.__TRIL_INDEX__.partRanges.length) ? window.__TRIL_INDEX__.partRanges.length : 4; }
+  var PARTS_TOTAL = partsTotal();
   var PART_PREFIX = "三语母语习得核心词库.part";
   /* ASCII 别名：Safari 对动态注入的中文文件名脚本可能不触发 onload/onerror，
      导致 await 永久挂起（点单元毫无反应）。优先用 ASCII 名，失败再回退中文名。 */
@@ -55,7 +56,7 @@
   }
 
   function loadPart(k){
-    if(k < 0 || k >= PARTS_TOTAL) return Promise.resolve(null);
+    if(k < 0 || k >= partsTotal()) return Promise.resolve(null);
     if(window.__TRIL_PARTS__[k]) return Promise.resolve(window.__TRIL_PARTS__[k]);
     if(loadPromises[k]) return loadPromises[k];
 
@@ -108,7 +109,7 @@
 
   function assemble(){
     var all = [];
-    for(var k=0;k<PARTS_TOTAL;k++){
+    for(var k=0;k<partsTotal();k++){
       if(window.__TRIL_PARTS__[k]) all = all.concat(window.__TRIL_PARTS__[k]);
     }
     return all;
@@ -118,7 +119,7 @@
     if(readyAll) return readyAll;
     readyAll = (async function(){
       var ps = [];
-      for(var k=0;k<PARTS_TOTAL;k++) ps.push(loadPart(k));
+      for(var k=0;k<partsTotal();k++) ps.push(loadPart(k));
       await Promise.all(ps);
       window.__TRIL_DATA__ = assemble();
       for(var i=0;i<cb.length;i++){ try{ cb[i](); }catch(e){} }

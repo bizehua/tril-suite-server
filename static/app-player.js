@@ -575,7 +575,10 @@ setMode(settings.mode);
 /* ===== 键盘 ===== */
 document.addEventListener("keydown",e=>{
   if(overlay.classList.contains("show")) return;
-  if(e.code==="Space" && cur && document.activeElement.tagName!=="SELECT" && document.activeElement.type!=="range"){
+  // 改为 Ctrl/Cmd+空格 才播放；输入框内一律不拦截
+  var ae=document.activeElement;
+  var inField = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+  if(e.code==="Space" && (e.ctrlKey||e.metaKey) && cur && !inField && !(ae&&ae.type==="range")){
     e.preventDefault(); togglePlay();
   }else if(e.code==="ArrowRight" && cur){ e.preventDefault(); nextWord(); }
   else if(e.code==="ArrowLeft" && cur){ e.preventDefault(); prevWord(); }

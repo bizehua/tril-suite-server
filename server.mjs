@@ -94,6 +94,40 @@ function readBody(req){
     req.on('end', ()=>{ try{ resolve(data?JSON.parse(data):{}); }catch(e){ resolve({}); } });
   });
 }
+
+// ---------- 自定义词库：免密钥翻译 / 英文音标代理（与 Cloudflare Pages Functions 同协议） ----------
+const TRIL_LANG_MAP = { en:'en', bm:'ms', zh:'zh-CN', th:'th' };
+const TRIL_MM_DE = 'tril-suite-nokey@bizehua.app';
+async function mmTranslate(text, fromCode, toCode){
+  const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text)
+    + '&langpair=' + encodeURIComponent(fromCode + '|' + toCode)
+    + '&de=' + encodeURIComponent(TRIL_MM_DE);
+  const r = await fetch(url, { headers:{ 'user-agent':'Mozilla/5.0' } });
+  const j = await r.json();
+  if(!j || j.responseStatus !== 200) throw new Error('status ' + (j && j.responseStatus));
+  let t = (j.responseData && j.responseData.translatedText) || '';
+  if(/MYMEMORY WARNING/i.test(t)) throw new Error('quota');
+  if(t.trim().toLowerCase() === text.trim().toLowerCase() && Array.isArray(j.matches)){
+    for(const m of j.matches){
+      const tr = (m && m.translation) || '';
+      if(tr && tr.trim().toLowerCase() !== text.trim().toLowerCase()){ t = tr; break; }
+    }
+  }
+  return t;
+}
+async function mmTranslateRetry(text, fromCode, toCode){
+  let lastErr;
+  for(let i=0;i<3;i++){
+    try{ return await mmTranslate(text, fromCode, toCode); }
+    catch(e){
+      lastErr = e;
+      if(/status 429/.test(e.message) && i<2){ await new Promise(r=>setTimeout(r,700*(i+1))); continue; }
+      throw e;
+    }
+  }
+  throw lastErr;
+}
+
 function getIp(req){
   const x = req.headers['x-forwarded-for'];
   if(x) return String(x).split(',')[0].trim();
@@ -180,6 +214,46 @@ async function handleApi(req, res, u){
 
   // 健康检查
   if(p==='/api/health'){ return sendJSON(res,200,{ok:true, version:'v20260823-browseredge', time:Date.now()}); }
+
+  // 自定义词库：四语互译（协议与 CF Pages /api/translate 一致）
+  if(p==='/api/translate' && (method==='POST' || method==='GET')){
+    let text='', from='en';
+    if(method==='POST'){ const b = await readBody(req); text = ((b.text||'')+'').trim(); from = b.from || 'en'; }
+    else { text = (q.get('text')||'').trim(); from = q.get('from') || 'en'; }
+    if(!text) return sendJSON(res,400,{ok:false, error:'empty text'});
+    if(!TRIL_LANG_MAP[from]) return sendJSON(res,400,{ok:false, error:'unknown from: '+from});
+    const out = { en:'', bm:'', zh:'', th:'' }; out[from] = text;
+    try{
+      for(const k of ['en','bm','zh','th']){
+        if(k === from) continue;
+        out[k] = await mmTranslateRetry(text, TRIL_LANG_MAP[from], TRIL_LANG_MAP[k]);
+      }
+      return sendJSON(res,200,{ok:true, from, results:out});
+    }catch(e){ return sendJSON(res,502,{ok:false, error:'translate failed: '+e.message}); }
+  }
+
+  // 自定义词库：英文音标（协议与 CF Pages /api/ipa 一致）
+  if(p==='/api/ipa' && (method==='POST' || method==='GET')){
+    let word='';
+    if(method==='POST'){ const b = await readBody(req); word = ((b.word||b.text||'')+'').trim(); }
+    else { word = (q.get('word')||q.get('text')||'').trim(); }
+    if(!word) return sendJSON(res,400,{ok:false, error:'empty word'});
+    try{
+      const rr = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word.toLowerCase()),
+        { headers:{ 'user-agent':'Mozilla/5.0' } });
+      if(rr.status===404) return sendJSON(res,404,{ok:false, error:'not found'});
+      const j = await rr.json();
+      let ipa='';
+      if(Array.isArray(j)){
+        for(const entry of j){
+          for(const ph of (entry.phonetics||[])){ if(ph && ph.text){ ipa = ph.text; break; } }
+          if(ipa) break;
+        }
+      }
+      if(!ipa) return sendJSON(res,404,{ok:false, error:'no ipa'});
+      return sendJSON(res,200,{ok:true, word, ipa});
+    }catch(e){ return sendJSON(res,502,{ok:false, error:'ipa failed: '+e.message}); }
+  }
 
   // 云端朗读代理（同源兜底，无需密钥，服务端出口不被墙 → 安卓/国内稳定可用）
   // 优先级：指定 voice（Edge TTS 神经男/女声）→ Google 翻译 TTS 单语音兜底。

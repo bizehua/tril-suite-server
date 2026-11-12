@@ -558,7 +558,10 @@ function rebuildFlat(){ flat=[]; DATA.stages.forEach((st,si)=>st.files.forEach((
 document.addEventListener("keydown",e=>{
   if(overlay.classList.contains("show")) return;
   if(!studyActive) return;
-  if(e.code==="Space"){ e.preventDefault(); flip(); }
+  // 改为 Ctrl/Cmd+空格 才翻面；输入框内一律不拦截
+  var ae=document.activeElement;
+  var inField = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+  if(e.code==="Space" && (e.ctrlKey||e.metaKey) && !inField){ e.preventDefault(); flip(); }
   else if(e.code==="ArrowRight"){ e.preventDefault(); next(); }
   else if(e.code==="ArrowLeft"){ e.preventDefault(); prev(); }
   else if(e.key==="1"){ rate("unknown"); }
