@@ -65,6 +65,30 @@
     .unit { box-shadow:none; border:1px solid #ccc; break-inside:avoid; }
     thead th { position:static; }
   }
+
+  /* ===== 桌面端专用（>820px）：音标手册 7 列完整可见 =====
+     原表格为 auto 布局，且 .bm/.ipa 禁止换行，浏览器把宽度全分给这两列
+     （实测 327px / 450px），音节与谐音列被压成竖排，英文列被挤出容器。
+     这里改为固定列宽 + 允许换行，使表格总宽恒等于容器宽度。
+     全部规则都在 min-width:821px 内，<=820px 的手机/平板布局完全不受影响。 */
+  @media (min-width:821px) {
+    main { max-width:1400px; }
+    .unit table { table-layout:fixed; width:100%; }
+    .unit table th:nth-child(1), .unit table td:nth-child(1) { width:4%; }
+    .unit table th:nth-child(2), .unit table td:nth-child(2) { width:17%; }
+    .unit table th:nth-child(3), .unit table td:nth-child(3) { width:15%; }
+    .unit table th:nth-child(4), .unit table td:nth-child(4) { width:20%; }
+    .unit table th:nth-child(5), .unit table td:nth-child(5) { width:12%; }
+    .unit table th:nth-child(6), .unit table td:nth-child(6) { width:12%; }
+    .unit table th:nth-child(7), .unit table td:nth-child(7) { width:20%; }
+    .unit table td {
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .unit table td.bm, .unit table td.ipa { white-space:normal; }
+    .unit .tablewrap { overflow-x:auto; }
+  }
 </style>
 
 <link rel="stylesheet" href="tril-mobile.css">
@@ -1484,7 +1508,7 @@ html {
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v137';
+  var BUILD = 'tril-pwa-v138';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
