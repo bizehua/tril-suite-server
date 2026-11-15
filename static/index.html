@@ -404,9 +404,9 @@ html {
   <div class="badges" data-page-node-id="kcW52FWVXQrlH9esKjHCJ0"><span class="badge" data-page-node-id="oCXCGm5MEPf2AYcHz4snbz">PWA 可安装<span class="i18n-bm-sm">Boleh Pasang PWA</span></span><span class="badge" data-page-node-id="GCmv8hMoAmXwens4HgCFRe">iOS · 安卓 · 平板</span><span class="badge" data-page-node-id="KHf7prKbkl7CR67xsZidEb">扫码即用</span></div>
   <h2 data-page-node-id="K8FRwGvbK9NFgqMC91NozN">📲 安装到手机 / 平板<span class="i18n-bm">📲 Pasang ke Telefon / Tablet</span></h2>
   <div class="qrwrap" data-page-node-id="QTFcyBZEbM3l9x0foKGjFW">
-    <img src="扫码安装.png" alt="扫码打开" data-page-node-id="nxZqWa0Q63VgAIQEmuHTkK">
+    <img src="qr-install-main.png" alt="扫码打开" data-page-node-id="nxZqWa0Q63VgAIQEmuHTkK">
     <ol data-page-node-id="59EQedwTlcqSgGFbIYgFcQ">
-      <li data-page-node-id="CAcfNpQ3KTDFZpijTv2CRE">用 iPhone/iPad 的 <strong data-page-node-id="j5yVxgcJrRnO1YrqxWOFcY">Safari</strong>，或安卓的 <strong data-page-node-id="BWpa707AEF6VZJgDOoDKdC">Chrome</strong> 扫描二维码，打开本页。<span class="i18n-bm">Guna Safari (iPhone/iPad) atau Chrome (Android) imbas kod QR untuk buka halaman ini.</span></li>
+      <li data-page-node-id="CAcfNpQ3KTDFZpijTv2CRE">用 iPhone/iPad 的 <strong data-page-node-id="j5yVxgcJrRnO1YrqxWOFcY">Safari</strong>，或安卓的 <strong data-page-node-id="BWpa707AEF6VZJgDOoDKdC">Chrome</strong> 扫描二维码，在手机上打开本站首页。<span class="i18n-bm">Guna Safari (iPhone/iPad) atau Chrome (Android) imbas kod QR untuk buka laman utama ini.</span></li>
       <li data-page-node-id="31imAv0743K2lc2CeuPCKj">点击下方卡片进入「学习器」「测试器」「快速播放器」「闪记」「复习」或「错题专练」。<span class="i18n-bm">Klik kad di bawah untuk masuk "Pembelajaran", "Ujian", "Pemain Pantas", "Kad Kilat", "Ulangkaji" atau "Latihan Salah".</span></li>
       <li data-page-node-id="ncm9VuHpgikynG1rN0cVST"><strong data-page-node-id="EbltjGFRyFD9u0b5pNQTvz">添加到主屏幕</strong>：iOS 点底部分享按钮 →「添加到主屏幕」；安卓 Chrome 点菜单 →「安装应用」。<span class="i18n-bm"><strong>Tambah ke Skrin Utama</strong>: iOS - butang Kongsi → "Tambah ke Skrin Utama"; Android Chrome - menu → "Pasang Aplikasi".</span></li>
       <li data-page-node-id="HkXgnZGAMSUkjiXqZchXCm">之后主屏幕就会出现 App 图标，点开即全屏使用，就像原生 App 一样。<span class="i18n-bm">Selepas itu ikon aplikasi muncul di skrin utama, buka untuk skrin penuh macam aplikasi asli.</span></li>
@@ -1068,7 +1068,7 @@ if ('serviceWorker' in navigator) {
 <script>
 /* ===== 版本自检：检测 Service Worker 缓存的旧版本，提示刷新 ===== */
 (function(){
-  var BUILD = 'tril-pwa-v136';
+  var BUILD = 'tril-pwa-v137';
   window.__TRIL_BUILD = BUILD;   /* 供调试/自检读取 */
   function currentSWVersion(){
     return fetch('./sw.js?probe=' + Date.now(), {cache:'no-store'})
